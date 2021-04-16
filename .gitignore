@@ -107,9 +107,7 @@ iOSInjectionProject/
 !*.xcodeproj/xcshareddata/
 !*.xcworkspace/contents.xcworkspacedata
 **/xcshareddata/WorkspaceSettings.xcsettings
-Addame/Configs/Production.xcconfig
 vendor
 .bundle/config
-Addame/ExprimentViews
 Addame/Configs/Development.xcconfig
-Addame/Config/Production.xcconfig
+Addame/Configs/Production.xcconfig
