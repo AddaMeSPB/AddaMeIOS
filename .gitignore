@@ -112,3 +112,4 @@ vendor
 .bundle/config
 Addame/ExprimentViews
 Addame/Configs/Development.xcconfig
+Addame/Config/Production.xcconfig
