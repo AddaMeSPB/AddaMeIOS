@@ -194,7 +194,6 @@ struct ProfileView_Previews: PreviewProvider {
   static var previews: some View {
     Group {
       ProfileView(store: store)
-        .environment(\.colorScheme, .dark)
       
       ProfileView(store: store)
         .environment(\.colorScheme, .dark)
