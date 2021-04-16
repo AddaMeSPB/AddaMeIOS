@@ -1,0 +1,24 @@
+//
+//  Development.xcconfig
+//  AddaMeIOS
+//
+//  Created by Saroar Khandoker on 02.11.2020.
+//
+
+// Configuration settings file format documentation can be found at:
+// https://help.apple.com/xcode/#/dev745c5c974
+
+// Server URL
+//ROOT_URL = http:/$()/10.0.1.3:8080/v1
+//WEB_SOCKET_URL = ws:/$()/10.0.1.3:6060/v1/chat
+
+// Cafe IP
+//ROOT_URL = http:/$()/192.168.1.123:8080/v1
+//WEB_SOCKET_URL = ws:/$()/192.168.1.123:6060/v1/chat
+
+ROOT_URL = http:/$()/192.168.1.31:8080/v1
+WEB_SOCKET_URL = ws:/$()/192.168.1.31:6060/v1/chat
+
+// Image Uploading to DigitalOcen
+ACCESS_KEY_ID = Z4R4QP36Q4JH3LZXU4BC
+SECRET_ACCESS_KEY = +RqibSk+I6D1/9Tdpm/afnpUuHaBP2lV4Rg+HKAYbRE

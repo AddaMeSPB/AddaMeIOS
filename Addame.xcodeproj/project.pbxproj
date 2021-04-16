@@ -1,0 +1,479 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 52;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		C33DFAB5261F05A000132010 /* AddameSPM in Frameworks */ = {isa = PBXBuildFile; productRef = C33DFAB4261F05A000132010 /* AddameSPM */; };
+		C33DFABE261F1A9700132010 /* ProductionCopy.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = C33DFABA261F1A9700132010 /* ProductionCopy.xcconfig */; };
+		C33DFABF261F1A9700132010 /* Production.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = C33DFABB261F1A9700132010 /* Production.xcconfig */; };
+		C33DFAC0261F1A9700132010 /* DevelopmentCopy.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = C33DFABC261F1A9700132010 /* DevelopmentCopy.xcconfig */; };
+		C33DFAC1261F1A9700132010 /* Development.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = C33DFABD261F1A9700132010 /* Development.xcconfig */; };
+		C33DFAC8261F1B4100132010 /* Environment.swift in Sources */ = {isa = PBXBuildFile; fileRef = C33DFAC7261F1B4100132010 /* Environment.swift */; };
+		C3E50CA0261B5DFA00285977 /* Addame.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3E50C9F261B5DFA00285977 /* Addame.swift */; };
+		C3E50CA4261B5DFF00285977 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C3E50CA3261B5DFF00285977 /* Assets.xcassets */; };
+		C3E50CA7261B5DFF00285977 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C3E50CA6261B5DFF00285977 /* Preview Assets.xcassets */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		C33DFABA261F1A9700132010 /* ProductionCopy.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = ProductionCopy.xcconfig; sourceTree = "<group>"; };
+		C33DFABB261F1A9700132010 /* Production.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = Production.xcconfig; sourceTree = "<group>"; };
+		C33DFABC261F1A9700132010 /* DevelopmentCopy.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = DevelopmentCopy.xcconfig; sourceTree = "<group>"; };
+		C33DFABD261F1A9700132010 /* Development.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = Development.xcconfig; sourceTree = "<group>"; };
+		C33DFAC7261F1B4100132010 /* Environment.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Environment.swift; sourceTree = "<group>"; };
+		C33DFACA261F1D2000132010 /* PhoneNumberCommon */ = {isa = PBXFileReference; lastKnownFileType = folder; path = PhoneNumberCommon; sourceTree = "<group>"; };
+		C33DFADA261F3DB600132010 /* AddaMeModels */ = {isa = PBXFileReference; lastKnownFileType = folder; path = AddaMeModels; sourceTree = "<group>"; };
+		C33DFADB261F3DC300132010 /* SwiftUIExtension */ = {isa = PBXFileReference; lastKnownFileType = folder; path = SwiftUIExtension; sourceTree = "<group>"; };
+		C33DFADC261F3DC300132010 /* CoreDataStore */ = {isa = PBXFileReference; lastKnownFileType = folder; path = CoreDataStore; sourceTree = "<group>"; };
+		C33DFADD261F3DC300132010 /* KeychainService */ = {isa = PBXFileReference; lastKnownFileType = folder; path = KeychainService; sourceTree = "<group>"; };
+		C33DFADE261F3DC300132010 /* FuncNetworking */ = {isa = PBXFileReference; lastKnownFileType = folder; path = FuncNetworking; sourceTree = "<group>"; };
+		C33DFADF261F3DC300132010 /* CombineContacts */ = {isa = PBXFileReference; lastKnownFileType = folder; path = CombineContacts; sourceTree = "<group>"; };
+		C33DFAE0261F3DC400132010 /* InfoPlist */ = {isa = PBXFileReference; lastKnownFileType = folder; path = InfoPlist; sourceTree = "<group>"; };
+		C33DFAE1261F3DC400132010 /* FoundationExtension */ = {isa = PBXFileReference; lastKnownFileType = folder; path = FoundationExtension; sourceTree = "<group>"; };
+		C33DFAE2261F3DC400132010 /* AsyncImageLoder */ = {isa = PBXFileReference; lastKnownFileType = folder; path = AsyncImageLoder; sourceTree = "<group>"; };
+		C3414C23261F406600278CED /* ContactClient */ = {isa = PBXFileReference; lastKnownFileType = folder; path = ContactClient; sourceTree = "<group>"; };
+		C3414C24261F406600278CED /* PathMonitorClient */ = {isa = PBXFileReference; lastKnownFileType = folder; path = PathMonitorClient; sourceTree = "<group>"; };
+		C3414C25261F406600278CED /* ConversationClient */ = {isa = PBXFileReference; lastKnownFileType = folder; path = ConversationClient; sourceTree = "<group>"; };
+		C3414C26261F406600278CED /* CoreDataClient */ = {isa = PBXFileReference; lastKnownFileType = folder; path = CoreDataClient; sourceTree = "<group>"; };
+		C3414C27261F406600278CED /* EventClient */ = {isa = PBXFileReference; lastKnownFileType = folder; path = EventClient; sourceTree = "<group>"; };
+		C3414C28261F406600278CED /* ChatClient */ = {isa = PBXFileReference; lastKnownFileType = folder; path = ChatClient; sourceTree = "<group>"; };
+		C3414C29261F406700278CED /* WebsocketClient */ = {isa = PBXFileReference; lastKnownFileType = folder; path = WebsocketClient; sourceTree = "<group>"; };
+		C3414C2A261F406700278CED /* AuthClient */ = {isa = PBXFileReference; lastKnownFileType = folder; path = AuthClient; sourceTree = "<group>"; };
+		C3414C2B261F406700278CED /* UserClient */ = {isa = PBXFileReference; lastKnownFileType = folder; path = UserClient; sourceTree = "<group>"; };
+		C3414C2C261F406800278CED /* AttachmentClient */ = {isa = PBXFileReference; lastKnownFileType = folder; path = AttachmentClient; sourceTree = "<group>"; };
+		C3414C2E261F41A600278CED /* ContactsView */ = {isa = PBXFileReference; lastKnownFileType = folder; path = ContactsView; sourceTree = "<group>"; };
+		C3C22FDF261F031C0003FCC0 /* AddameSPM */ = {isa = PBXFileReference; lastKnownFileType = folder; path = AddameSPM; sourceTree = "<group>"; };
+		C3E50C9C261B5DFA00285977 /* Addame.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Addame.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		C3E50C9F261B5DFA00285977 /* Addame.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Addame.swift; sourceTree = "<group>"; };
+		C3E50CA3261B5DFF00285977 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		C3E50CA6261B5DFF00285977 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
+		C3E50CA8261B5DFF00285977 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		C3E50CB0261B5EC700285977 /* Tabs */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Tabs; sourceTree = "<group>"; };
+		C3E50CB2261B5F2400285977 /* Common */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Common; sourceTree = "<group>"; };
+		C3E50CB5261B608600285977 /* EventView */ = {isa = PBXFileReference; lastKnownFileType = folder; path = EventView; sourceTree = "<group>"; };
+		C3E50CB7261B617800285977 /* ChatView */ = {isa = PBXFileReference; lastKnownFileType = folder; path = ChatView; sourceTree = "<group>"; };
+		C3E50CB9261B619C00285977 /* ProfileView */ = {isa = PBXFileReference; lastKnownFileType = folder; path = ProfileView; sourceTree = "<group>"; };
+		C3E50CDD261DA43C00285977 /* AuthenticationCore */ = {isa = PBXFileReference; lastKnownFileType = folder; path = AuthenticationCore; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		C3E50C99261B5DFA00285977 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C33DFAB5261F05A000132010 /* AddameSPM in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		C33DFAB9261F1A7A00132010 /* Config */ = {
+			isa = PBXGroup;
+			children = (
+				C33DFAC7261F1B4100132010 /* Environment.swift */,
+				C33DFABD261F1A9700132010 /* Development.xcconfig */,
+				C33DFABC261F1A9700132010 /* DevelopmentCopy.xcconfig */,
+				C33DFABB261F1A9700132010 /* Production.xcconfig */,
+				C33DFABA261F1A9700132010 /* ProductionCopy.xcconfig */,
+			);
+			path = Config;
+			sourceTree = "<group>";
+		};
+		C3BB96D0261DA9B000A8ADB1 /* Domains */ = {
+			isa = PBXGroup;
+			children = (
+				C33DFADA261F3DB600132010 /* AddaMeModels */,
+			);
+			path = Domains;
+			sourceTree = "<group>";
+		};
+		C3C22FD5261EFFA20003FCC0 /* Core */ = {
+			isa = PBXGroup;
+			children = (
+				C33DFAE2261F3DC400132010 /* AsyncImageLoder */,
+				C33DFADF261F3DC300132010 /* CombineContacts */,
+				C3E50CB2261B5F2400285977 /* Common */,
+				C33DFADC261F3DC300132010 /* CoreDataStore */,
+				C33DFAE1261F3DC400132010 /* FoundationExtension */,
+				C33DFADE261F3DC300132010 /* FuncNetworking */,
+				C33DFAE0261F3DC400132010 /* InfoPlist */,
+				C33DFADD261F3DC300132010 /* KeychainService */,
+				C33DFACA261F1D2000132010 /* PhoneNumberCommon */,
+				C33DFADB261F3DC300132010 /* SwiftUIExtension */,
+			);
+			path = Core;
+			sourceTree = "<group>";
+		};
+		C3C22FE1261F03980003FCC0 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				C3414C2C261F406800278CED /* AttachmentClient */,
+				C3414C2A261F406700278CED /* AuthClient */,
+				C3414C28261F406600278CED /* ChatClient */,
+				C3414C23261F406600278CED /* ContactClient */,
+				C3414C25261F406600278CED /* ConversationClient */,
+				C3414C26261F406600278CED /* CoreDataClient */,
+				C3414C27261F406600278CED /* EventClient */,
+				C3414C24261F406600278CED /* PathMonitorClient */,
+				C3414C2B261F406700278CED /* UserClient */,
+				C3414C29261F406700278CED /* WebsocketClient */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		C3E50C93261B5DFA00285977 = {
+			isa = PBXGroup;
+			children = (
+				C3E50C9E261B5DFA00285977 /* Addame */,
+				C3E50C9D261B5DFA00285977 /* Products */,
+				C3E50CC2261C4E2900285977 /* Frameworks */,
+			);
+			sourceTree = "<group>";
+		};
+		C3E50C9D261B5DFA00285977 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				C3E50C9C261B5DFA00285977 /* Addame.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		C3E50C9E261B5DFA00285977 /* Addame */ = {
+			isa = PBXGroup;
+			children = (
+				C33DFAB9261F1A7A00132010 /* Config */,
+				C3C22FDF261F031C0003FCC0 /* AddameSPM */,
+				C3E50CAF261B5EA800285977 /* Modules */,
+				C3E50C9F261B5DFA00285977 /* Addame.swift */,
+				C3E50CA3261B5DFF00285977 /* Assets.xcassets */,
+				C3E50CA8261B5DFF00285977 /* Info.plist */,
+				C3E50CA5261B5DFF00285977 /* Preview Content */,
+			);
+			path = Addame;
+			sourceTree = "<group>";
+		};
+		C3E50CA5261B5DFF00285977 /* Preview Content */ = {
+			isa = PBXGroup;
+			children = (
+				C3E50CA6261B5DFF00285977 /* Preview Assets.xcassets */,
+			);
+			path = "Preview Content";
+			sourceTree = "<group>";
+		};
+		C3E50CAF261B5EA800285977 /* Modules */ = {
+			isa = PBXGroup;
+			children = (
+				C3C22FE1261F03980003FCC0 /* Services */,
+				C3C22FD5261EFFA20003FCC0 /* Core */,
+				C3BB96D0261DA9B000A8ADB1 /* Domains */,
+				C3E50CB4261B605400285977 /* Views */,
+			);
+			path = Modules;
+			sourceTree = "<group>";
+		};
+		C3E50CB4261B605400285977 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				C3E50CDD261DA43C00285977 /* AuthenticationCore */,
+				C3E50CB7261B617800285977 /* ChatView */,
+				C3414C2E261F41A600278CED /* ContactsView */,
+				C3E50CB5261B608600285977 /* EventView */,
+				C3E50CB9261B619C00285977 /* ProfileView */,
+				C3E50CB0261B5EC700285977 /* Tabs */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		C3E50CC2261C4E2900285977 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		C3E50C9B261B5DFA00285977 /* Addame */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C3E50CAB261B5DFF00285977 /* Build configuration list for PBXNativeTarget "Addame" */;
+			buildPhases = (
+				C3E50C98261B5DFA00285977 /* Sources */,
+				C3E50C99261B5DFA00285977 /* Frameworks */,
+				C3E50C9A261B5DFA00285977 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Addame;
+			packageProductDependencies = (
+				C33DFAB4261F05A000132010 /* AddameSPM */,
+			);
+			productName = TComposableAAddaMe;
+			productReference = C3E50C9C261B5DFA00285977 /* Addame.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		C3E50C94261B5DFA00285977 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastSwiftUpdateCheck = 1240;
+				LastUpgradeCheck = 1240;
+				TargetAttributes = {
+					C3E50C9B261B5DFA00285977 = {
+						CreatedOnToolsVersion = 12.4;
+					};
+				};
+			};
+			buildConfigurationList = C3E50C97261B5DFA00285977 /* Build configuration list for PBXProject "Addame" */;
+			compatibilityVersion = "Xcode 9.3";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = C3E50C93261B5DFA00285977;
+			productRefGroup = C3E50C9D261B5DFA00285977 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				C3E50C9B261B5DFA00285977 /* Addame */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		C3E50C9A261B5DFA00285977 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C33DFAC1261F1A9700132010 /* Development.xcconfig in Resources */,
+				C3E50CA7261B5DFF00285977 /* Preview Assets.xcassets in Resources */,
+				C33DFABF261F1A9700132010 /* Production.xcconfig in Resources */,
+				C3E50CA4261B5DFF00285977 /* Assets.xcassets in Resources */,
+				C33DFABE261F1A9700132010 /* ProductionCopy.xcconfig in Resources */,
+				C33DFAC0261F1A9700132010 /* DevelopmentCopy.xcconfig in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		C3E50C98261B5DFA00285977 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C3E50CA0261B5DFA00285977 /* Addame.swift in Sources */,
+				C33DFAC8261F1B4100132010 /* Environment.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		C3E50CA9261B5DFF00285977 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = C33DFABD261F1A9700132010 /* Development.xcconfig */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.1;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		C3E50CAA261B5DFF00285977 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = C33DFABB261F1A9700132010 /* Production.xcconfig */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.1;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		C3E50CAC261B5DFF00285977 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = C33DFABD261F1A9700132010 /* Development.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_ASSET_PATHS = "\"Addame/Preview Content\"";
+				DEVELOPMENT_TEAM = 6989658CU5;
+				ENABLE_PREVIEWS = YES;
+				INFOPLIST_FILE = AddaMe/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.addame.AddaMeIOS;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		C3E50CAD261B5DFF00285977 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = C33DFABB261F1A9700132010 /* Production.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_ASSET_PATHS = "\"Addame/Preview Content\"";
+				DEVELOPMENT_TEAM = 6989658CU5;
+				ENABLE_PREVIEWS = YES;
+				INFOPLIST_FILE = AddaMe/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.addame.AddaMeIOS;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		C3E50C97261B5DFA00285977 /* Build configuration list for PBXProject "Addame" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C3E50CA9261B5DFF00285977 /* Debug */,
+				C3E50CAA261B5DFF00285977 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		C3E50CAB261B5DFF00285977 /* Build configuration list for PBXNativeTarget "Addame" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C3E50CAC261B5DFF00285977 /* Debug */,
+				C3E50CAD261B5DFF00285977 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		C33DFAB4261F05A000132010 /* AddameSPM */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = AddameSPM;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = C3E50C94261B5DFA00285977 /* Project object */;
+}

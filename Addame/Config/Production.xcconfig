@@ -1,0 +1,18 @@
+//
+//  Production.xcconfig
+//  AddaMeIOS
+//
+//  Created by Saroar Khandoker on 11.11.2020.
+//
+
+// Configuration settings file format documentation can be found at:
+// https://help.apple.com/xcode/#/dev745c5c974
+
+ROOT_URL = https:/$()/addame.com/v1
+WEB_SOCKET_URL = ws:/$()/167.99.251.49:6060/v1/chat
+
+// Image Uploading to DigitalOcen
+ACCESS_KEY_ID = Z4R4QP36Q4JH3LZXU4BC
+SECRET_ACCESS_KEY = +RqibSk+I6D1/9Tdpm/afnpUuHaBP2lV4Rg+HKAYbRE
+
+//curl -H "Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdGF0dXMiOjAsImV4cCI6MTYxMzY1NTIzNiwiaWF0IjoxNjA1MTAxNjM2LCJ1c2VySWQiOiI1ZmFiYjA1ZDI0NzBjMTc5MTliM2MwZTIiLCJwaG9uZU51bWJlciI6Iis3OTIxODgyMTIxOSJ9.ZM1Mwd1pPAUFUAd3hyVIopuiQxGakiAHruG9Rdf7-jUfJlij_Xij3BqtG-E9PGvQ79t4cyPSG2BT41sg2nw3lbWtvubojjBCGLWyfdeFOoIfXyS_y6aT07gB8nQBft2o7jEpergO39eIxRl00Tdm9s_NJjERoeBUK3mm9kBmEypUajn21jY7RYG0ufofChVaKpZKuQRYWWA4Jr6561XzE7TEq8BTjdOsro6RnoA2sVMQAwn_OUd8jNrHv6oQNVkeB-wGeig-5fJh6XYgU5qDW9BA0ddQM1eNneuUrsgHAkbncfzsgecM4QO7ST8ewXRx-KkQRKfFCDmO51T8Uo_E6A" 0.0.0.0:9090/v1/events
