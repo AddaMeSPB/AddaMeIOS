@@ -67,7 +67,7 @@ public struct ProfileView: View {
             )
         }
         
-        if viewStore.state.user.attachments != nil {
+        if viewStore.state.user.lastAvatarURLString != nil {
           AsyncImage(
             urlString: viewStore.state.user.lastAvatarURLString!,
             placeholder: {

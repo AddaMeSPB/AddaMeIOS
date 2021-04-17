@@ -25,13 +25,15 @@ let package = Package(
     .package(path: "\(Path.Container.core)/Common"),
     .package(path: "\(Path.Container.core)/PhoneNumberCommon"),
     .package(path: "\(Path.Container.domains)/AddaMeModels"),
-    .package(path: "\(Path.Container.services)/AuthClient")
+    .package(path: "\(Path.Container.services)/AuthClient"),
+    .package(path: "\(Path.Container.core)/KeychainService"),
   ],
   targets: [
     .target(
       name: "AuthenticationCore",
       dependencies: [
         "Common", "PhoneNumberCommon", "AddaMeModels", "AuthClient",
+        "KeychainService", 
         .product(name: "AuthClientLive", package: "AuthClient"),
       ]),
     .testTarget(

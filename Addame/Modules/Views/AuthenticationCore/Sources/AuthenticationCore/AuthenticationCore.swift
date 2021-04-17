@@ -7,6 +7,7 @@ import PhoneNumberKit
 import AddaMeModels
 import AuthClient
 import AuthClientLive
+import KeychainService
 
 struct AuthenticationCore {}
 
@@ -24,7 +25,6 @@ public struct LoginState: Equatable {
   public var isLoginRequestInFlight = false
   @AppStorage("isAuthorized") public var isAuthorized: Bool = false
   @AppStorage("isUserFirstNameEmpty") public var isUserFirstNameEmpty: Bool = true
-  public var isValidPhoneNumber: Bool = false
   public var showTermsSheet: Bool = false
   public var showPrivacySheet: Bool = false
 }
@@ -33,8 +33,7 @@ public enum LoginAction: Equatable {
   case alertDismissed
   case showTermsSheet
   case showPrivacySheet
-  case sendPhoneNumberButtonTapped
-  case loginRequest(String)
+  case sendPhoneNumberButtonTapped(String)
   case verificationRequest(String)
   case loninResponse(Result<AuthResponse, HTTPError>)
   case verificationResponse(Result<LoginRes, HTTPError>)
@@ -58,19 +57,20 @@ public let loginReducer = Reducer<LoginState, LoginAction, AuthenticationEnviron
   case .alertDismissed:
     state.alert = nil
     return .none
-  case .sendPhoneNumberButtonTapped:
+  case .sendPhoneNumberButtonTapped(let phoneNumber):
     state.isLoginRequestInFlight = true
+    
+    let phoneNumberKit = PhoneNumberKit()
+    let parseNumber = try? phoneNumberKit.parse(phoneNumber)
+    let e164PhoneNumber = phoneNumberKit.format(parseNumber!, toType: .e164)
+    
+    state.authResponse.phoneNumber = e164PhoneNumber
     
     return environment.authClient
       .login(state.authResponse)
       .receive(on: environment.mainQueue)
       .catchToEffect()
       .map(LoginAction.loninResponse)
-    
-  case let .loginRequest(phoneNumber):
-    state.authResponse.phoneNumber = phoneNumber
-    
-    return .none
     
   case let .verificationRequest(code):
     if code.count == 6 {
@@ -95,19 +95,22 @@ public let loginReducer = Reducer<LoginState, LoginAction, AuthenticationEnviron
   case .loninResponse(.failure(let error)):
     state.isLoginRequestInFlight = false
     state.isValidationCodeIsSend = false
-    state.alert = .init(title: TextState(error.localizedDescription))
+    state.alert = .init(title: TextState(error.description))
     
     return .none
     
   case .verificationResponse(.success(let loginRes)):
+  
     state.isLoginRequestInFlight = false
     state.isAuthorized = true
     state.isUserFirstNameEmpty = loginRes.user.firstName == nil ? false : true
-//    saveCurrentUserAndToken(loginRes)
+  
+    KeychainService.save(codable: loginRes.user, for: .user)
+    KeychainService.save(codable: loginRes.access, for: .token)
     return .none
   
   case .verificationResponse(.failure(let error)):
-    state.alert = .init(title: TextState(error.localizedDescription))
+    state.alert = .init(title: TextState(error.description))
     state.isLoginRequestInFlight = false
     
     return .none
@@ -119,12 +122,7 @@ public let loginReducer = Reducer<LoginState, LoginAction, AuthenticationEnviron
   case .showPrivacySheet:
     state.showPrivacySheet = true
     return .none
-    
+
   }
   
 }
-
-//private func saveCurrentUserAndToken(_ res: LoginRes) {
-//  KeychainService.save(codable: res.user, for: .user)
-//  KeychainService.save(codable: res.access, for: .token)
-//}

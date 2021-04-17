@@ -127,7 +127,7 @@ public let profileReducer = Reducer<ProfileState, ProfileAction, ProfileEnvironm
     
   case .userResponse(.failure(let error)):
     state.isUploadingImage = false
-    state.alert = .init(title: TextState( "\(#line) \(error.reason.debugDescription)"))
+    state.alert = .init(title: TextState( "\(#line) \(error.description)"))
     return .none
     
   case .attacmentResponse(.success(let attachmentResponse)):
@@ -141,7 +141,7 @@ public let profileReducer = Reducer<ProfileState, ProfileAction, ProfileEnvironm
     
   case .attacmentResponse(.failure(let error)):
     state.isUploadingImage = false
-    state.alert = .init(title: TextState( "\(#line) error.reason?.localizedDescription"))
+    state.alert = .init(title: TextState( "\(#line) \(error.description)"))
     return .none
     
   case .myEventsResponse(_):

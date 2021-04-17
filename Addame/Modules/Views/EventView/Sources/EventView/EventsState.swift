@@ -11,9 +11,24 @@ import ComposableCoreLocation
 import MapKit
 
 public struct EventsState: Equatable {
-  public init(alert: AlertState<EventsAction>? = nil, isPresentingEventForm: Bool = false, isConnected: Bool = true, isLocationAuthorized: Bool = false, isRequestingCurrentLocation: Bool = false, waitingForUpdateLocation: Bool = true, isLoadingPage: Bool = false, canLoadMorePages: Bool = true, currentPage: Int = 1, fetchAddress: String = "", currentEventPlace: EventResponse.Item = EventResponse.Item.draff, location: Location? = nil, eventFormState: EventFormState? = nil, events: [EventResponse.Item] = [], myEvents: [EventResponse.Item] = [], eventDetails: EventResponse.Item? = nil) {
+  public init(
+    alert: AlertState<EventsAction>? = nil,
+    isConnected: Bool = true,
+    isLocationAuthorized: Bool = false,
+    isRequestingCurrentLocation: Bool = false,
+    waitingForUpdateLocation: Bool = true,
+    isLoadingPage: Bool = false,
+    canLoadMorePages: Bool = true,
+    currentPage: Int = 1,
+    fetchAddress: String = "",
+    currentEventPlace: EventResponse.Item = EventResponse.Item.draff,
+    location: Location? = nil,
+    eventFormState: EventFormState? = nil,
+    events: [EventResponse.Item] = [],
+    myEvents: [EventResponse.Item] = [],
+    eventDetails: EventResponse.Item? = nil
+  ) {
     self.alert = alert
-    self.isPresentingEventForm = isPresentingEventForm
     self.isConnected = isConnected
     self.isLocationAuthorized = isLocationAuthorized
     self.isRequestingCurrentLocation = isRequestingCurrentLocation
@@ -31,7 +46,6 @@ public struct EventsState: Equatable {
   }
   
   public var alert: AlertState<EventsAction>?
-  public var isPresentingEventForm = false
   public var isConnected = true
   public var isLocationAuthorized = false
   public var isRequestingCurrentLocation = false
@@ -43,18 +57,18 @@ public struct EventsState: Equatable {
   public var fetchAddress = ""
   public var currentEventPlace = EventResponse.Item.draff
   public var location: Location?
-  public var eventFormState: EventFormState?
   public var events: [EventResponse.Item] = []
   public var myEvents: [EventResponse.Item] = []
   public var eventDetails: EventResponse.Item?
   
+  public var eventFormState: EventFormState?
 }
+
 
 extension EventsState {  
   var view: EventView.ViewState {
     EventView.ViewState(
       alert: self.alert,
-      isPresentingEventForm: self.isPresentingEventForm,
       isConnected: self.isConnected,
       isLocationAuthorized: self.isLocationAuthorized,
       waitingForUpdateLocation: self.waitingForUpdateLocation,
@@ -62,7 +76,8 @@ extension EventsState {
       events: self.events,
       myEvents: self.myEvents,
       eventDetails: self.eventDetails,
-      isLoadingPage: self.isLoadingPage
+      isLoadingPage: self.isLoadingPage,
+      eventFormState: self.eventFormState
     )
   }
 }

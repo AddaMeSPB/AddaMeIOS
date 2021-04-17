@@ -7,7 +7,6 @@
 
 import SwiftUI
 import ComposableArchitecture
-import Common
 import PhoneNumberKit
 import AddaMeModels
 import AuthClient
@@ -37,7 +36,7 @@ public struct PhoneNumberTextFieldView: UIViewRepresentable, Equatable {
     return phoneTextField
   }
   
-  func getCurrentText() {
+  public func getCurrentText() {
     self.phoneNumber = phoneTextField.text!
   }
   
@@ -63,6 +62,7 @@ public struct AuthenticationView: View {
   private var baseURL: URL { URL(string:  "http://0.0.0.0:8080/v1/")! }
   @State private var phoneField: PhoneNumberTextFieldView?
   @State private var isValidPhoneNumber: Bool = false
+  @State private var phoneNumber: String = String.empty
   
   let store: Store<LoginState, LoginAction>
   
@@ -78,7 +78,8 @@ public struct AuthenticationView: View {
         .padding(.leading)
       
       Button(action: {
-        viewStore.send(.sendPhoneNumberButtonTapped)
+        self.phoneField?.getCurrentText()
+        viewStore.send(.sendPhoneNumberButtonTapped(self.phoneNumber))
       }, label: {
         Text("GO")
           .font(.headline)
@@ -99,7 +100,7 @@ public struct AuthenticationView: View {
     )
     .onAppear {
       self.phoneField = PhoneNumberTextFieldView(
-        phoneNumber: viewStore.binding(get: { $0.authResponse!.phoneNumber }, send: ViewAction.loginRequest ),
+        phoneNumber: self.$phoneNumber,
         isValid: $isValidPhoneNumber
       )
     }
@@ -265,7 +266,6 @@ extension AuthenticationView {
     public var isValidationCodeIsSend = false
     public var isLoginRequestInFlight = false
     public var isAuthorized: Bool = false
-    public var isValidPhoneNumber: Bool = false
     public var showTermsSheet: Bool = false
     public var showPrivacySheet: Bool = false
   }
@@ -274,8 +274,7 @@ extension AuthenticationView {
     case alertDismissed
     case showTermsSheet
     case showPrivacySheet
-    case sendPhoneNumberButtonTapped
-    case loginRequest(String)
+    case sendPhoneNumberButtonTapped(String)
     case verificationRequest(String)
   }
 }
@@ -289,7 +288,6 @@ extension LoginState {
       isValidationCodeIsSend: self.isValidationCodeIsSend,
       isLoginRequestInFlight: self.isLoginRequestInFlight,
       isAuthorized: self.isAuthorized,
-      isValidPhoneNumber: self.isValidPhoneNumber,
       showTermsSheet: self.showTermsSheet,
       showPrivacySheet: self.showPrivacySheet
     )
@@ -301,10 +299,8 @@ extension LoginAction {
     switch localAction {
     case .alertDismissed:
       return .alertDismissed
-    case .sendPhoneNumberButtonTapped:
-      return .sendPhoneNumberButtonTapped
-    case .loginRequest(let authResponse):
-      return .loginRequest(authResponse)
+    case .sendPhoneNumberButtonTapped(let phoneNumber):
+      return .sendPhoneNumberButtonTapped(phoneNumber)
     case .verificationRequest(let authResponse):
       return .verificationRequest(authResponse)
     case .showTermsSheet:

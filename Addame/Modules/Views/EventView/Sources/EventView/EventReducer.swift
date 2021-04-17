@@ -16,13 +16,7 @@ struct Foo {
   public static var isAuthorized: Bool = false
 }
 
-public let eventReducer = Reducer<EventsState, EventsAction, EventsEnvironment>.combine(
-  eventFormReducer.optional().pullback(
-    state: \.eventFormState,
-    action: /EventsAction.eventForm,
-    environment: { _ in () }
-  ),
-  Reducer { state, action, environment in
+public let eventReducer = Reducer<EventsState, EventsAction, EventsEnvironment> { state, action, environment in
     struct LocationManagerId: Hashable {}
     
     func fetchMoreEventIfNeeded() -> Effect<EventsAction, Never>  {
@@ -69,17 +63,7 @@ public let eventReducer = Reducer<EventsState, EventsAction, EventsEnvironment>.
     switch action {
     
     case let .presentEventForm(present):
-
-      return .none
-    case .eventForm(.didDisappear):
-      if state.isPresentingEventForm == false, let eventform = state.eventFormState {
-        state.eventFormState = nil
-        return cancelEventFormReducerEffects(state: eventform)
-      }
-      return .none
-
-    case .eventForm(.didAppear):
-      
+      state.eventFormState = present ? EventFormState() : nil
       return .none
 
     case .dismissEvent:
@@ -97,15 +81,6 @@ public let eventReducer = Reducer<EventsState, EventsAction, EventsEnvironment>.
           .requestWhenInUseAuthorization(id: LocationManagerId())
           .fireAndForget()
       )
-
-    case .isPresentingEventForm:
-      state.isPresentingEventForm = true
-      
-      if state.isPresentingEventForm {
-        state.eventFormState = EventFormState()
-      }
-      
-      return .none
       
     case .alertDismissed:
       state.alert = nil
@@ -143,7 +118,7 @@ public let eventReducer = Reducer<EventsState, EventsAction, EventsEnvironment>.
       
     case .eventsResponse(.failure(let error)):
       state.isLoadingPage = false
-      state.alert = .init(title: TextState(error.localizedDescription))
+      state.alert = .init(title: TextState(error.description))
       
       return .none
     
@@ -313,6 +288,9 @@ public let eventReducer = Reducer<EventsState, EventsAction, EventsEnvironment>.
       state.eventDetails = nil
       return .none
   
+    case .eventForm(_):
+      
+      return .none
     }
   }
-)
+

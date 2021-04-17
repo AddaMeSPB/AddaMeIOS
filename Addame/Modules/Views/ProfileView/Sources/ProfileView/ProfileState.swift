@@ -12,7 +12,6 @@ import ComposableArchitecture
 
 public struct ProfileState: Equatable {
   
-  
   public static func == (lhs: ProfileState, rhs: ProfileState) -> Bool {
     return lhs.isUserFristNameUpdated == rhs.isUserFristNameUpdated
   }
@@ -26,7 +25,7 @@ public struct ProfileState: Equatable {
   public var inputImage: UIImage? = nil
   public var moveToSettingsView = false
   public var moveToAuthView: Bool = false
-  public var user: User = User.draff
+  public var user: User = .draff
   public var isUserHaveAvatarLink: Bool = false
   public var myEvents: [EventResponse.Item] = []
   
@@ -37,7 +36,7 @@ public struct ProfileState: Equatable {
     inputImage: UIImage? = nil,
     moveToSettingsView: Bool = false,
     moveToAuthView: Bool = false,
-    user: User = User.draff,
+    user: User = .draff,
     isUserHaveAvatarLink: Bool = false,
     myEvents: [EventResponse.Item] = []
   ) {

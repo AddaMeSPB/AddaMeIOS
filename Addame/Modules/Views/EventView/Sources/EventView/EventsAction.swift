@@ -16,7 +16,7 @@ public enum EventsAction: Equatable {
 
   case alertDismissed
   case dismissEventDetails
-  case isPresentingEventForm
+//  case isPresentingEventForm
   case presentEventForm(Bool)
   case eventForm(EventFormAction)
   
@@ -47,8 +47,7 @@ extension EventsAction {
       return .alertDismissed
     case .dismissEventDetails:
       return .dismissEventDetails
-    case .isPresentingEventForm:
-      return .isPresentingEventForm
+
     case .presentEventForm(let bool):
       return .presentEventForm(bool)
     case .eventForm(let eventFormAction):

@@ -11,7 +11,6 @@ import SwiftUIExtension
 extension EventView {
   public struct ViewState: Equatable {
     public var alert: AlertState<EventsAction>?
-    public var isPresentingEventForm: Bool
     public var isConnected = true
     public var isLocationAuthorized = false
     public var waitingForUpdateLocation = true
@@ -21,12 +20,13 @@ extension EventView {
     public var myEvents: [EventResponse.Item] = []
     public var eventDetails: EventResponse.Item?
     public var isLoadingPage = false
+    
+    public var eventFormState: EventFormState?
   }
   
   public enum ViewAction: Equatable {
     case alertDismissed
     case dismissEventDetails
-    case isPresentingEventForm
     case presentEventForm(Bool)
     case eventForm(EventFormAction)
     case event(index: Int, action: EventAction)
@@ -132,41 +132,29 @@ public struct EventView: View {
       }
       .navigationBarTitleDisplayMode(.automatic)
       .toolbar {
-        
         ToolbarItem(placement: ToolbarItemPlacement.navigationBarTrailing) {
           return Button(action: {
-            viewStore.send(.isPresentingEventForm)
+            viewStore.send(.presentEventForm(true))
           }) {
             Image(systemName: "plus.circle")
               .font(.title)
               .foregroundColor(viewStore.state.isLocationAuthorized ? Color.black : Color.gray)
           }
-          .disabled(!viewStore.state.isLocationAuthorized)
-          .background(
-            NavigationLink(
-              destination: IfLetStore(
-                store.scope(
-                  state: \.eventFormState,
-                  action: EventsAction.eventForm
-                ),
-                then: EventFormView.init(store:),
-                else: Text("Loading search results...")
-              ),
-              isActive: viewStore.binding(
-                get: \.isPresentingEventForm,
-                send: ViewAction.presentEventForm
-              ),
-              label: {
-                Text("Event From").padding()
-              }
-            )
-          )
         }
       }
       .navigationTitle("Events")
       .alert(self.store.scope(state: { $0.alert }), dismiss: .alertDismissed)
-      
     }
+    .navigate(
+      using: store.scope(
+        state: \.eventFormState,
+        action: EventsAction.eventForm
+      ),
+      destination: EventFormView.init(store:),
+      onDismiss: {
+        ViewStore(store.stateless).send(.presentEventForm(false))
+      }
+    )
   }
   
 }
@@ -191,7 +179,7 @@ struct EventView_Previews: PreviewProvider {
       NavigationView {
         EventView(store: store)
 //          .redacted(reason: .placeholder)
-          .redacted(reason: EventsState.events.isLoadingPage ? .placeholder : [])
+//          .redacted(reason: EventsState.events.isLoadingPage ? .placeholder : [])
           .environment(\.colorScheme, .dark)
       }
     }
