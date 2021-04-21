@@ -24,7 +24,7 @@ struct AddameApp: App {
   static let tabsState = TabsState(
     selectedTab: .event,
     event: EventsState(),
-    chat: ChatState(),
+    conversations: ConversationsState(),
     profile: ProfileState()
   )
 

@@ -99,10 +99,7 @@ public struct ConversationAPI {
       .eraseToAnyPublisher()
   }
   
-  public func list(
-    query: QueryItem,
-    path: String
-  ) -> AnyPublisher<ConversationResponse, HTTPError> {
+  public func list(query: QueryItem, path: String ) -> AnyPublisher<ConversationResponse, HTTPError> {
     return tokenHandle(input: query, path: path, method: .get)
       .map { $0 }
       .catch { (error: HTTPError) -> AnyPublisher<ConversationResponse, HTTPError> in
@@ -112,10 +109,8 @@ public struct ConversationAPI {
       .eraseToAnyPublisher()
   }
   
-  public func find(
-    conversationsId: String,
-    path: String
-  ) -> AnyPublisher<ConversationResponse.Item, HTTPError> {
+  
+  public func find(conversationsId: String, path: String ) -> AnyPublisher<ConversationResponse.Item, HTTPError> {
     return tokenHandle(input: conversationsId, path: path, method: .get)
       .map { $0 }
       .catch { (error: HTTPError) -> AnyPublisher<ConversationResponse.Item, HTTPError> in

@@ -59,7 +59,7 @@ extension View {
   ///   - destinationStore: store with non-optional state
   ///   - onDismiss: closure invoked when link is deactivated
   /// - Returns: view with label-less `NavigationLink` added as a background view
-  func navigate<State, Action, DestinationContent>(
+  public func navigate<State, Action, DestinationContent>(
     using store: Store<State?, Action>,
     destination: @escaping (_ destinationStore: Store<State, Action>) -> DestinationContent,
     onDismiss: @escaping () -> Void

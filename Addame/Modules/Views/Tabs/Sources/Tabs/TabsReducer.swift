@@ -27,6 +27,9 @@ import AttachmentClientLive
 import PathMonitorClient
 import PathMonitorClientLive
 
+import ConversationClient
+import ConversationClientLive
+
 
 public let tabsReducer = Reducer<TabsState, TabsAction, Void>.combine(
   eventReducer.pullback(
@@ -41,10 +44,15 @@ public let tabsReducer = Reducer<TabsState, TabsAction, Void>.combine(
       )
     }
   ),
-  chatReducer.pullback(
-    state: \.chat,
-    action: /TabsAction.chat,
-    environment: { _ in () }
+  conversationReducer.pullback(
+    state: \.conversations,
+    action: /TabsAction.conversation,
+    environment: {
+      ConversationEnvironment(
+        conversationClient: ConversationClient.live(api: .build),
+        mainQueue: DispatchQueue.main.eraseToAnyScheduler()
+      )
+    }
   ),
   profileReducer.pullback(
     state: \.profile,
@@ -71,7 +79,7 @@ public let tabsReducer = Reducer<TabsState, TabsAction, Void>.combine(
       
       return .none
     
-    case .chat:
+    case .conversation:
       return .none
       
     case .profile:

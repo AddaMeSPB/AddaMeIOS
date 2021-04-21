@@ -14,18 +14,18 @@ public struct TabsState: Equatable {
   public init(
     selectedTab: Tabs,
     event: EventsState,
-    chat: ChatState,
+    conversations: ConversationsState,
     profile: ProfileState
   ) {
     self.selectedTab = selectedTab
     self.event = event
-    self.chat = chat
+    self.conversations = conversations
     self.profile = profile
   }
   
   public var selectedTab: Tabs
   public var event: EventsState
-  public var chat: ChatState
+  public var conversations: ConversationsState
   public var profile: ProfileState
   
 }

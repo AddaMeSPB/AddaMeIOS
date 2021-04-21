@@ -1,7 +1,7 @@
 
 public enum Tabs: Int, CaseIterable, Equatable {
   case event
-  case chat
+  case conversation
   case profile
 }
 

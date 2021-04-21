@@ -177,6 +177,7 @@ struct EventView_Previews: PreviewProvider {
   static var previews: some View {
     TabView {
       NavigationView {
+        
         EventView(store: store)
 //          .redacted(reason: .placeholder)
 //          .redacted(reason: EventsState.events.isLoadingPage ? .placeholder : [])
@@ -230,12 +231,12 @@ public struct EventRowView: View {
   let currentLocation: Location?
   @Environment(\.colorScheme) var colorScheme
   
+  public let store: Store<EventResponse.Item, EventAction>
+  
   public init(store: Store<EventResponse.Item, EventAction>, currentLocation: Location?) {
     self.currentLocation = currentLocation
     self.store = store
   }
-  
-  public let store: Store<EventResponse.Item, EventAction>
   
   public var body: some View {
     WithViewStore(self.store) { viewStore in
@@ -312,18 +313,5 @@ public struct EventRowView: View {
     let distance = currentCoordinate.distance(from: location) / 1000
     return String(format: "%.02f km", distance)
   }
-}
-
-struct ActivityIndicator: UIViewRepresentable {
-  init() {}
-  
-  func makeUIView(context: Context) -> UIActivityIndicatorView {
-    let view = UIActivityIndicatorView(style: .large)
-    view.color = .systemBackground
-    view.startAnimating()
-    return view
-  }
-  
-  func updateUIView(_ uiView: UIActivityIndicatorView, context: Context) {}
 }
 

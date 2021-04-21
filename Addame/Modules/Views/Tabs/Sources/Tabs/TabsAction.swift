@@ -12,6 +12,6 @@ import ProfileView
 public enum TabsAction: Equatable {
   case didSelectTab(Tabs)
   case event(EventsAction)
-  case chat(ChatAction)
+  case conversation(ConversationsAction)
   case profile(ProfileAction)
 }

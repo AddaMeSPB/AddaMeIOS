@@ -23,6 +23,7 @@ let package = Package(
       targets: ["ConversationClientLive"]),
   ],
   dependencies: [
+    .package(path: "\(Path.Container.core)/Common"),
     .package(path: "\(Path.Container.core)/FuncNetworking"),
     .package(path: "\(Path.Container.domain)/AddaMeModels"),
     .package(path: "\(Path.Container.core)/FoundationExtension"),
@@ -32,7 +33,7 @@ let package = Package(
   targets: [
     .target(
       name: "ConversationClient",
-      dependencies: ["FoundationExtension","FuncNetworking", "AddaMeModels"]),
+      dependencies: ["Common", "FoundationExtension","FuncNetworking", "AddaMeModels"]),
     .target(
       name: "ConversationClientLive",
       dependencies: ["ConversationClient", "KeychainService", "InfoPlist"]),

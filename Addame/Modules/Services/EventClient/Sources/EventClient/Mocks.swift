@@ -45,8 +45,8 @@ extension EventClient {
       .setFailureType(to: HTTPError.self)
       .receive(on: DispatchQueue.main)
       .eraseToAnyPublisher()
-        
     }
+
   )
   
 }

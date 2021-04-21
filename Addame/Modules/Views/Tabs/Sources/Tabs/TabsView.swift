@@ -45,7 +45,7 @@ public struct TabsView: View {
   private func title(for tab: Tabs) -> String {
     switch tab {
     case .event: return "Events"
-    case .chat: return "Chat"
+    case .conversation: return "Chat"
     case .profile: return "Profile"
     }
   }
@@ -53,7 +53,7 @@ public struct TabsView: View {
   private func image(for tab: Tabs) -> String {
     switch tab {
     case .event: return "list.bullet.below.rectangle"
-    case .chat: return "bubble.left.and.bubble.right"
+    case .conversation: return "bubble.left.and.bubble.right"
     case .profile: return "person"
     }
   }
@@ -79,14 +79,15 @@ public struct TabsView: View {
       }
       .navigationViewStyle(StackNavigationViewStyle())
       
-    case .chat:
+    case .conversation:
       NavigationView {
-        ChatView(store: store.scope(
-          state: \.chat,
-          action: TabsAction.chat
+        ConversationView(store: store.scope(
+          state: \.conversations,
+          action: TabsAction.conversation
         ))
       }
       .navigationViewStyle(StackNavigationViewStyle())
+      
     case .profile:
       
       NavigationView {
@@ -105,7 +106,7 @@ struct TabsView_Previews: PreviewProvider {
   static let tabsState = TabsState(
     selectedTab: .event,
     event: EventsState(),
-    chat: ChatState(),
+    conversations: ConversationsState(),
     profile: ProfileState()
   )
   

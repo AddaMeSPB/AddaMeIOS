@@ -10,6 +10,7 @@ import ComposableArchitecture
 import SwiftUI
 import MapKit
 import AddaMeModels
+import FuncNetworking
 
 struct Foo {
   @AppStorage("isAuthorized")

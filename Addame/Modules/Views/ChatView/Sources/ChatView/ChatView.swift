@@ -1,18 +1,42 @@
 import ComposableArchitecture
 import SwiftUI
+import AddaMeModels
+
+extension ChatView {
+  public struct ViewState: Equatable {
+    public var alert: AlertState<ChatAction>?
+    public var conversation: ConversationResponse.Item?
+    
+    public init(alert: AlertState<ChatAction>? = nil, conversation: ConversationResponse.Item? = nil) {
+      self.alert = alert
+      self.conversation = conversation
+    }
+  }
+  
+  public enum ViewAction: Equatable {
+    case alertDismissed
+    case conversation(ConversationResponse.Item?)
+  }
+}
 
 public struct ChatView: View {
-  public init(store: Store<ChatState, ChatAction>) {
+
+  public let store: Store<ChatState, ChatAction>
+  
+  public init(
+    store: Store<ChatState, ChatAction>
+  ) {
     self.store = store
   }
   
-  let store: Store<ChatState, ChatAction>
-  
   public var body: some View {
     VStack {
-      Text("Hello, world! I am ChatView")
-        .background(Color.red)
-        .padding()
+      WithViewStore(self.store.scope(state: { $0.view }, action: ChatAction.view )) { viewStore  in
+        Text("Hello, world! I am ChatView \(viewStore.state.conversation?.title ?? "")")
+          .background(Color.red)
+          .padding()
+      }
+      
     }
     .navigationTitle("Chats")
   }
@@ -27,7 +51,9 @@ struct ChatView_Previews: PreviewProvider {
   )
   
   static var previews: some View {
-    ChatView(store: store)
+    ChatView(
+      store: store
+    )
   }
   
 }
