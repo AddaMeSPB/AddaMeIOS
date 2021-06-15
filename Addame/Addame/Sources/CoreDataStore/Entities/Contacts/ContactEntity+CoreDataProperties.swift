@@ -9,7 +9,6 @@
 import Foundation
 import CoreData
 
-
 extension ContactEntity {
 
     @nonobjc public class func fetchRequest() -> NSFetchRequest<ContactEntity> {
@@ -26,6 +25,4 @@ extension ContactEntity {
 
 }
 
-extension ContactEntity : Identifiable {
-
-}
+extension ContactEntity: Identifiable {}

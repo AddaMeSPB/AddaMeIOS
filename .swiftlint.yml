@@ -1,0 +1,54 @@
+disabled_rules:
+  - vertical_parameter_alignment_on_call
+  - weak_delegate
+  - vertical_parameter_alignment
+  - closure_parameter_position
+  - todo	
+  - multiple_closures_with_trailing_closure
+opt_in_rules:
+  - empty_count
+  - explicit_init
+  - closure_spacing
+  - overridden_super_call
+  - redundant_nil_coalescing
+  - private_outlet
+  - nimble_operator
+  - operator_usage_whitespace
+  - closure_end_indentation
+  - first_where
+  - prohibited_super_call
+  - fatal_error_message
+  - unneeded_parentheses_in_closure_argument
+  - pattern_matching_keywords
+  - array_init
+  - literal_expression_end_indentation
+  - joined_default_parameter
+  - contains_over_first_not_nil
+  - override_in_extension
+  - private_action
+  - quick_discouraged_call
+  - quick_discouraged_focused_test
+  - quick_discouraged_pending_test
+  - single_test_class
+  - sorted_first_last
+
+warning_threshold: 1
+
+line_length: 120
+
+type_body_length:
+  - 300 # warning
+  - 300 # error
+
+file_length:
+  warning: 400 # warning
+  error: 400 # error
+
+identifier_name:
+  min_length:
+    error: 2
+  max_length:
+    error: 50
+  excluded:
+    - id
+    - _id

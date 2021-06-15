@@ -19,14 +19,19 @@ extension AuthClient {
         )
         .setFailureType(to: HTTPError.self)
         .eraseToAnyPublisher()
-        
+
       },
       verification: { _ in
         Just(
           LoginRes(
             status: "online",
-            user: User(id: "5fabb05d2470c17919b3c0e2", phoneNumber: "+79218888888", firstName: "AuthClientMock", createdAt: Date(), updatedAt: Date()),
-            access: AuthTokenResponse.init(accessToken: "", refreshToken: "")
+            user: User(
+              id: "5fabb05d2470c17919b3c0e2",
+              phoneNumber: "+79218888888",
+              firstName: "AuthClientMock",
+              createdAt: Date(), updatedAt: Date()
+            ),
+            access: AuthTokenResponse(accessToken: "", refreshToken: "")
           )
         )
 //        .map { res in
@@ -36,9 +41,8 @@ extension AuthClient {
 //        }
         .setFailureType(to: HTTPError.self)
         .eraseToAnyPublisher()
-        
+
       }
     )
-  
 
 }

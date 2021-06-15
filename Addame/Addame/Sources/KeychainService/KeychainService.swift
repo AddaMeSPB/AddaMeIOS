@@ -58,9 +58,23 @@ public class KeychainService: NSObject {
     }
 
     private class func save(_ service: NSString, data: NSString) {
-        let dataFromString: NSData = data.data(using: String.Encoding.utf8.rawValue, allowLossyConversion: false)! as NSData
+        let encodingRawValue = String.Encoding.utf8.rawValue
+        let dataFromString: NSData = data.data(using: encodingRawValue, allowLossyConversion: false)! as NSData
 
-        let keychainQuery: NSMutableDictionary = NSMutableDictionary(objects: [kSecClassGenericPasswordValue, service, service, dataFromString, kSecAttrAccessibleAfterFirstUnlockValue], forKeys: [kSecClassValue, kSecAttrServiceValue, kSecAttrAccountValue, kSecValueDataValue, kSecAttrAccessibleValue])
+        let objects = [
+          kSecClassGenericPasswordValue,
+          service, service, dataFromString,
+          kSecAttrAccessibleAfterFirstUnlockValue
+        ]
+        let forKeys = [
+          kSecClassValue, kSecAttrServiceValue,
+          kSecAttrAccountValue, kSecValueDataValue,
+          kSecAttrAccessibleValue
+        ]
+        let keychainQuery: NSMutableDictionary = NSMutableDictionary(
+          objects: objects,
+          forKeys: forKeys
+        )
 
         SecItemDelete(keychainQuery as CFDictionary)
 
@@ -68,7 +82,15 @@ public class KeychainService: NSObject {
     }
 
     private class func save(_ service: NSString, data: NSData) {
-        let keychainQuery: NSMutableDictionary = NSMutableDictionary(objects: [kSecClassGenericPasswordValue, service, service, data, kSecAttrAccessibleAfterFirstUnlockValue], forKeys: [kSecClassValue, kSecAttrServiceValue, kSecAttrAccountValue, kSecValueDataValue, kSecAttrAccessibleValue])
+
+      let objects = [kSecClassGenericPasswordValue, service, service, data, kSecAttrAccessibleAfterFirstUnlockValue]
+      let forKeys = [
+        kSecClassValue, kSecAttrServiceValue,
+        kSecAttrAccountValue, kSecValueDataValue,
+        kSecAttrAccessibleValue
+      ]
+
+        let keychainQuery: NSMutableDictionary = NSMutableDictionary(objects: objects, forKeys: forKeys)
 
         SecItemDelete(keychainQuery as CFDictionary)
 
@@ -76,9 +98,21 @@ public class KeychainService: NSObject {
     }
 
     private class func load(_ service: NSString) -> NSString? {
-        let keychainQuery: NSMutableDictionary = NSMutableDictionary(objects: [kSecClassGenericPasswordValue, service, service, kCFBooleanTrue as Any, kSecMatchLimitOneValue, kSecAttrAccessibleAfterFirstUnlockValue], forKeys: [kSecClassValue, kSecAttrServiceValue, kSecAttrAccountValue, kSecReturnDataValue, kSecMatchLimitValue, kSecAttrAccessibleValue])
+      let kCFBooleanTrue = kCFBooleanTrue as Any
+      let objects = [
+        kSecClassGenericPasswordValue,
+        service, service, kCFBooleanTrue,
+        kSecMatchLimitOneValue, kSecAttrAccessibleAfterFirstUnlockValue
+      ]
+      let forKeys = [
+        kSecClassValue, kSecAttrServiceValue,
+        kSecAttrAccountValue, kSecReturnDataValue,
+        kSecMatchLimitValue, kSecAttrAccessibleValue
+      ]
 
-        var dataTypeRef :AnyObject?
+        let keychainQuery: NSMutableDictionary = NSMutableDictionary(objects: objects, forKeys: forKeys)
+
+        var dataTypeRef: AnyObject?
 
         let status: OSStatus = SecItemCopyMatching(keychainQuery, &dataTypeRef)
         var contentsOfKeychain: NSString?
@@ -93,10 +127,24 @@ public class KeychainService: NSObject {
     }
 
     private class func loadNSData(_ service: NSString) -> NSData? {
-        let keychainQuery: NSMutableDictionary = NSMutableDictionary(objects: [kSecClassGenericPasswordValue, service, service, kCFBooleanTrue as Any, kSecMatchLimitOneValue, kSecAttrAccessibleAfterFirstUnlockValue], forKeys: [kSecClassValue, kSecAttrServiceValue, kSecAttrAccountValue, kSecReturnDataValue, kSecMatchLimitValue, kSecAttrAccessibleValue])
 
-        var dataTypeRef :AnyObject?
+        let objects = [
+          kSecClassGenericPasswordValue, service, service,
+          kCFBooleanTrue as Any,
+          kSecMatchLimitOneValue, kSecAttrAccessibleAfterFirstUnlockValue
+        ]
+        let forKeys = [
+          kSecClassValue, kSecAttrServiceValue,
+          kSecAttrAccountValue, kSecReturnDataValue,
+          kSecMatchLimitValue, kSecAttrAccessibleValue
+        ]
 
+        let keychainQuery: NSMutableDictionary = NSMutableDictionary(
+          objects: objects,
+          forKeys: forKeys
+        )
+
+        var dataTypeRef: AnyObject?
         let status: OSStatus = SecItemCopyMatching(keychainQuery, &dataTypeRef)
         var contentsOfKeychain: NSData?
 
@@ -110,18 +158,17 @@ public class KeychainService: NSObject {
     }
 
     public class func logout() {
-      let secItemClasses =  [
+      let secItemClasses = [
         kSecClassGenericPassword,
         kSecClassInternetPassword,
         kSecClassCertificate,
         kSecClassKey,
         kSecClassIdentity
       ]
-        
+
       for itemClass in secItemClasses {
         let spec: NSDictionary = [kSecClass: itemClass]
         SecItemDelete(spec)
       }
     }
 }
-

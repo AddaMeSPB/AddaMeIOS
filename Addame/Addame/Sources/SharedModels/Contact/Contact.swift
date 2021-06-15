@@ -38,7 +38,7 @@ public struct Contact: Codable, Identifiable {
         self.avatar = avatar
         self.isRegister = isRegister
     }
-  
+
 //    public init(_ contactEntity: ContactEntity) {
 //      self.id = contactEntity.id
 //      self.userId = contactEntity.userId
@@ -94,7 +94,6 @@ extension Contact.Res: Hashable {
         return lhs.phoneNumber == rhs.phoneNumber && lhs.avatar == rhs.avatar
     }
 }
-
 
 public struct CreateContact: Codable {
   public var items: [Contact]

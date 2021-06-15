@@ -11,23 +11,24 @@ import HttpRequest
 import SharedModels
 import FoundationExtension
 
+// swiftlint:disable all
 extension ConversationClient {
   static public let happyPath = Self(
-    create: { _,_  in
+    create: { _, _  in
       Just(
         ConversationResponse.Item(Conversation(id: ObjectIdGenerator.shared.generate(), title: "Walk Around 🚶🏽🚶🏼‍♀️", type: .group, createdAt: Date(), updatedAt: Date()))
       )
       .setFailureType(to: HTTPError.self)
       .eraseToAnyPublisher()
     },
-    addUserToConversation: { _,_   in
+    addUserToConversation: { _, _   in
       Just("")
       .setFailureType(to: HTTPError.self)
       .eraseToAnyPublisher()
     },
-    list: { _,_  in
+    list: { _, _  in
       Just(
-        ConversationResponse.init(
+        ConversationResponse(
           items: [
             ConversationResponse.Item(
               Conversation(id: ObjectIdGenerator.shared.generate(), title: "Walk Around 🚶🏽🚶🏼‍♀️", type: .group, createdAt: Date(), updatedAt: Date())
@@ -45,7 +46,7 @@ extension ConversationClient {
       .setFailureType(to: HTTPError.self)
       .eraseToAnyPublisher()
     },
-    find: { _,_   in
+    find: { _, _   in
       Just(
           ConversationResponse.Item(
             Conversation(id: ObjectIdGenerator.shared.generate(), title: "Walk Around 🚶🏽🚶🏼‍♀️", type: .group, createdAt: Date(), updatedAt: Date())
@@ -55,5 +56,5 @@ extension ConversationClient {
       .eraseToAnyPublisher()
     }
   )
-  
+
 }

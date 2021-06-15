@@ -8,11 +8,11 @@
 import Foundation
 
 public struct Attachment: Codable, Equatable {
-  
+
   public enum AttachmentType: String, Codable, Equatable {
     case file, image, audio, video
   }
-  
+
   public var id: String?
   public var type: AttachmentType
   public var userId: String
@@ -21,8 +21,14 @@ public struct Attachment: Codable, Equatable {
   public var videoUrlString: String?
   public var fileUrlString: String?
   public var createdAt, updatedAt: Date?
-  
-  public init(id: String? = nil, type: AttachmentType, userId: String, imageUrlString: String? = nil, audioUrlString: String? = nil, videoUrlString: String? = nil, fileUrlString: String? = nil, createdAt: Date? = nil, updatedAt: Date? = nil) {
+
+  public init(
+    id: String? = nil, type: AttachmentType,
+    userId: String, imageUrlString: String? = nil,
+    audioUrlString: String? = nil,
+    videoUrlString: String? = nil, fileUrlString: String? = nil,
+    createdAt: Date? = nil, updatedAt: Date? = nil
+  ) {
     self.id = id
     self.type = type
     self.userId = userId
@@ -33,11 +39,11 @@ public struct Attachment: Codable, Equatable {
     self.createdAt = createdAt
     self.updatedAt = updatedAt
   }
-  
+
   public static let draff = Self(
     id: "", type: .image, userId: ""
   )
-  
+
   public static func < (lhs: Attachment, rhs: Attachment) -> Bool {
     guard let lhsDate = lhs.createdAt, let rhsDate = rhs.createdAt else { return false }
     return lhsDate > rhsDate

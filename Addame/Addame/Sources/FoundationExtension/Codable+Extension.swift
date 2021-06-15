@@ -18,7 +18,7 @@ public extension Encodable {
       return nil
     }
   }
-  
+
   var jsonString: String? {
     guard let data = self.jsonData else { return nil }
     return String(data: data, encoding: .utf8)
@@ -30,7 +30,7 @@ extension Decodable {
     guard let data = json.data(using: encoding) else { return nil }
     return Self.from(data: data)
   }
-  
+
   public static func from(data: Data) -> Self? {
     do {
       let jsonDecoder = JSONDecoder()
@@ -41,16 +41,16 @@ extension Decodable {
       return nil
     }
   }
-  
+
   public static func decode(json: String, using usingForWebRtcingEncoding: String.Encoding = .utf8) -> Self? {
     guard let data = json.data(using: usingForWebRtcingEncoding) else { return nil }
     return Self.decode(data: data)
   }
-  
+
   public static func decode(data usingForWebRtcingData: Data) -> Self? {
     let decoder = JSONDecoder()
     decoder.dateDecodingStrategy = .iso8601
-    
+
     do {
       return try decoder.decode(Self.self, from: usingForWebRtcingData)
     } catch {

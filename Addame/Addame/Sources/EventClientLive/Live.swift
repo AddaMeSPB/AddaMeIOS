@@ -19,20 +19,22 @@ func token() -> AnyPublisher<String, HTTPError> {
     return Fail(error: HTTPError.missingTokenFromIOS )
       .eraseToAnyPublisher()
   }
-  
+
   return Just(token.accessToken)
     .setFailureType(to: HTTPError.self)
     .eraseToAnyPublisher()
 }
 
 public struct EventAPI {
-    
-  public static let build = Self ()
+
+  public static let build = Self()
 
   private var baseURL: URL { EnvironmentKeys.rootURL.appendingPathComponent("/events") }
-  
-  private func tokenHandle<Input: Encodable, Output: Decodable>(input: Input, path: String, method: HTTPMethod) -> AnyPublisher<Output, HTTPError> {
-    
+
+  private func tokenHandle<Input: Encodable, Output: Decodable>(
+    input: Input, path: String, method: HTTPMethod
+  ) -> AnyPublisher<Output, HTTPError> {
+
     return token().flatMap { token -> AnyPublisher<Output, HTTPError> in
       let builder: HttpRequest = .build(
         baseURL: baseURL,
@@ -42,9 +44,8 @@ public struct EventAPI {
         contentType: .json,
         dataType: .encodable(input: input, encoder: .init() )
       )
-      
+
       return builder.send(scheduler: RunLoop.main)
-        .map { $0 }
         .catch { (error: HTTPError) -> AnyPublisher<Output, HTTPError> in
           return Fail(error: error).eraseToAnyPublisher()
         }
@@ -57,35 +58,32 @@ public struct EventAPI {
     .receive(on: DispatchQueue.main)
     .eraseToAnyPublisher()
   }
-  
+
   public func create(event: Event, path: String) -> AnyPublisher<Event, HTTPError> {
-    
+
     return tokenHandle(input: event, path: path, method: .post)
-      .map { $0 }
       .catch { (error: HTTPError) -> AnyPublisher<Event, HTTPError> in
         return Fail(error: error).eraseToAnyPublisher()
       }
       .receive(on: DispatchQueue.main)
       .eraseToAnyPublisher()
-  
+
   }
-  
+
   public func fetch(events query: QueryItem, path: String) -> AnyPublisher<EventResponse, HTTPError> {
-        
+
     return tokenHandle(input: query, path: path, method: .get)
-      .map { $0 }
       .catch { (error: HTTPError) -> AnyPublisher<EventResponse, HTTPError> in
         return Fail(error: error).eraseToAnyPublisher()
       }
       .receive(on: DispatchQueue.main)
       .eraseToAnyPublisher()
-    
+
   }
-  
+
   public func fetch(query: QueryItem, path: String) -> AnyPublisher<EventResponse, HTTPError> {
 
     return tokenHandle(input: query, path: path, method: .get)
-      .map { $0 }
       .catch { (error: HTTPError) -> AnyPublisher<EventResponse, HTTPError> in
         return Fail(error: error).eraseToAnyPublisher()
       }
@@ -93,7 +91,7 @@ public struct EventAPI {
       .eraseToAnyPublisher()
 
   }
-  
+
 }
 
 extension EventClient {

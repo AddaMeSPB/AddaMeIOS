@@ -11,6 +11,7 @@ import HttpRequest
 import SharedModels
 import KeychainService
 
+// swiftlint:disable all
 var user = User(
   id: "5fabb05d2470c17919b3c0e2", phoneNumber: "+79218888888", avatarUrl: nil,
   firstName: "First Name :)", lastName: "", email: nil, contactIDs: nil, deviceIDs: nil,
@@ -28,12 +29,12 @@ var user = User(
 
 extension UserClient {
   public static let happyPath = Self(
-    me: { _,_   in
+    userMeHandler: { _, _   in
      Just(user)
       .setFailureType(to: HTTPError.self)
       .eraseToAnyPublisher()
     },
-    update: { _,_  in
+    update: { _, _  in
       user.firstName = "Swift"
       user.lastName = "Xcode"
       return Just(user)
@@ -41,18 +42,17 @@ extension UserClient {
         .eraseToAnyPublisher()
     }
   )
-  
+
   public static let failed = Self(
-    
-    me: { _,_   in
+
+    userMeHandler: { _, _   in
       Fail(error: HTTPError.authError(404) )
         .eraseToAnyPublisher()
     },
-    update: { _,_  in
+    update: { _, _  in
       Fail(error: HTTPError.authError(404) )
         .eraseToAnyPublisher()
     }
   )
-  
-}
 
+}

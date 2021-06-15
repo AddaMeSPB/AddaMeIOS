@@ -14,21 +14,20 @@ import ComposableCoreLocation
 import AsyncImageLoder
 import SwiftUIExtension
 
-
 public struct EventDetailsView: View {
 
   @Environment(\.colorScheme) var colorScheme
   @Environment(\.presentationMode) private var presentationMode
-  
-  public let event:  EventResponse.Item
-  
+
+  public let event: EventResponse.Item
+
   public init(event: EventResponse.Item) {
     self.event = event
   }
 
   @ViewBuilder public var body: some View {
     ScrollView {
-      VStack() {
+      VStack {
         ZStack {
           if event.imageUrl != nil {
             AsyncImage(
@@ -41,9 +40,12 @@ public struct EventDetailsView: View {
               }
             )
             .aspectRatio(contentMode: .fill)
-            .edgesIgnoringSafeArea(.top)
+//            .edgesIgnoringSafeArea(.top)
 //            .overlay(
-//              EventDetailOverlay(event: event, conversation: conversationViewModel.conversation, startChat: self.$startChat, askJoinRequest: self.$askJoinRequest).environmentObject(conversationViewModel),
+//              EventDetailOverlay(
+//                event: event, conversation: conversationViewModel.conversation,
+//                startChat: self.$startChat, askJoinRequest: self.$askJoinRequest
+//              ).environmentObject(conversationViewModel),
 //              alignment: .bottomTrailing
 //            )
             .overlay(
@@ -63,7 +65,11 @@ public struct EventDetailsView: View {
               .frame(width: 450, height: 350)
               .foregroundColor(Color.backgroundColor(for: self.colorScheme))
 //              .overlay(
-//                EventDetailOverlay(event: event, conversation: conversationViewModel.conversation, startChat: self.$startChat, askJoinRequest: self.$askJoinRequest).environmentObject(conversationViewModel),
+//                EventDetailOverlay(
+//                    event: event, conversation: conversationViewModel.conversation,
+//                    startChat: self.$startChat, askJoinRequest: self.$askJoinRequest
+//                )
+//                .environmentObject(conversationViewModel),
 //                alignment: .bottomTrailing
 //              )
               .overlay(
@@ -78,19 +84,19 @@ public struct EventDetailsView: View {
                 alignment: .topTrailing
               )
           }
-          
+
         }
-        
+
         Text("Event Members:")
           .font(.title)
           .foregroundColor(colorScheme == .dark ? Color.white : Color.black)
           .lineLimit(2)
           .minimumScaleFactor(0.5)
-          .alignmentGuide(.leading) { d in d[.leading] }
+          .alignmentGuide(.leading) { viewDimensions in viewDimensions[.leading] }
           .font(.system(size: 23, weight: .light, design: .rounded))
         Divider()
           .padding(.bottom, -10)
-        
+
         ScrollView {
 //          LazyVGrid(columns: columns, spacing: 10) {
 //            ForEach( conversationViewModel.conversation.members?.uniqElemets() ?? []) { member in
@@ -122,7 +128,7 @@ public struct EventDetailsView: View {
 //            }
 //          }
         }
-        
+
         // Spacer()
         Divider()
         VStack(alignment: .leading) {
@@ -131,15 +137,15 @@ public struct EventDetailsView: View {
             .foregroundColor(colorScheme == .dark ? Color.white : Color.black)
             .lineLimit(2)
             .minimumScaleFactor(0.5)
-            .alignmentGuide(.leading) { d in d[.leading] }
+            .alignmentGuide(.leading) { viewDimensions in viewDimensions[.leading] }
             .font(.system(size: 23, weight: .light, design: .rounded))
             .padding()
         }
-        
+
 //        MapView(place: event, places: [event], isEventDetailsView: true)
 //          .frame(height: 400)
 //          .padding(.bottom, 20)
-        
+
       }
     }
     .edgesIgnoringSafeArea(.top)

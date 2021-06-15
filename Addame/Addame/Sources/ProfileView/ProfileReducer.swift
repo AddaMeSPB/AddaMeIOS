@@ -18,19 +18,19 @@ import AttachmentClient
 import SharedModels
 
 public func getUserFromKeychain() -> Effect<User, HTTPError> {
-  
+
   return Effect<User, HTTPError>.future { callBack in
-    guard let me: User = KeychainService.loadCodable(for: .user) else {
+    guard let user: User = KeychainService.loadCodable(for: .user) else {
       print(#line, "missing token")
       return callBack(.failure(HTTPError.missingTokenFromIOS))
     }
-    
-    return callBack(.success(me))
+
+    return callBack(.success(user))
   }
-  
+
 }
 
-//public let eventReducer = Reducer<EventsState, EventsAction, EventsEnvironment>.combine(
+// public let eventReducer = Reducer<EventsState, EventsAction, EventsEnvironment>.combine(
 //  eventFormReducer.optional().pullback(
 //    state: \.eventForm,
 //    action: /EventsAction.eventForm,
@@ -45,37 +45,37 @@ public let profileReducer = Reducer<ProfileState, ProfileAction, ProfileEnvironm
   case .alertDismissed:
     state.alert = nil
     return .none
-    
+
   case .isUploadingImage:
-    
+
     return .none
   case .showingImagePicker:
-    
+
     return .none
-    
+
   case .moveToSettingsView:
-    
+
     return .none
-    
+
   case .moveToAuthView:
-    
+
     return .none
-    
+
   case .fetchMyData:
-    
+
     return getUserFromKeychain()
-      .flatMap { environment.userClient.me($0.id ,"\($0.id)") }
+      .flatMap { environment.userClient.userMeHandler($0.id, "\($0.id)") }
       .receive(on: environment.mainQueue)
       .catchToEffect()
       .map(ProfileAction.userResponse)
-    
+
   case .uploadAvatar(let image):
-    guard let me: User = KeychainService.loadCodable(for: .user) else {
+    guard let user: User = KeychainService.loadCodable(for: .user) else {
       return .none
     }
-    
+
     state.isUploadingImage = true
-    
+
     //    AWSS3Helper.uploadImage(image, conversationId: nil, userId: me.id) { imageURLString in
     //      guard imageURLString != nil else {
     //        state.isUploadingImage = false
@@ -88,12 +88,12 @@ public let profileReducer = Reducer<ProfileState, ProfileAction, ProfileEnvironm
     //      /// think about how to send attachment
     //    }
     return .none
-    
+
   case let .updateUserName(firstName, lastName):
-    
+
     return getUserFromKeychain()
-      .map { me -> User in
-        var user = me
+      .map { user -> User in
+        var user = user
         user.firstName = firstName
         user.lastName = lastName
         return user
@@ -102,51 +102,50 @@ public let profileReducer = Reducer<ProfileState, ProfileAction, ProfileEnvironm
       .receive(on: environment.mainQueue)
       .catchToEffect()
       .map(ProfileAction.userResponse)
-    
+
   case .createAttachment(let attachment):
-    
+
     return environment.attachmentClient.uploadAvatar(attachment)
       .receive(on: environment.mainQueue)
       .catchToEffect()
       .map(ProfileAction.attacmentResponse)
-    
+
   case .resetAuthData:
     AppUserDefaults.save(false, forKey: .isAuthorized)
     KeychainService.save(codable: User?.none, for: .user)
     KeychainService.save(codable: AuthResponse?.none, for: .token)
     KeychainService.logout()
     AppUserDefaults.erase()
-    
+
     return .none
-    
+
   case .userResponse(.success(let user)):
     state.user = user
     state.isUploadingImage = false
-    
+
     return .none
-    
+
   case .userResponse(.failure(let error)):
     state.isUploadingImage = false
     state.alert = .init(title: TextState( "\(#line) \(error.description)"))
     return .none
-    
+
   case .attacmentResponse(.success(let attachmentResponse)):
-    
+
     state.isUploadingImage = false
     if var userAttacments = state.user.attachments, !userAttacments.contains(attachmentResponse) {
       userAttacments.append(attachmentResponse)
     }
-    
+
     return .none
-    
+
   case .attacmentResponse(.failure(let error)):
     state.isUploadingImage = false
     state.alert = .init(title: TextState( "\(#line) \(error.description)"))
     return .none
-    
+
   case .myEventsResponse(_):
-    
+
     return .none
   }
 }
-

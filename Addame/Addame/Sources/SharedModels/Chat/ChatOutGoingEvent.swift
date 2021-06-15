@@ -36,7 +36,7 @@ public enum ChatOutGoingEvent: Encodable, Decodable {
 
         switch type {
         case "connect":
-            let connect =  try container.decode(User.self, forKey: .user)
+            let connect = try container.decode(User.self, forKey: .user)
             self = .connect(connect)
         case "disconnect":
             let disconnect = try container.decode(User.self, forKey: .user)

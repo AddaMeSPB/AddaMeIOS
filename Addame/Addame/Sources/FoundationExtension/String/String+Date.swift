@@ -12,4 +12,3 @@ public extension String {
         ISO8601DateFormatter().date(from: self)
     }
 }
-

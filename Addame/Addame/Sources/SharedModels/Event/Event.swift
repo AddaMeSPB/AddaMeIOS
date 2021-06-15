@@ -10,7 +10,15 @@ import CoreLocation
 import MapKit
 
 public struct Event: Codable, Identifiable {
-  public init(id: String? = nil, name: String, details: String? = nil, imageUrl: String? = nil, duration: Int, categories: String, isActive: Bool, addressName: String, type: GeoType = .Point, sponsored: Bool? = false, overlay: Bool? = false, coordinates: [Double], regionRadius: CLLocationDistance? = 1000, createdAt: Date? = nil, updatedAt: Date? = nil) {
+  public init(
+    id: String? = nil, name: String, details: String? = nil,
+    imageUrl: String? = nil, duration: Int,
+    categories: String, isActive: Bool, addressName: String,
+    type: GeoType = .Point, sponsored: Bool? = false,
+    overlay: Bool? = false, coordinates: [Double],
+    regionRadius: CLLocationDistance? = 1000,
+    createdAt: Date? = nil, updatedAt: Date? = nil
+  ) {
     self.id = id
     self.name = name
     self.details = details
@@ -27,7 +35,7 @@ public struct Event: Codable, Identifiable {
     self.createdAt = createdAt
     self.updatedAt = updatedAt
   }
-  
+
   public static let draff = Self(
     id: "", name: "",
     details: "", imageUrl: "",
@@ -35,7 +43,7 @@ public struct Event: Codable, Identifiable {
     isActive: false, addressName: "",
     coordinates: [0.0, 0.0]
   )
-  
+
   public var id: String?
   public var name: String
   public var details: String?
@@ -50,10 +58,10 @@ public struct Event: Codable, Identifiable {
   public var overlay: Bool? = false
   public var coordinates: [Double]
   public var regionRadius: CLLocationDistance? = 1000
-  
+
   public var createdAt: Date?
   public var updatedAt: Date?
-  
+
   public static func == (lhs: Event, rhs: Event) -> Bool {
     lhs.id == rhs.id
   }
@@ -64,25 +72,32 @@ public struct EventResponse: Codable, Equatable {
   public static func == (lhs: EventResponse, rhs: EventResponse) -> Bool {
     return lhs.items == rhs.items && lhs.metadata == rhs.metadata
   }
-  
+
   public let items: [Item]
   public var metadata: Metadata = .init(per: 10, total: 10, page: 1)
-  
+
   public static let emptry = Self(
     items: [],
     metadata: .init(per: 0, total: 0, page: 0)
   )
-  
+
   public init(items: [EventResponse.Item], metadata: Metadata = .init(per: 10, total: 10, page: 1)) {
     self.items = items
     self.metadata = metadata
   }
-  
+
   // MARK: - Item
-  
+
   public class Item: NSObject, Codable, Identifiable {
-    
-    public init(id: String, name: String, categories: String, imageUrl: String? = nil, duration: Int, isActive: Bool, conversationsId: String, addressName: String, details: String? = nil, type: String, sponsored: Bool, overlay: Bool, coordinates: [Double], regionRadius: CLLocationDistance? = 1000, createdAt: Date, updatedAt: Date) {
+
+    public init(
+      id: String, name: String, categories: String,
+      imageUrl: String? = nil, duration: Int, isActive: Bool,
+      conversationsId: String, addressName: String,
+      details: String? = nil, type: String, sponsored: Bool,
+      overlay: Bool, coordinates: [Double], regionRadius: CLLocationDistance? = 1000,
+      createdAt: Date, updatedAt: Date
+    ) {
       self._id = id
       self.name = name
       self.categories = categories
@@ -100,11 +115,17 @@ public struct EventResponse: Codable, Equatable {
       self.createdAt = createdAt
       self.updatedAt = updatedAt
     }
-    
+
     public static var draff: EventResponse.Item {
-      .init(id: "", name: "", categories: "", duration: 14400, isActive: false, conversationsId: "" ,addressName: "", type: "Point", sponsored: false, overlay: false, coordinates: [9.9, 8.0], createdAt: Date(), updatedAt: Date())
+      .init(
+        id: "", name: "", categories: "",
+        duration: 14400, isActive: false,
+        conversationsId: "", addressName: "",
+        type: "Point", sponsored: false, overlay: false,
+        coordinates: [9.9, 8.0], createdAt: Date(), updatedAt: Date()
+      )
     }
-    
+
     public var _id, name, categories: String
     public var imageUrl: String?
     public var duration: Int
@@ -121,13 +142,13 @@ public struct EventResponse: Codable, Equatable {
     public var createdAt: Date
     public var updatedAt: Date
   }
-  
+
 }
 
 // MARK: - Metadata
 public struct Metadata: Codable, Equatable {
   public let per, total, page: Int
-  
+
   public init(per: Int, total: Int, page: Int) {
     self.per = per
     self.total = total
@@ -135,13 +156,13 @@ public struct Metadata: Codable, Equatable {
   }
 }
 
-extension EventResponse.Item: MKAnnotation  {
+extension EventResponse.Item: MKAnnotation {
   public var coordinate: CLLocationCoordinate2D { location.coordinate }
   public var title: String? { addressName }
   public var location: CLLocation {
     CLLocation(latitude: coordinates[0], longitude: coordinates[1])
   }
-  
+
   public var region: MKCoordinateRegion {
     MKCoordinateRegion(
       center: location.coordinate,
@@ -149,26 +170,26 @@ extension EventResponse.Item: MKAnnotation  {
       longitudinalMeters: regionRadius ?? 1000
     )
   }
-  
+
   public var coordinateMongo: CLLocationCoordinate2D {
     return CLLocationCoordinate2D(latitude: self.coordinate.longitude, longitude: self.coordinate.latitude)
   }
-  
+
   public var coordinatesMongoDouble: [Double] {
     return [coordinates[1], coordinates[0]]
   }
-  
+
   public var doubleToCoordinate: CLLocation {
-    return CLLocation.init(latitude: coordinates[0], longitude: coordinates[1])
+    return CLLocation(latitude: coordinates[0], longitude: coordinates[1])
   }
-  
+
   public func distance(_ currentCLLocation: CLLocation) {
     DispatchQueue.main.async { [weak self] in
       guard let self = self else { return }
       currentCLLocation.distance(from: self.location)
     }
   }
-  
+
 }
 
 extension CLLocation {
@@ -177,6 +198,7 @@ extension CLLocation {
   }
 }
 
+// swiftlint:disable all
 public enum GeoType: String {
   case Point
   case LineString
@@ -189,4 +211,3 @@ public enum GeoType: String {
 
 extension GeoType: Encodable {}
 extension GeoType: Decodable {}
-

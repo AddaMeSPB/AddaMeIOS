@@ -13,13 +13,13 @@ import SharedModels
 import InfoPlist
 
 public struct AuthAPI {
-    
-  public static let build = Self ()
-  
+
+  public static let build = Self()
+
   private var baseURL: URL { EnvironmentKeys.rootURL.appendingPathComponent("/auth/") }
-  
+
   public func login(input: AuthResponse) -> AnyPublisher<AuthResponse, HTTPError> {
-    
+
     let builder: HttpRequest = .build(
       baseURL: baseURL,
       method: .post,
@@ -28,19 +28,18 @@ public struct AuthAPI {
       contentType: .json,
       dataType: .encodable(input: input)
     )
-    
+
     return builder.send(scheduler: RunLoop.main)
-      .map { $0 }
       .catch { (error: HTTPError) -> AnyPublisher<AuthResponse, HTTPError> in
         return Fail(error: error).eraseToAnyPublisher()
       }
       .receive(on: DispatchQueue.main)
       .eraseToAnyPublisher()
-    
+
   }
-  
+
   public func verification(input: AuthResponse) -> AnyPublisher<LoginRes, HTTPError> {
-    
+
     let builder: HttpRequest = .build(
       baseURL: baseURL,
       method: .post,
@@ -49,16 +48,15 @@ public struct AuthAPI {
       contentType: .json,
       dataType: .encodable(input: input)
     )
-    
+
     return builder.send(scheduler: RunLoop.main)
-      .map { $0 }
       .catch { (error: HTTPError) -> AnyPublisher<LoginRes, HTTPError> in
         return Fail(error: error).eraseToAnyPublisher()
       }
       .receive(on: DispatchQueue.main)
       .eraseToAnyPublisher()
   }
-  
+
 }
 
 extension AuthClient {

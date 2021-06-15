@@ -10,7 +10,7 @@ import SwiftUI
 import AsyncImageLoder
 import SharedModels
 
-//public struct EventRowView: View {
+// public struct EventRowView: View {
 //  
 //  @Environment(\.colorScheme) var colorScheme
 //  
@@ -72,4 +72,4 @@ import SharedModels
 //    }
 //  }
 //  
-//}
+// }

@@ -13,21 +13,24 @@ import WebsocketClient
 import SharedModels
 
 public struct ConversationEnvironment {
-  
+
   let conversationClient: ConversationClient
+  public var backgroundQueue: AnySchedulerOf<DispatchQueue>
   public var mainQueue: AnySchedulerOf<DispatchQueue>
-  
+
   public init(
     conversationClient: ConversationClient,
+    backgroundQueue: AnySchedulerOf<DispatchQueue>,
     mainQueue: AnySchedulerOf<DispatchQueue>
   ) {
+    self.backgroundQueue = backgroundQueue
     self.conversationClient = conversationClient
     self.mainQueue = mainQueue
   }
-    
+
 }
 
-//public class WebsocketEnvironment {
+// public class WebsocketEnvironment {
 //    
 //  let websocketClient: WebsocketClient
 //  public var mainQueue: AnySchedulerOf<DispatchQueue>
@@ -41,4 +44,4 @@ public struct ConversationEnvironment {
 //    self.mainQueue = mainQueue
 //  }
 //  
-//}
+// }

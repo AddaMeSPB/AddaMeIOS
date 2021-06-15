@@ -8,8 +8,14 @@
 import Foundation
 
 public struct ChatMessage: Codable, Identifiable {
-  
-  public init(id: String? = nil, conversationId: String, messageBody: String, sender: User, recipient: User? = nil, messageType: MessageType, isRead: Bool, isDelivered: Bool, createdAt: Date? = nil, updatedAt: Date? = nil) {
+
+  public init(
+    id: String? = nil, conversationId: String,
+    messageBody: String, sender: User,
+    recipient: User? = nil, messageType: MessageType,
+    isRead: Bool, isDelivered: Bool,
+    createdAt: Date? = nil, updatedAt: Date? = nil
+  ) {
     self.id = id
     self.conversationId = conversationId
     self.messageBody = messageBody
@@ -21,20 +27,26 @@ public struct ChatMessage: Codable, Identifiable {
     self.createdAt = createdAt
     self.updatedAt = updatedAt
   }
-  
+
   public var id: String?
   public var conversationId, messageBody: String
   public var sender: User
   public var recipient: User?
   public var messageType: MessageType
   public var isRead, isDelivered: Bool
-  
+
   public var createdAt, updatedAt: Date?
-  
+
   public var messageResponse: ChatMessageResponse.Item {
-    .init(id: id, conversationId: conversationId, messageBody: messageBody, sender: sender, recipient: recipient, messageType: messageType, isRead: isRead, isDelivered: isDelivered, createdAt: createdAt, updatedAt: updatedAt)
+    .init(
+      id: id, conversationId: conversationId,
+      messageBody: messageBody, sender: sender,
+      recipient: recipient, messageType: messageType,
+      isRead: isRead, isDelivered: isDelivered,
+      createdAt: createdAt, updatedAt: updatedAt
+    )
   }
-  
+
   public init(_ chatMessage: ChatMessageResponse.Item) {
     self.id = chatMessage.id
     self.conversationId = chatMessage.conversationId
@@ -60,14 +72,14 @@ public struct ChatMessageResponse: Codable, Equatable {
 
   public let items: [Item]
   public let metadata: Metadata
-  
+
   public init(items: [ChatMessageResponse.Item], metadata: Metadata) {
     self.items = items
     self.metadata = metadata
   }
-  
+
   public struct Item: Codable, Identifiable, Hashable, Comparable, Equatable {
-    
+
     public var id: String?
     public var conversationId, messageBody: String
     public var sender: User
@@ -75,8 +87,14 @@ public struct ChatMessageResponse: Codable, Equatable {
     public var messageType: MessageType
     public var isRead, isDelivered: Bool
     public var createdAt, updatedAt: Date?
-    
-    public init(id: String? = nil, conversationId: String, messageBody: String, sender: User, recipient: User? = nil, messageType: MessageType, isRead: Bool, isDelivered: Bool, createdAt: Date? = nil, updatedAt: Date? = nil) {
+
+    public init(
+      id: String? = nil, conversationId: String,
+      messageBody: String, sender: User,
+      recipient: User? = nil, messageType: MessageType,
+      isRead: Bool, isDelivered: Bool,
+      createdAt: Date? = nil, updatedAt: Date? = nil
+    ) {
       self.id = id
       self.conversationId = conversationId
       self.messageBody = messageBody
@@ -88,7 +106,7 @@ public struct ChatMessageResponse: Codable, Equatable {
       self.createdAt = createdAt
       self.updatedAt = updatedAt
     }
-    
+
     public init(_ chatMessage: ChatMessage) {
       self.id = chatMessage.id
       self.conversationId = chatMessage.conversationId
@@ -101,28 +119,33 @@ public struct ChatMessageResponse: Codable, Equatable {
       self.createdAt = chatMessage.createdAt
       self.updatedAt = chatMessage.updatedAt
     }
-    
+
     public var wSchatMessage: ChatMessage {
-      .init(id: id, conversationId: conversationId, messageBody: messageBody, sender: sender, recipient: recipient, messageType: messageType, isRead: isRead, isDelivered: isDelivered, createdAt: createdAt, updatedAt: updatedAt)
+      .init(
+        id: id, conversationId: conversationId,
+        messageBody: messageBody, sender: sender,
+        recipient: recipient, messageType: messageType,
+        isRead: isRead, isDelivered: isDelivered,
+        createdAt: createdAt, updatedAt: updatedAt
+      )
     }
-    
+
     public func hash(into hasher: inout Hasher) {
       hasher.combine(id)
     }
-    
+
     public static func == (lhs: Item, rhs: Item) -> Bool {
       lhs.id == rhs.id
     }
-    
+
     public static func < (lhs: Item, rhs: Item) -> Bool {
       guard let lhsDate = lhs.createdAt, let rhsDate = rhs.createdAt else { return false }
       return lhsDate > rhsDate
     }
-    
+
   }
 }
 
 public enum MessageType: String, Codable, Equatable {
   case text, image, audio, video
 }
-

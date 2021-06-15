@@ -6,7 +6,7 @@
 //
 
 import EventView
-import ConversationView
+import ConversationsView
 import ProfileView
 
 public enum TabsAction: Equatable {

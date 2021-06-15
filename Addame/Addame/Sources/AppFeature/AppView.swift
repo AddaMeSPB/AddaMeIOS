@@ -8,7 +8,7 @@
 import ComposableArchitecture
 import SwiftUI
 import EventView
-import ConversationView
+import ConversationsView
 import ProfileView
 import TabsView
 import AuthenticationView
@@ -16,12 +16,17 @@ import AuthClient
 import AuthClientLive
 
 public struct AppView: View {
-  
+
   public init() {}
-  
+
   @AppStorage("isAuthorized")
   public var isAuthorized: Bool = false
-  
+
+  static let tabsEnv = TabsEnvironment(
+    backgroundQueue: .main,
+    mainQueue: .main
+  )
+
   static let tabsState = TabsState(
     selectedTab: .event,
     event: EventsState(),
@@ -32,7 +37,7 @@ public struct AppView: View {
   let tabsStore = Store(
     initialState: tabsState,
     reducer: tabsReducer.debug(),
-    environment: ()
+    environment: tabsEnv
   )
 
   static let environment = AuthenticationEnvironment(
