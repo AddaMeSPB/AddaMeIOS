@@ -7,7 +7,7 @@
 
 import ComposableArchitecture
 import EventView
-import ConversationView
+import ConversationsView
 import ProfileView
 import SwiftUI
 
@@ -81,7 +81,7 @@ public struct TabsView: View {
       
     case .conversation:
       NavigationView {
-        ConversationView(store: store.scope(
+        ConversationsView(store: store.scope(
           state: \.conversations,
           action: TabsAction.conversation
         ))
@@ -103,6 +103,11 @@ public struct TabsView: View {
 
 struct TabsView_Previews: PreviewProvider {
   
+  static let tabsEnv = TabsEnvironment(
+    backgroundQueue: .immediate,
+    mainQueue: .immediate
+  )
+  
   static let tabsState = TabsState(
     selectedTab: .event,
     event: EventsState(),
@@ -113,7 +118,7 @@ struct TabsView_Previews: PreviewProvider {
   static let store = Store(
     initialState: tabsState,
     reducer: tabsReducer,
-    environment: ()
+    environment: tabsEnv
   )
   
   static var previews: some View {

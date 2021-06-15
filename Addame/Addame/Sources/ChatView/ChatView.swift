@@ -67,6 +67,7 @@ public struct ChatView: View {
       .onAppear {
         viewStore.send(.onAppear)
       }
+      .navigationBarTitle(viewStore.state.conversation?.title ?? "", displayMode: .automatic)
     }
     .alert(self.store.scope(state: { $0.alert }), dismiss: .alertDismissed)
   }

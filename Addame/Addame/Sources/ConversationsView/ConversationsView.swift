@@ -1,5 +1,5 @@
 //
-//  ConversationView.swift
+//  ConversationsView.swift
 //  
 //
 //  Created by Saroar Khandoker on 19.04.2021.
@@ -12,22 +12,27 @@ import AsyncImageLoder
 import SwiftUIExtension
 import HttpRequest
 import ChatView
+import ContactsView
 import ComposableArchitectureHelpers
 
-extension ConversationView {
+extension ConversationsView {
   public struct ViewState: Equatable {
     public init(
       alert: AlertState<ConversationsAction>? = nil,
       isLoadingPage: Bool = false,
       conversations: IdentifiedArrayOf<ConversationResponse.Item> = [],
       conversation: ConversationResponse.Item? = nil,
-      chatState: ChatState? = nil
+      chatState: ChatState? = nil,
+      contactsState: ContactsState? = nil,
+      createConversation: CreateConversation? = nil
     ) {
       self.alert = alert
       self.isLoadingPage = isLoadingPage
       self.conversations = conversations
       self.conversation = conversation
       self.chatState = chatState
+      self.contactsState = contactsState
+      self.createConversation = createConversation
     }
     
     public var alert: AlertState<ConversationsAction>? = nil
@@ -35,23 +40,28 @@ extension ConversationView {
     public var conversations: IdentifiedArrayOf<ConversationResponse.Item> = []
     public var conversation: ConversationResponse.Item?
     public var chatState: ChatState?
+    public var contactsState: ContactsState?
+    public var isSheetPresented: Bool { self.contactsState != nil }
+    public var createConversation: CreateConversation?
   }
   
   public enum ViewAction: Equatable {
     case onAppear
     case alertDismissed
-    case moveChatRoom(Bool)
+    case chatView(isPresented: Bool)
+    case contactsView(isPresented: Bool)
     case conversationsResponse(Result<ConversationResponse, HTTPError>)
     case fetchMoreConversationIfNeeded(currentItem: ConversationResponse.Item?)
     case conversationTapped(ConversationResponse.Item)
     case chat(ChatAction)
+    case contacts(ContactsAction)
   }
   
 }
 
-
-public struct ConversationView: View {
+public struct ConversationsView: View {
   
+  @State private var showingSheet = false
   public let store: Store<ConversationsState, ConversationsAction>
   
   public init(store: Store<ConversationsState, ConversationsAction>) {
@@ -73,17 +83,17 @@ public struct ConversationView: View {
               : self.store
           )
           .redacted(reason: viewStore.isLoadingPage ? .placeholder : [])
-          
         }
         .onAppear {
           viewStore.send(.onAppear)
         }
+        
       }
       .navigationTitle("Chats")
       .toolbar {
         ToolbarItem(placement: .navigationBarTrailing) {
           Button(action: {
-            //viewStore.send(.presentEventForm(true))
+            viewStore.send(.contactsView(isPresented: true))
           }) {
             Image(systemName: "plus.circle")
               .font(.title)
@@ -91,7 +101,21 @@ public struct ConversationView: View {
         }
       }
       .background(Color(.systemBackground))
-      .alert(self.store.scope(state: { $0.alert }), dismiss: .alertDismissed)
+      .alert(self.store.scope(state: { $0.alert }), dismiss: ConversationsAction.alertDismissed)
+//      .sheet(isPresented:
+//          viewStore.binding(
+//            get: { $0.isSheetPresented },
+//            send: ConversationsView.ViewAction.contactsView(isPresented:)
+//          )
+//      ) {
+//        IfLetStore(
+//          self.store.scope(
+//            state: { $0.contactsState },
+//            action: ConversationsAction.contacts
+//          ),
+//          then: ContactsView.init(store:)
+//        )
+//      }
       
     }
     .navigate(
@@ -101,30 +125,41 @@ public struct ConversationView: View {
       ),
       destination: ChatView.init(store:),
       onDismiss: {
-        ViewStore(store.stateless).send(.moveChatRoom(false))
+        ViewStore(store.stateless).send(.chatView(isPresented: false))
+      }
+    )
+    .navigate(
+      using: store.scope(
+        state: \.contactsState,
+        action: ConversationsAction.contacts
+      ),
+      destination: ContactsView.init(store:),
+      onDismiss: {
+        ViewStore(store.stateless).send(.contactsView(isPresented: false))
       }
     )
     
   }
 }
 
-struct ConversationView_Previews: PreviewProvider {
+struct ConversationsView_Previews: PreviewProvider {
   
   static let environment = ConversationEnvironment(
     conversationClient: .happyPath,
+    backgroundQueue: .immediate,
     mainQueue: .immediate
   )
   
   static let store = Store(
     initialState: ConversationsState.placholderConversations,
-    reducer: conversationReducer,
+    reducer: conversationsReducer,
     environment: environment
   )
   
   static var previews: some View {
     TabView {
       NavigationView {
-        ConversationView(store: store)
+        ConversationsView(store: store)
           //          .redacted(reason: .placeholder)
           //          .redacted(reason: EventsState.events.isLoadingPage ? .placeholder : [])
           .environment(\.colorScheme, .dark)
@@ -148,7 +183,7 @@ public struct ConversationListView: View {
           
           Button(action: {
             viewStore.send(.conversationTapped(conversationViewStore.state) )
-            viewStore.send(.moveChatRoom(true) )
+            viewStore.send(.chatView(isPresented: true) )
           } ) {
             ConversationRow(store: conversationStore)
               .onAppear {

@@ -26,6 +26,4 @@ extension ContactEntity {
 
 }
 
-extension ContactEntity : Identifiable {
-
-}
+extension ContactEntity: Identifiable {}

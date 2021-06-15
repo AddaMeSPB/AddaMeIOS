@@ -9,8 +9,10 @@ import Foundation
 import ComposableArchitecture
 import SharedModels
 import ChatView
+import ContactsView
 
 public struct ConversationsState: Equatable {
+
   public init(
     isLoadingPage: Bool = false,
     canLoadMorePages: Bool = true,
@@ -18,7 +20,9 @@ public struct ConversationsState: Equatable {
     alert: AlertState<ConversationsAction>? = nil,
     conversations: IdentifiedArrayOf<ConversationResponse.Item> = [],
     conversation: ConversationResponse.Item? = nil,
-    chatState: ChatState? = nil
+    chatState: ChatState? = nil,
+    contactsState: ContactsState? = nil,
+    createConversation: CreateConversation? = nil
   ) {
     self.isLoadingPage = isLoadingPage
     self.canLoadMorePages = canLoadMorePages
@@ -27,9 +31,10 @@ public struct ConversationsState: Equatable {
     self.conversations = conversations
     self.conversation = conversation
     self.chatState = chatState
+    self.contactsState = contactsState
+    self.createConversation = createConversation
   }
   
-
   public var isLoadingPage = false
   public var canLoadMorePages = true
   public var currentPage = 1
@@ -37,17 +42,22 @@ public struct ConversationsState: Equatable {
   public var alert: AlertState<ConversationsAction>?
   public var conversations: IdentifiedArrayOf<ConversationResponse.Item> = []
   public var conversation: ConversationResponse.Item?
+  public var createConversation: CreateConversation?
   public var chatState: ChatState?
+  public var contactsState: ContactsState?
+  
+  public var isSheetPresented: Bool { self.contactsState != nil }
   
 }
 
 extension ConversationsState {
-  var view: ConversationView.ViewState {
-    ConversationView.ViewState(
+  var view: ConversationsView.ViewState {
+    ConversationsView.ViewState(
       alert: self.alert,
       conversations: self.conversations,
       conversation: self.conversation,
-      chatState: self.chatState
+      chatState: self.chatState,
+      contactsState: self.contactsState
     )
   }
 }

@@ -167,6 +167,7 @@ struct EventView_Previews: PreviewProvider {
     pathMonitorClient: .satisfied,
     locationManager: .live,
     eventClient: .happyPath,
+    backgroundQueue: .immediate,
     mainQueue: .immediate
   )
   

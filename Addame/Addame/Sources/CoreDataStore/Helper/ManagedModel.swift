@@ -8,7 +8,7 @@
 import Foundation
 import CoreData
 
-typealias APIData = Encodable
+public typealias APIData = Encodable
 
 protocol ManagedModel: class, NSFetchRequestResult {
     static var entity: NSEntityDescription { get }

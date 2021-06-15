@@ -21,13 +21,19 @@ public struct AddUser: Codable {
 
 }
 
-public struct CreateConversation: Codable {
+public struct CreateConversation: Codable, Equatable {
+  public init(title: String, type: ConversationType, opponentPhoneNumber: String) {
+    self.title = title
+    self.type = type
+    self.opponentPhoneNumber = opponentPhoneNumber
+  }
+  
   public let title: String
   public let type: ConversationType
   public let opponentPhoneNumber: String
 }
 
-public enum ConversationType: String, Codable {
+public enum ConversationType: String, Codable, Equatable {
   case oneToOne, group
 }
 

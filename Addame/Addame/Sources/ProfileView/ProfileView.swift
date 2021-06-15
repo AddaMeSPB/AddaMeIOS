@@ -183,6 +183,7 @@ struct ProfileView_Previews: PreviewProvider {
     eventClient: .happyPath,
     authClient: .happyPath,
     attachmentClient: .happyPath,
+    backgroundQueue: .immediate,
     mainQueue: .immediate
   )
   

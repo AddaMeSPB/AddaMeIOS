@@ -9,7 +9,7 @@ import ComposableArchitecture
 import ComposableCoreLocation
 
 import EventView
-import ConversationView
+import ConversationsView
 import ProfileView
 
 import UserClient
@@ -30,8 +30,7 @@ import PathMonitorClientLive
 import ConversationClient
 import ConversationClientLive
 
-
-public let tabsReducer = Reducer<TabsState, TabsAction, Void>.combine(
+public let tabsReducer = Reducer<TabsState, TabsAction, TabsEnvironment>.combine(
   eventReducer.pullback(
     state: \.event,
     action: /TabsAction.event,
@@ -40,17 +39,19 @@ public let tabsReducer = Reducer<TabsState, TabsAction, Void>.combine(
         pathMonitorClient: PathMonitorClient.live(queue: .main),
         locationManager: LocationManager.live,
         eventClient: EventClient.live(api: .build),
-        mainQueue: DispatchQueue.main.eraseToAnyScheduler()
+        backgroundQueue: $0.backgroundQueue,
+        mainQueue: $0.mainQueue
       )
     }
   ),
-  conversationReducer.pullback(
+  conversationsReducer.pullback(
     state: \.conversations,
     action: /TabsAction.conversation,
     environment: {
       ConversationEnvironment(
         conversationClient: ConversationClient.live(api: .build),
-        mainQueue: DispatchQueue.main.eraseToAnyScheduler()
+        backgroundQueue: $0.backgroundQueue,
+        mainQueue: $0.mainQueue
       )
     }
   ),
@@ -63,7 +64,8 @@ public let tabsReducer = Reducer<TabsState, TabsAction, Void>.combine(
         eventClient: EventClient.live(api: .build),
         authClient: AuthClient.live(api: .build),
         attachmentClient: AttachmentClient.live(api: .build),
-        mainQueue: DispatchQueue.main.eraseToAnyScheduler()
+        backgroundQueue: $0.backgroundQueue,
+        mainQueue: $0.mainQueue
       )
     }
   ),

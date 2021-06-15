@@ -33,7 +33,9 @@ func token() -> AnyPublisher<String, HTTPError> {
 public struct ContactAPI {
   
   public static let build = Self ()
-  private var baseURL: URL { EnvironmentKeys.rootURL.appendingPathComponent("/contacts/") }
+  private var baseURL: URL {
+    EnvironmentKeys.rootURL.appendingPathComponent("/contacts/")
+  }
   
   private let contactStore = CNContactStore()
   private let phoneNumberKit = PhoneNumberKit()

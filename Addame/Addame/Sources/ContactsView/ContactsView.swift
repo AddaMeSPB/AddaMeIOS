@@ -1,111 +1,112 @@
+import ComposableArchitecture
 import SwiftUI
 import Contacts
 import Foundation
+import Combine
+import CoreData
+
 import CoreDataStore
 import SharedModels
-
-import Combine
+import HttpRequest
+import ChatView
+import AsyncImageLoder
 import ContactClient
 import ContactClientLive
 import CombineContacts
-import CoreData
 import CoreDataClient
+import ComposableArchitectureHelpers
 
-class ContactViewModel: ObservableObject {
-  
-  @Published var contacts: [Contact] = []
-  private var cancellables = Set<AnyCancellable>()
-  let fetchRequest: NSFetchRequest<ContactEntity> = ContactEntity.fetchRequest()
-  
-  @Published var invalidPermission = false
-  
-  var coreDataClient: CoreDataClient
-  
-  public init() {
-    coreDataClient = CoreDataClient(contactClient: .live(api: .build))
+extension ContactsView {
+  public struct ViewState: Equatable {
+    public var alert: AlertState<ContactsAction>?
+    public var contacts: IdentifiedArrayOf<Contact> = []
+    public var chatState: ChatState?
+    public var isAuthorizedContacts: Bool = false
+    public var invalidPermission: Bool = false
+    public var isLoading: Bool = false
+    public var isActivityIndicatorVisible: Bool = false
   }
   
-  public func loadData() {
-    coreDataClient.contactClient.authorization()
-      .receive(on: DispatchQueue.main)
-      .map { $0 == .denied || $0 == .restricted }
-      .assign(to: \.invalidPermission, on: self)
-      .store(in: &cancellables)
+  public enum ViewAction: Equatable {
+    case onAppear
+    case alertDismissed
+    case moveChatRoom(Bool)
+    case chat(ChatAction?)
+    case chatRoom(index: String?, action: ContactAction)
+    case chatWith(name: String, phoneNumber: String)
     
-    coreDataClient.contactClient.authorization()
-      .receive(on: DispatchQueue.main)
-      .sink { [weak self] (status) in
-        if status == .authorized {
-          self?.coreDataClient.saveContactEntitiesToCoreData()
-        }
-      }
-      .store(in: &cancellables)
-    
-
-    CoreDataPublisher(
-      request: ContactEntity.fetchRequest(),
-      context: CoreDataStore.shared!.moc
-    )
-    .map { contactEntities in
-      contactEntities.map {
-        Contact(id: $0.id, identifier: $0.identifier, userId: $0.userId, phoneNumber: $0.phoneNumber, fullName: $0.fullName, avatar: $0.avatar, isRegister: $0.isRegister)
-      }
-      .filter { $0.isRegister == true }
-      .sorted(by: { $0.fullName ?? "" < $1.fullName ?? "" })
-    }
-
-    .receive(on: DispatchQueue.main)
-    .sink { completion in
-      switch completion {
-
-      case .finished:
-        print(#line, "finished")
-      case .failure(let error):
-        print(#line, "fetch contactEntities from coreData: \(error)")
-      }
-    } receiveValue: { [weak self] newContacts in
-      print(#line, "\(newContacts.count)")
-      let registerContacts = newContacts
-      self?.contacts = registerContacts
-    }
-    .store(in: &cancellables)
+    case contactsAuthorizationStatus(CNAuthorizationStatus)
+    case contactsResponse(Result<[Contact], HTTPError>)
   }
 }
 
 public struct ContactsView: View {
-  @ObservedObject var contactViewModel: ContactViewModel
+
+  public let store: Store<ContactsState, ContactsAction>
   
-  public init() {
-    contactViewModel = ContactViewModel()
+  public init(store: Store<ContactsState, ContactsAction>) {
+    self.store = store
   }
   
   public var body: some View {
-    List {
-      ForEach(contactViewModel.contacts, id: \.identifier) { contact in
-        ContactRow(contact: contact)
+    WithViewStore(self.store.scope(state: { $0.view }, action: ContactsAction.view)) { viewStore in
+      
+      ZStack {
+        List {
+          ContactListView(
+            store: viewStore.isLoading
+            ? Store(
+              initialState: ContactsState.contactsPlaceholder,
+              reducer: .empty,
+              environment: ()
+            )
+            : self.store
+          )
+          .redacted(reason: viewStore.isLoading ? .placeholder : [])
+        
+        }
+        .onAppear {
+          viewStore.send(.onAppear)
+        }
       }
+      .alert(self.store.scope(state: { $0.alert }), dismiss: .alertDismissed)
+      .navigationBarTitle("Contacts", displayMode: .automatic)
     }
-    .onAppear {
-      contactViewModel.loadData()
-    }
-    .alert(isPresented: self.$contactViewModel.invalidPermission) {
-      Alert(
-        title: Text("TITLE"),
-        message: Text("Please go to Settings and turn on the permissions"),
-        primaryButton: .cancel(Text("Cancel")),
-        secondaryButton: .default(Text("Settings"), action: {
-          if let url = URL(string: UIApplication.openSettingsURLString), UIApplication.shared.canOpenURL(url) {
-            UIApplication.shared.open(url, options: [:], completionHandler: nil)
-          }
-        }))
-    }
-    .navigationBarTitle("Contacts", displayMode: .automatic)
+    .navigate(
+      using: store.scope(
+        state: \.chatState,
+        action: ContactsAction.chat
+      ),
+      destination: ChatView.init(store:),
+      onDismiss: {
+        ViewStore(store.stateless.stateless).send(.moveChatRoom(false))
+      }
+    )
   }
   
 }
 
 struct ContactsView_Previews: PreviewProvider {
+  static let environment = ContactsEnvironment(
+    coreDataClient: .init(contactClient: .authorized),
+    backgroundQueue: .immediate,
+    mainQueue: .immediate
+  )
+  
+  static let store = Store(
+    initialState: ContactsState.contactsPlaceholder,
+    reducer: contactsReducer,
+    environment: environment
+  )
+  
   static var previews: some View {
-    ContactsView()
+    TabView {
+      NavigationView {
+        ContactsView(store: store)
+//          .redacted(reason: .placeholder)
+//          .redacted(reason: EventsState.events.isLoadingPage ? .placeholder : [])
+          .environment(\.colorScheme, .dark)
+      }
+    }
   }
 }
