@@ -7,13 +7,16 @@ public struct UserClient {
 
   public typealias UserMeHandler = (String, String) -> AnyPublisher<User, HTTPError>
   public typealias UserUpdateHandler = (User, String) -> AnyPublisher<User, HTTPError>
-  
-  public let me: UserMeHandler
+
+  public let userMeHandler: UserMeHandler
   public let update: UserUpdateHandler
-  
-  public init(me: @escaping UserMeHandler, update:  @escaping UserUpdateHandler) {
-    self.me = me
+
+  public init(
+    userMeHandler: @escaping UserMeHandler,
+    update:  @escaping UserUpdateHandler
+  ) {
+    self.userMeHandler = userMeHandler
     self.update = update
   }
-  
+
 }

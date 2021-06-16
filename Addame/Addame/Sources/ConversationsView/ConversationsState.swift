@@ -34,20 +34,20 @@ public struct ConversationsState: Equatable {
     self.contactsState = contactsState
     self.createConversation = createConversation
   }
-  
+
   public var isLoadingPage = false
   public var canLoadMorePages = true
   public var currentPage = 1
-  
+
   public var alert: AlertState<ConversationsAction>?
   public var conversations: IdentifiedArrayOf<ConversationResponse.Item> = []
   public var conversation: ConversationResponse.Item?
   public var createConversation: CreateConversation?
   public var chatState: ChatState?
   public var contactsState: ContactsState?
-  
+
   public var isSheetPresented: Bool { self.contactsState != nil }
-  
+
 }
 
 extension ConversationsState {
@@ -68,10 +68,16 @@ extension ConversationsState {
     conversations: .init(
       [
         ConversationResponse.Item(
-          Conversation(id: UUID().uuidString, title: "Walk Around 🚶🏽🚶🏼‍♀️", type: .group, createdAt: Date(), updatedAt: Date())
+          Conversation(
+            id: UUID().uuidString, title: "Walk Around 🚶🏽🚶🏼‍♀️",
+            type: .group, createdAt: Date(), updatedAt: Date()
+          )
         ),
         ConversationResponse.Item(
-          Conversation(id: UUID().uuidString, title: "+79218821217, Alla Fake Number Update", type: .oneToOne, createdAt: Date(), updatedAt: Date())
+          Conversation(
+            id: UUID().uuidString, title: "+79218821217, Alla Fake Number Update",
+            type: .oneToOne, createdAt: Date(), updatedAt: Date()
+          )
         ),
         ConversationResponse.Item(
           Conversation(id: UUID().uuidString, title: "Running", type: .group, createdAt: Date(), updatedAt: Date())

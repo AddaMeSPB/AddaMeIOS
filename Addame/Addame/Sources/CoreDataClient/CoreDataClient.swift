@@ -8,14 +8,14 @@ import CoreData
 import HttpRequest
 
 public final class CoreDataClient {
-  
+
   public var contactClient: ContactClient
   public var contacts = [Contact]()
-  
+
   public init(contactClient: ContactClient) {
     self.contactClient = contactClient
   }
-  
+
   public func getContacts() -> AnyPublisher<[Contact], HTTPError> {
     return self.contactClient.buidContacts()
       .removeDuplicates()
@@ -27,7 +27,7 @@ public final class CoreDataClient {
       }
       .eraseToAnyPublisher()
   }
-  
+
   public func registerContacts(contacts: [Contact]) -> AnyPublisher<[Contact], HTTPError> {
     var results = [Contact]()
     return self.contactClient.getRegisterUsersFromServer(contacts)
@@ -43,8 +43,7 @@ public final class CoreDataClient {
       .mapError { $0 }
       .eraseToAnyPublisher()
   }
-  
-  
+
   //  public func save() -> AnyPublisher<[Contact], Never> {
   //    return self.contactClient.buidContacts()
   //      .map { [weak self] contacts in
@@ -69,7 +68,7 @@ public final class CoreDataClient {
   //      .replaceError(with: [])
   //      .eraseToAnyPublisher()
   //  }
-  
+
   //  private func registerUsers(contacts: [Contact]) {
   //    self.contactClient.getRegisterUsersFromServer(contacts)
   //      .subscribe(on: DispatchQueue.main)
@@ -94,31 +93,31 @@ public final class CoreDataClient {
   //          guard let contact = contacts.first(where: { $0.phoneNumber == user.phoneNumber }) else { continue }
   //          results.append(contact)
   //        }
-  ////        users.forEach { user in
-  ////          guard let contact = contacts.first(where: { $0.phoneNumber == user.phoneNumber }) else { continue }
-  ////          results.append(contact)
-  ////          fetchRequest.predicate = NSPredicate(format: "phoneNumber = %@", "\(user.phoneNumber)")
-  ////
-  ////          do {
-  ////            guard let results = try  CoreDataStore.shared?.moc.fetch(fetchRequest), results.count < 0 else { return }
-  ////
-  ////            results.forEach { contactEntity in
-  ////              contactEntity.setValue(true, forKey: "isRegister")
-  ////              contactEntity.setValue(user.attachments?.last?.imageUrlString, forKey: "avatar")
-  ////            }
-  ////
-  ////          } catch {
-  ////            print("failed to fetch record from CoreData")
-  ////          }
+  //        users.forEach { user in
+  //          guard let contact = contacts.first(where: { $0.phoneNumber == user.phoneNumber }) else { continue }
+  //          results.append(contact)
+  //          fetchRequest.predicate = NSPredicate(format: "phoneNumber = %@", "\(user.phoneNumber)")
   //
-  ////        }
+  //          do {
+  //            guard let results = try CoreDataStore.shared?.moc.fetch(fetchRequest), results.count < 0 else { return }
   //
-  ////        CoreDataStore.shared?.saveContext()
+  //            results.forEach { contactEntity in
+  //              contactEntity.setValue(true, forKey: "isRegister")
+  //              contactEntity.setValue(user.attachments?.last?.imageUrlString, forKey: "avatar")
+  //            }
+  //
+  //          } catch {
+  //            print("failed to fetch record from CoreData")
+  //          }
+  //
+  //        }
+  //
+  //        CoreDataStore.shared?.saveContext()
   //        self?.contacts = results
   //      }.store(in: &cancellables)
   //
   //  }
-  
+
   //  public func fetchContactEntityThenConvertToContacts() -> AnyPublisher<[Contact], HTTPError> {
   //    let request: NSFetchRequest<ContactEntity> = ContactEntity.fetchRequest()
   //    let sortDescriptor = NSSortDescriptor(key: "id", ascending: true)
@@ -141,7 +140,5 @@ public final class CoreDataClient {
   //    .eraseToAnyPublisher()
   //
   //  }
-  
+
 }
-
-

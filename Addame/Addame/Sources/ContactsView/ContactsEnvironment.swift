@@ -11,12 +11,12 @@ import CoreDataClient
 import CoreDataStore
 
 public struct ContactsEnvironment {
-  
+
   public let coreDataClient: CoreDataClient
   public var backgroundQueue: AnySchedulerOf<DispatchQueue>
   public var mainQueue: AnySchedulerOf<DispatchQueue>
   private var cancellables = Set<AnyCancellable>()
-  
+
   public init(
     coreDataClient: CoreDataClient,
     backgroundQueue: AnySchedulerOf<DispatchQueue>,
@@ -26,5 +26,5 @@ public struct ContactsEnvironment {
     self.coreDataClient = coreDataClient
     self.mainQueue = mainQueue
   }
-  
+
 }

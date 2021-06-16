@@ -23,7 +23,7 @@ public extension Color {
 }
 
 // USE case
-struct ColoredView : View {
+struct ColoredView: View {
     @Environment(\.colorScheme) var colorScheme: ColorScheme
 
     var body: some View {

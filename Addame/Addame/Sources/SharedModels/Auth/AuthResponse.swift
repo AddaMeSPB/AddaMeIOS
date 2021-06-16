@@ -9,12 +9,12 @@ import Foundation
 
 // MARK: - Login and Verification request/response
 public struct AuthResponse: Codable, Equatable {
-  
+
   public var phoneNumber: String
   public var attemptId: String?
   public var code: String?
   public var isLoggedIn: Bool? = false
-  
+
   public init(
     phoneNumber: String,
     attemptId: String? = nil,
@@ -26,15 +26,15 @@ public struct AuthResponse: Codable, Equatable {
     self.code = code
     self.isLoggedIn = isLoggedIn
   }
-  
+
   public static var draff: Self {
     .init(phoneNumber: "")
   }
-  
+
 }
 
 public struct AuthTokenResponse: Codable, Equatable {
-  
+
   public var accessToken: String
   public var refreshToken: String
 
@@ -42,12 +42,12 @@ public struct AuthTokenResponse: Codable, Equatable {
     self.accessToken = accessToken
     self.refreshToken = refreshToken
   }
-  
+
 }
 
 // MARK: - Login Response
 public struct LoginRes: Codable, Equatable {
-  
+
   public let status: String
   public let user: User
   public let access: AuthTokenResponse
@@ -57,5 +57,5 @@ public struct LoginRes: Codable, Equatable {
     self.user = user
     self.access = access
   }
-  
+
 }

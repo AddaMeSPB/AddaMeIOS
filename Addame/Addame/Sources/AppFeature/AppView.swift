@@ -16,17 +16,17 @@ import AuthClient
 import AuthClientLive
 
 public struct AppView: View {
-  
+
   public init() {}
-  
+
   @AppStorage("isAuthorized")
   public var isAuthorized: Bool = false
-  
+
   static let tabsEnv = TabsEnvironment(
     backgroundQueue: .main,
     mainQueue: .main
   )
-  
+
   static let tabsState = TabsState(
     selectedTab: .event,
     event: EventsState(),

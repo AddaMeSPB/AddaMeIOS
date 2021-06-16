@@ -11,24 +11,24 @@ import KeychainService
 import ComposableArchitecture
 
 public struct ProfileState: Equatable {
-  
+
   public static func == (lhs: ProfileState, rhs: ProfileState) -> Bool {
     return lhs.isUserFristNameUpdated == rhs.isUserFristNameUpdated
   }
-  
+
   @AppStorage(AppUserDefaults.Key.isUserFristNameUpdated.rawValue)
   public var isUserFristNameUpdated: Bool = false
-  
+
   public var alert: AlertState<ProfileAction>?
   public var isUploadingImage: Bool = false
   public var showingImagePicker = false
-  public var inputImage: UIImage? = nil
+  public var inputImage: UIImage?
   public var moveToSettingsView = false
   public var moveToAuthView: Bool = false
   public var user: User = .draff
   public var isUserHaveAvatarLink: Bool = false
   public var myEvents: [EventResponse.Item] = []
-  
+
   public init(
     alert: AlertState<ProfileAction>? = nil,
     isUploadingImage: Bool = false,
@@ -50,7 +50,7 @@ public struct ProfileState: Equatable {
     self.isUserHaveAvatarLink = isUserHaveAvatarLink
     self.myEvents = myEvents
   }
-  
+
 }
 
 public extension ProfileState {
@@ -68,9 +68,9 @@ public extension ProfileState {
   }
 }
 
-
+// swiftlint:disable all
 extension ProfileState {
-  
+
   private static var user = User(
     id: "5fabb05d2470c17919b3c0e2", phoneNumber: "+79218888888", avatarUrl: nil,
     firstName: "Alex", lastName: "Khan", email: nil, contactIDs: nil, deviceIDs: nil,
@@ -85,7 +85,7 @@ extension ProfileState {
     ],
     createdAt: Date(), updatedAt: Date()
   )
-  
+
   public static let events = Self(
     user: user,
     myEvents: [

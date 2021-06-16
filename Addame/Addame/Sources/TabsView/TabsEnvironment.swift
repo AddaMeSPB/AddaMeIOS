@@ -9,10 +9,10 @@ import Combine
 import ComposableArchitecture
 
 public struct TabsEnvironment {
-  
+
   public var backgroundQueue: AnySchedulerOf<DispatchQueue>
   public var mainQueue: AnySchedulerOf<DispatchQueue>
-  
+
   public init(
     backgroundQueue: AnySchedulerOf<DispatchQueue>,
     mainQueue: AnySchedulerOf<DispatchQueue>
@@ -20,5 +20,5 @@ public struct TabsEnvironment {
     self.backgroundQueue = backgroundQueue
     self.mainQueue = mainQueue
   }
-    
+
 }

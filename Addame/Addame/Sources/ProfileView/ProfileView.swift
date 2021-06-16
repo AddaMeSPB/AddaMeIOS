@@ -13,48 +13,48 @@ extension ProfileView {
     public var alert: AlertState<ProfileAction>?
     public var isUploadingImage: Bool = false
     public var showingImagePicker = false
-    public var inputImage: UIImage? = nil
+    public var inputImage: UIImage?
     public var moveToSettingsView = false
     public var moveToAuthView: Bool = false
     public var user: User = User.draff
     public var isUserHaveAvatarLink: Bool = false
   }
-  
+
   public enum ViewAction: Equatable {
     case alertDismissed
     case isUploadingImage
     case showingImagePicker
     case moveToSettingsView
     case moveToAuthView
-    
+
     case fetchMyData
     case uploadAvatar(_ image: UIImage)
     case updateUserName(String, String)
     case createAttachment(_ attachment: Attachment)
-    
+
     case userResponse(Result<User, HTTPError>)
     case attacmentResponse(Result<Attachment, HTTPError>)
     case event(index: Int, action: MyEventAction)
-    
+
     case resetAuthData
   }
 }
 
 public struct ProfileView: View {
-  
+
   @Environment(\.colorScheme) var colorScheme
   let store: Store<ProfileState, ProfileAction>
-  
+
   public init(store: Store<ProfileState, ProfileAction>) {
     self.store = store
   }
-  
+
   @ViewBuilder
   public var body: some View {
     WithViewStore(self.store.scope(state: { $0.view }, action: ProfileAction.view )) { viewStore  in
-      
+
       ScrollView {
-        
+
         if viewStore.state.user.attachments == nil {
           Image(systemName: "person.fill")
             .font(.system(size: 200, weight: .medium))
@@ -66,7 +66,7 @@ public struct ProfileView: View {
               alignment: .bottomTrailing
             )
         }
-        
+
         if viewStore.state.user.lastAvatarURLString != nil {
           AsyncImage(
             urlString: viewStore.state.user.lastAvatarURLString!,
@@ -95,20 +95,20 @@ public struct ProfileView: View {
             alignment: .bottomTrailing
           )
         }
-        
+
         VStack(alignment: .leading) {
           Text("My Events:")
             .font(.system(size: 23, weight: .bold, design: .rounded))
             .padding(.top, 10)
             .padding()
         }
-        
+
         Divider()
-        
+
         MyEventListView(store: self.store)
-        
+
         Divider()
-        
+
         HStack {
           Button(action: {
             viewStore.send(.resetAuthData)
@@ -148,10 +148,10 @@ public struct ProfileView: View {
       .alert(self.store.scope(state: { $0.alert }), dismiss: .alertDismissed)
     }
   }
-  
+
   private var settings: some View {
     Button(action: {
-      //self.uvm.moveToSettingsView = true
+      // self.uvm.moveToSettingsView = true
     }) {
       Image(systemName: "gear")
         .font(.title)
@@ -177,7 +177,7 @@ public struct ProfileView: View {
 }
 
 struct ProfileView_Previews: PreviewProvider {
-  
+
   static let environment = ProfileEnvironment(
     userClient: .happyPath,
     eventClient: .happyPath,
@@ -186,34 +186,34 @@ struct ProfileView_Previews: PreviewProvider {
     backgroundQueue: .immediate,
     mainQueue: .immediate
   )
-  
+
   static let store = Store(
     initialState: ProfileState.events,
     reducer: profileReducer, // here i am mixing
     environment: environment
   )
-  
+
   static var previews: some View {
     Group {
       ProfileView(store: store)
-      
+
       ProfileView(store: store)
         .environment(\.colorScheme, .dark)
     }
   }
-  
+
 }
 
 public struct ProfileImageOverlay: View {
-  
+
   @Environment(\.colorScheme) var colorScheme
-  
+
   let store: Store<ProfileState, ProfileAction>
-  
+
   public init(store: Store<ProfileState, ProfileAction>) {
     self.store = store
   }
-  
+
   public var body: some View {
     WithViewStore(self.store.scope(state: { $0.view }, action: ProfileAction.view )) { viewStore in
       ZStack {
@@ -223,12 +223,12 @@ public struct ProfileImageOverlay: View {
               placeHolder: "Image uploading...",
               show: viewStore.binding(
                 get: { $0.isUploadingImage },
-                send: { action in .isUploadingImage }
+                send: { _ in .isUploadingImage }
               )
             )
           }
         }
-        
+
         VStack {
           HStack {
             Spacer()
@@ -244,17 +244,17 @@ public struct ProfileImageOverlay: View {
                 .padding(.trailing, 30)
             })
             .imageScale(.large)
-            .frame(width: 40, height: 40, alignment: /*@START_MENU_TOKEN@*/.center/*@END_MENU_TOKEN@*/)
+            .frame(width: 40, height: 40, alignment: .center/*@END_MENU_TOKEN@*/)
             .padding()
 
           }
-          
+
           Spacer()
-          
+
           Text(viewStore.user.fullName)
             .font(.title).bold()
             .foregroundColor(Color.backgroundColor(for: self.colorScheme))
-          
+
         }
         .padding(6)
       }
@@ -262,14 +262,14 @@ public struct ProfileImageOverlay: View {
   }
 }
 
-//struct ProfileImageOverlay_Previews: PreviewProvider {
-////  static let environment = ProfileEnvironment(
-////    userClient: .happyPath,
-////    eventClient: .happyPath,
-////    authClient: .happyPath,
-////    attachmentClient: .happyPath,
-////    mainQueue: DispatchQueue.main.eraseToAnyScheduler()
-////  )
+// struct ProfileImageOverlay_Previews: PreviewProvider {
+//  static let environment = ProfileEnvironment(
+//    userClient: .happyPath,
+//    eventClient: .happyPath,
+//    authClient: .happyPath,
+//    attachmentClient: .happyPath,
+//    mainQueue: DispatchQueue.main.eraseToAnyScheduler()
+//  )
 //
 //  static let store = Store(
 //    initialState: ProfileState(),
@@ -286,19 +286,18 @@ public struct ProfileImageOverlay: View {
 //  static var previews: some View {
 //    ProfileImageOverlay(store: store)
 //  }
-//}
-
+// }
 
 public struct MyEventListView: View {
- 
+
   let store: Store<ProfileState, ProfileAction>
-  
+
   public var body: some View {
-    WithViewStore(self.store) { viewStore in
+    WithViewStore(self.store) { _ in
       ForEachStore(
         self.store.scope(state: \.myEvents, action: ProfileAction.event)
       ) { eventStore in
-        WithViewStore(eventStore) { eventViewStore in
+        WithViewStore(eventStore) { _ in
 //          Button(action: { viewStore.send(.eventTapped(eventViewStore.state)) }) {
             EventRowView(store: eventStore)
 //          }
@@ -310,15 +309,15 @@ public struct MyEventListView: View {
 }
 
 public struct EventRowView: View {
-  
+
   @Environment(\.colorScheme) var colorScheme
-  
+
   public init(store: Store<EventResponse.Item, MyEventAction>) {
     self.store = store
   }
-  
+
   public let store: Store<EventResponse.Item, MyEventAction>
-  
+
   public var body: some View {
     WithViewStore(self.store) { viewStore in
         VStack(alignment: .leading) {
@@ -343,5 +342,5 @@ public struct EventRowView: View {
         .padding(10)
     }
   }
-  
+
 }

@@ -69,27 +69,27 @@ public let tabsReducer = Reducer<TabsState, TabsAction, TabsEnvironment>.combine
       )
     }
   ),
-  
-  Reducer { state, action, environment in
+
+  Reducer { state, action, _ in
     switch action {
-    
+
     case let .didSelectTab(tab):
       state.selectedTab = tab
       return .none
-      
+
     case .event:
-      
+
       return .none
-    
+
     case .conversation:
       return .none
-      
+
     case .profile:
 
       state.profile.myEvents = state.event.myEvents
-      
+
       return .none
-      
+
     }
   }
 )

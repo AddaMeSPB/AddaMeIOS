@@ -14,11 +14,11 @@ public struct ContactRow: View {
   var contact: Contact
 
   @Environment(\.colorScheme) var colorScheme
-  
+
   public init(contact: Contact) {
     self.contact = contact
   }
-  
+
   public var body: some View {
     HStack {
       if contact.avatar == nil {
@@ -38,17 +38,16 @@ public struct ContactRow: View {
         .aspectRatio(contentMode: .fill)
         .frame(width: 45, height: 45, alignment: .center)
         .clipShape(Circle())
-        
+
       }
-      
-      
+
       VStack(alignment: .leading) {
         Text(contact.fullName ?? "unknown")
         Text(contact.phoneNumber)
       }
-      
+
       Spacer(minLength: 0)
-      
+
 //      Button(action: {
 //        startChat(contact)
 //      }, label: {
@@ -62,10 +61,10 @@ public struct ContactRow: View {
 //            .edgesIgnoringSafeArea(.bottom)
 //        )
 //      }
-      
+
     }
   }
-  
+
 //  func startChat(_ contact: ContactEntity) {
 //    guard let currentUSER: CurrentUser = KeychainService.loadCodable(for: .currentUser) else {
 //      return
@@ -79,20 +78,22 @@ public struct ContactRow: View {
 //
 //    conversationView.startOneToOneChat(conversation)
 //  }
-  
+
   func invite() {
     let url = URL(string: "https://testflight.apple.com/join/gXWnCqLB")
-    let av = UIActivityViewController(activityItems: [url!], applicationActivities: nil)
-    UIApplication.shared.windows.first?.rootViewController?.present(av, animated: true, completion: nil)
-    
-    //ActivityView(activityItems: [URL(string: "https://testflight.apple.com/join/gXWnCqLB")!])
-    //.ignoresSafeArea()
-      
+    let viewControllerToPresent = UIActivityViewController(activityItems: [url!], applicationActivities: nil)
+    _ = UIApplication.shared.windows.first?.rootViewController?.present(
+      viewControllerToPresent, animated: true, completion: nil
+    )
+
+    // ActivityView(activityItems: [URL(string: "https://testflight.apple.com/join/gXWnCqLB")!])
+    // .ignoresSafeArea()
+
   }
 }
 
-//struct ContactRow_Previews: PreviewProvider {
+// struct ContactRow_Previews: PreviewProvider {
 //  static var previews: some View {
 //    ContactRow(contact: <#ContactEntity#>)
 //  }
-//}
+// }

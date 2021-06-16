@@ -26,7 +26,7 @@ extension ContactsView {
     public var isLoading: Bool = false
     public var isActivityIndicatorVisible: Bool = false
   }
-  
+
   public enum ViewAction: Equatable {
     case onAppear
     case alertDismissed
@@ -34,7 +34,7 @@ extension ContactsView {
     case chat(ChatAction?)
     case chatRoom(index: String?, action: ContactAction)
     case chatWith(name: String, phoneNumber: String)
-    
+
     case contactsAuthorizationStatus(CNAuthorizationStatus)
     case contactsResponse(Result<[Contact], HTTPError>)
   }
@@ -43,14 +43,14 @@ extension ContactsView {
 public struct ContactsView: View {
 
   public let store: Store<ContactsState, ContactsAction>
-  
+
   public init(store: Store<ContactsState, ContactsAction>) {
     self.store = store
   }
-  
+
   public var body: some View {
     WithViewStore(self.store.scope(state: { $0.view }, action: ContactsAction.view)) { viewStore in
-      
+
       ZStack {
         List {
           ContactListView(
@@ -63,7 +63,7 @@ public struct ContactsView: View {
             : self.store
           )
           .redacted(reason: viewStore.isLoading ? .placeholder : [])
-        
+
         }
         .onAppear {
           viewStore.send(.onAppear)
@@ -83,7 +83,7 @@ public struct ContactsView: View {
       }
     )
   }
-  
+
 }
 
 struct ContactsView_Previews: PreviewProvider {
@@ -92,13 +92,13 @@ struct ContactsView_Previews: PreviewProvider {
     backgroundQueue: .immediate,
     mainQueue: .immediate
   )
-  
+
   static let store = Store(
     initialState: ContactsState.contactsPlaceholder,
     reducer: contactsReducer,
     environment: environment
   )
-  
+
   static var previews: some View {
     TabView {
       NavigationView {

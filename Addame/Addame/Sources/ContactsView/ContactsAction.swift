@@ -10,7 +10,7 @@ import HttpRequest
 import ChatView
 import Contacts
 
-//public enum ChatAction: Equatable {}
+// public enum ChatAction: Equatable {}
 
 public enum ContactAction: Equatable {
   case chat(ChatAction)
@@ -23,9 +23,9 @@ public enum ContactsAction: Equatable {
   case chat(ChatAction?)
   case chatRoom(index: String?, action: ContactAction)
   case chatWith(name: String, phoneNumber: String)
-  
+
   case contactsAuthorizationStatus(CNAuthorizationStatus)
-  
+
   case contactsResponse(Result<[Contact], HTTPError>)
 }
 
@@ -46,7 +46,7 @@ extension ContactsAction {
       return .contactsResponse(response)
     case let .chatRoom(index: index, action: action):
       return .chatRoom(index: index, action: action)
-    case .chatWith(name: let name, phoneNumber: let phoneNumber):
+    case let .chatWith(name: name, phoneNumber: phoneNumber):
       return .chatWith(name: name, phoneNumber: phoneNumber)
     }
   }

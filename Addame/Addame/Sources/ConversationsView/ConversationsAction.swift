@@ -21,7 +21,7 @@ public enum ConversationsAction: Equatable {
   case contactsView(isPresented: Bool)
   case chat(ChatAction?)
   case contacts(ContactsAction?)
-  
+
   case conversationsResponse(Result<ConversationResponse, HTTPError>)
   case conversationResponse(Result<ConversationResponse.Item, HTTPError>)
   case fetchMoreConversationIfNeeded(currentItem: ConversationResponse.Item?)

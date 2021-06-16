@@ -29,7 +29,7 @@ public struct ContactsState: Equatable {
     self.isLoading = isLoading
     self.isActivityIndicatorVisible = isActivityIndicatorVisible
   }
-  
+
   public var alert: AlertState<ContactsAction>?
   public var contacts: IdentifiedArrayOf<Contact> = []
   public var chatState: ChatState?
@@ -37,7 +37,7 @@ public struct ContactsState: Equatable {
   public var invalidPermission: Bool = false
   public var isLoading: Bool = false
   public var isActivityIndicatorVisible: Bool = false
-  
+
   public enum Action: Equatable {
     case didChangeAuthorization(CNAuthorizationStatus)
   }
@@ -56,7 +56,6 @@ extension ContactsState {
   }
 }
 
-
 extension ContactsState {
   public static let contactsPlaceholder = Self(
     contacts: [
@@ -68,7 +67,7 @@ extension ContactsState {
       .init(identifier: "5fd75df879983965ad5cd626", phoneNumber: "+79211111116", fullName: "Alla"),
       .init(identifier: "5fd75df879983965ad5cd627", phoneNumber: "+79211111117", fullName: "Denis"),
       .init(identifier: "5fd75df879983965ad5cd628", phoneNumber: "+79211111118", fullName: "Nikita"),
-      .init(identifier: "5fd75df879983965ad5cd629", phoneNumber: "+79211111119", fullName: "Krill"),
+      .init(identifier: "5fd75df879983965ad5cd629", phoneNumber: "+79211111119", fullName: "Krill")
     ]
   )
 }

@@ -1,4 +1,3 @@
-
 public enum Tabs: Int, CaseIterable, Equatable {
   case event
   case conversation

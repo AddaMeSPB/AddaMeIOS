@@ -11,19 +11,27 @@ extension NSManagedObjectContext {
 
     // generic A is a subtype of NSManagedObject and conforms to ManagedModel
     func insertManaged<A: NSManagedObject>() -> A where A: ManagedModel {
-        guard let obj = NSEntityDescription.insertNewObject(forEntityName: A.entityName, into: self) as? A else { fatalError("Trying to insert object with incorrect type") }
+        guard let obj = NSEntityDescription.insertNewObject(
+          forEntityName: A.entityName,
+          into: self
+        ) as? A else { fatalError("Trying to insert object with incorrect type") }
         return obj
     }
 
     func insertObject<A: NSManagedObject>() -> A where A: ManagedModel {
-        guard let obj = NSEntityDescription.insertNewObject(forEntityName: A.entityName, into: self) as? A else {
+        guard let obj = NSEntityDescription.insertNewObject(
+          forEntityName: A.entityName, into: self
+        ) as? A else {
             fatalError("Wrong object type")
         }
         return obj
     }
 
-    func addContextObserver(forName name:NSNotification.Name, handler: @escaping (Notification) -> Void ) -> NSObjectProtocol {
-        let observer = NotificationCenter.default.addObserver(forName: name, object: self, queue: nil) { (notification) in
+    func addContextObserver(
+      forName name: NSNotification.Name,
+      handler: @escaping (Notification) -> Void
+    ) -> NSObjectProtocol {
+        let observer = NotificationCenter.default.addObserver(forName: name, object: self, queue: nil) { notification in
             handler(notification)
         }
         return observer
@@ -46,7 +54,7 @@ extension NSManagedObjectContext {
         }
     }
 
-    func performMerge(fromContextDidSave notification:Notification) {
+    func performMerge(fromContextDidSave notification: Notification) {
         perform {
             self.mergeChanges(fromContextDidSave: notification)
         }
@@ -61,7 +69,7 @@ extension NSManagedObject {
     }
 
     public enum ChangeType {
-        case change([String : Any])
+        case change([String: Any])
         case deleted
     }
 
@@ -82,6 +90,7 @@ extension NSManagedObject {
             NotificationCenter.default.removeObserver(self)
         }
 
+        // swiftlint:disable all
         @objc
         func contextObjectsDidChange(_ notification: Notification) {
             if let objects = notification.userInfo?[NSInsertedObjectsKey] as? Set<NSManagedObject> {
@@ -115,4 +124,3 @@ extension NSManagedObject {
         }
     }
 }
-

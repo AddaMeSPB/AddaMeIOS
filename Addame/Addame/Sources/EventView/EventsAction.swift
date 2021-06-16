@@ -20,7 +20,7 @@ public enum EventsAction: Equatable {
 //  case isPresentingEventForm
   case presentEventForm(Bool)
   case eventForm(EventFormAction)
-  
+
   case fetchMoreEventIfNeeded(item: EventResponse.Item?)
   case fetchMyEvents
   case event(index: Int, action: EventAction)
@@ -29,7 +29,7 @@ public enum EventsAction: Equatable {
   case eventsResponse(Result<EventResponse, HTTPError>)
   case myEventsResponse(Result<EventResponse, HTTPError>)
   case eventTapped(EventResponse.Item)
-  
+
   case currentLocationButtonTapped
   case locationManager(LocationManager.Action)
   case popupSettings
@@ -39,21 +39,20 @@ public enum EventsAction: Equatable {
 
 public enum EventAction: Equatable {}
 
-
+// swiftlint:disable:next superfluous_disable_command
 extension EventsAction {
+  // swiftlint:disable:next cyclomatic_complexity
   static func view(_ localAction: EventView.ViewAction) -> Self {
     switch localAction {
-    
     case .alertDismissed:
       return .alertDismissed
     case .dismissEventDetails:
       return .dismissEventDetails
-
     case .presentEventForm(let bool):
       return .presentEventForm(bool)
     case .eventForm(let eventFormAction):
       return self.eventForm(eventFormAction)
-    case .event(index: let index, action: let action):
+    case let .event(index: index, action: action):
       return .event(index: index, action: action)
     case .currentLocationButtonTapped:
       return .currentLocationButtonTapped

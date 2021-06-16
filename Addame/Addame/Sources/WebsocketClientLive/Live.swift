@@ -20,47 +20,47 @@ func token() -> AnyPublisher<String, HTTPError> {
     return Fail(error: HTTPError.missingTokenFromIOS )
       .eraseToAnyPublisher()
   }
-  
+
   return Just(token.accessToken)
     .setFailureType(to: HTTPError.self)
     .eraseToAnyPublisher()
 }
 
 public class WebSocketAPI {
-  
+
   let queue = DispatchQueue(label: "web.socket.api")
   private var baseURL: URL { EnvironmentKeys.webSocketURL }
-  
+
   public func conversations() -> AnyPublisher<ConversationResponse.Item, Never> {
     return conversationsSubject.eraseToAnyPublisher()
   }
-  
+
   public func messages() -> AnyPublisher<ChatMessageResponse.Item, Never> {
     return messagesSubject.eraseToAnyPublisher()
   }
-  
+
   private var conversationsSubject = PassthroughSubject<ConversationResponse.Item, Never>()
   private var messagesSubject = PassthroughSubject<ChatMessageResponse.Item, Never>()
-  
+
   public var urlSession = URLSession(configuration: .default)
   public var socket: URLSessionWebSocketTask!
-  
+
   var cancellable: AnyCancellable?
-  
+
   public init() {}
-  
+
   public static let build = WebSocketAPI()
-  
+
   public func stop() {
     socket.cancel(with: .goingAway, reason: nil)
   }
-  
+
   public func disconnect() {
     socket.cancel(with: .normalClosure, reason: nil)
   }
-  
+
   public func handshake() {
-    
+
     cancellable = token()
       .receive(on: DispatchQueue.main)
       .sink(receiveCompletion: { completion in
@@ -77,34 +77,34 @@ public class WebSocketAPI {
           "Bearer \(token)",
           forHTTPHeaderField: "Authorization"
         )
-        
+
         self.socket = self.urlSession.webSocketTask(with: request)
         self.socket.receive(completionHandler: self.onReceive)
         self.socket.resume()
         self.onConnect()
       })
-    
+
   }
-  
+
   public func onConnect() {
     guard let currentUSER: User = KeychainService.loadCodable(for: .user) else {
       return
     }
-    
+
     let onconnect = ChatOutGoingEvent.connect(currentUSER).jsonString
-    
+
     socket.send(.string(onconnect!)) { error in
       if let error = error {
         print(#line, "Error sending message", error)
       }
     }
   }
-  
+
   public func onReceive(_ incoming: Result<URLSessionWebSocketTask.Message, Error>) {
-    
+
     self.socket.receive { result in
       switch result {
-      
+
       case .success(let message):
         switch message {
         case .data(let data):
@@ -119,21 +119,20 @@ public class WebSocketAPI {
       case .failure(let error):
         print(#line, error)
         self.socket.cancel(with: .goingAway, reason: nil)
-        //self.handshake()
+        // self.handshake()
         return
       }
     }
-    
+
     socket.receive(completionHandler: onReceive)
 
   }
 
-  
   public func send(
     localMessage: ChatMessageResponse.Item,
     remoteMessage: String
   ) {
-    
+
     self.socket.send(.string(remoteMessage)) { [weak self] error in
       //     if let error = error {
       //         print("Error sending message", error)
@@ -142,15 +141,15 @@ public class WebSocketAPI {
         print(#line, "cant send remote msg something wrong!")
         return
       }
-      
+
       self?.messagesSubject.send(localMessage)
     }
-    
+
   }
-  
+
   public func handle(_ data: Data) {
     let chatOutGoingEvent = ChatOutGoingEvent.decode(data: data)
-    
+
     switch chatOutGoingEvent {
     case .connect(_):
       break
@@ -170,13 +169,13 @@ public class WebSocketAPI {
       print(#line, "decode error")
     }
   }
-  
+
   public func handleMessageResponse(_ message: ChatMessageResponse.Item) {
     self.queue.async { [weak self] in
       self?.messagesSubject.send(message)
     }
   }
-  
+
 }
 
 extension WebsocketClient {

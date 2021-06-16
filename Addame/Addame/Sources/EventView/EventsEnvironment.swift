@@ -12,13 +12,13 @@ import PathMonitorClient
 import EventClient
 
 public struct EventsEnvironment {
-    
+
   let pathMonitorClient: PathMonitorClient
   var locationManager: LocationManager
   let eventClient: EventClient
   public var backgroundQueue: AnySchedulerOf<DispatchQueue>
   public var mainQueue: AnySchedulerOf<DispatchQueue>
-  
+
   public init(
     pathMonitorClient: PathMonitorClient,
     locationManager: LocationManager,
@@ -32,5 +32,5 @@ public struct EventsEnvironment {
     self.backgroundQueue = backgroundQueue
     self.mainQueue = mainQueue
   }
-  
+
 }

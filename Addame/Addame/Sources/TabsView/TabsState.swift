@@ -10,7 +10,7 @@ import ConversationsView
 import ProfileView
 
 public struct TabsState: Equatable {
-  
+
   public init(
     selectedTab: Tabs,
     event: EventsState,
@@ -22,18 +22,18 @@ public struct TabsState: Equatable {
     self.conversations = conversations
     self.profile = profile
   }
-  
+
   public var selectedTab: Tabs
   public var event: EventsState
   public var conversations: ConversationsState
   public var profile: ProfileState
-  
+
 }
 
 struct TabsViewState: Equatable {
   init(state: TabsState) {
     selectedTab = state.selectedTab
   }
-  
+
   var selectedTab: Tabs
 }

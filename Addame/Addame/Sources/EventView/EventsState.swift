@@ -45,7 +45,7 @@ public struct EventsState: Equatable {
     self.myEvents = myEvents
     self.eventDetails = eventDetails
   }
-  
+
   public var alert: AlertState<EventsAction>?
   public var isConnected = true
   public var isLocationAuthorized = false
@@ -53,7 +53,7 @@ public struct EventsState: Equatable {
   public var waitingForUpdateLocation = true
   public var isLoadingPage = false
   public var canLoadMorePages = true
-  
+
   public var currentPage = 1
   public var fetchAddress = ""
   public var currentEventPlace = EventResponse.Item.draff
@@ -61,12 +61,11 @@ public struct EventsState: Equatable {
   public var events: [EventResponse.Item] = []
   public var myEvents: [EventResponse.Item] = []
   public var eventDetails: EventResponse.Item?
-  
+
   public var eventFormState: EventFormState?
 }
 
-
-extension EventsState {  
+extension EventsState {
   var view: EventView.ViewState {
     EventView.ViewState(
       alert: self.alert,
@@ -83,6 +82,7 @@ extension EventsState {
   }
 }
 
+// swiftlint:disable all
 extension EventsState {
 
   public static let placeholderEvents = Self(

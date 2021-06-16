@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct LastMessage: Codable, Identifiable{
+public struct LastMessage: Codable, Identifiable {
     public var id, senderID: String
     public var phoneNumber: String
     public var firstName, lastName: String?
@@ -26,7 +26,7 @@ public struct LastMessage: Codable, Identifiable{
     }
 }
 
-extension LastMessage: Hashable  {
+extension LastMessage: Hashable {
   public func hash(into hasher: inout Hasher) {
       hasher.combine(id)
       hasher.combine(phoneNumber)

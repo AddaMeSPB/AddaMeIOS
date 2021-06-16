@@ -12,11 +12,11 @@ public struct ContactClient {
   public typealias AuthorizationStatusHandler = () -> AnyPublisher<CNAuthorizationStatus, Never>
   public typealias BuildContactsHandler = () -> AnyPublisher<[Contact], ContactError>
   public typealias GetRegisterUsersHandler = ([Contact]) -> AnyPublisher<[User], HTTPError>
-  
+
   public var authorization: AuthorizationStatusHandler
   public var buidContacts: BuildContactsHandler
   public var getRegisterUsersFromServer: GetRegisterUsersHandler
-  
+
   public init(
     authorization: @escaping AuthorizationStatusHandler,
     buidContacts: @escaping BuildContactsHandler,
@@ -26,13 +26,13 @@ public struct ContactClient {
     self.buidContacts = buidContacts
     self.getRegisterUsersFromServer = getRegisterUsersFromServer
   }
-  
+
 }
 
-//import Combine
-//import Contacts
+// import Combine
+// import Contacts
 //
-//class Contact: ObservableObject {
+// class Contact: ObservableObject {
 //  var dispose = Set<AnyCancellable>()
 //  let contactStore = CNContactStore()
 //  @Published var invalidPermission: Bool = false
@@ -54,9 +54,9 @@ public struct ContactClient {
 //      .assign(to: \.invalidPermission, on: self)
 //      .store(in: &dispose)
 //  }
-//}
+// }
 //
-//struct ContactView: View {
+// struct ContactView: View {
 //  @ObservedObject var contact = Contact()
 //
 //  var body: some View {
@@ -80,5 +80,4 @@ public struct ContactClient {
 //        }))
 //    }
 //  }
-//}
-
+// }

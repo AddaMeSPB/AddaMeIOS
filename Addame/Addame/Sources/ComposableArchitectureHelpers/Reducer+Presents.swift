@@ -7,6 +7,7 @@
 
 import ComposableArchitecture
 
+// swiftlint:disable all
 extension Reducer {
   /// Combines the reducer with a reducer that works on optionally presented `LocalState`.
   ///
@@ -50,4 +51,3 @@ extension Reducer {
     }
   }
 }
-

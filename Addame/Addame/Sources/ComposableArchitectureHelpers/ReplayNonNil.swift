@@ -5,6 +5,7 @@
 //  Created by Saroar Khandoker on 13.06.2021.
 //
 
+// swiftlint:disable all
 /// Converts a closure `(A) -> B?` to a closure that returns last non-`nil` `B` returned by the input closure.
 ///
 /// Based on a code from [Thomvis/Construct repository](https://github.com/Thomvis/Construct/blob/f165fd005cd939560c1a4eb8d6ee55075a52685d/Construct/Foundation/Memoize.swift)
@@ -12,7 +13,7 @@
 /// - Parameter inputClosure: The input closure.
 /// - Returns: Modified closure.
 func replayNonNil<A, B>(_ inputClosure: @escaping (A) -> B?) -> (A) -> B? {
-  var lastNonNilOutput: B? = nil
+  var lastNonNilOutput: B?
   return { inputValue in
     guard let outputValue = inputClosure(inputValue) else {
       return lastNonNilOutput
@@ -28,4 +29,3 @@ func replayNonNil<A, B>(_ inputClosure: @escaping (A) -> B?) -> (A) -> B? {
 func replayNonNil<T>() -> (T?) -> T? {
   replayNonNil { $0 }
 }
-

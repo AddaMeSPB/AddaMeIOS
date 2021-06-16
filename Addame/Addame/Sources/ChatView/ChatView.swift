@@ -12,7 +12,7 @@ extension ChatView {
     public var alert: AlertState<ChatAction>?
     public var conversation: ConversationResponse.Item?
     public var messages: IdentifiedArrayOf<ChatMessageResponse.Item> = []
-    
+
     public init(
       isLoadingPage: Bool = false,
       alert: AlertState<ChatAction>? = nil,
@@ -25,7 +25,7 @@ extension ChatView {
       self.messages = messages
     }
   }
-  
+
   public enum ViewAction: Equatable {
     case onAppear
     case alertDismissed
@@ -37,17 +37,17 @@ extension ChatView {
 }
 
 public struct ChatView: View {
-  
+
   public let store: Store<ChatState, ChatAction>
-  
+
   public init(
     store: Store<ChatState, ChatAction>
   ) {
     self.store = store
   }
-  
+
   public var body: some View {
-    
+
     WithViewStore(self.store.scope(state: { $0.view }, action: ChatAction.view )) { viewStore  in
       ZStack {
         List {
@@ -61,7 +61,7 @@ public struct ChatView: View {
               : self.store
           )
           .redacted(reason: viewStore.isLoadingPage ? .placeholder : [])
-          
+
         }
       }
       .onAppear {
@@ -74,7 +74,7 @@ public struct ChatView: View {
 }
 
 struct ChatView_Previews: PreviewProvider {
-  
+
   static let env = ChatEnvironment(
     chatClient: .happyPath,
     websocket: .init(
@@ -83,22 +83,22 @@ struct ChatView_Previews: PreviewProvider {
     ,
     mainQueue: .immediate
   )
-  
+
   static let store = Store(
     initialState: ChatState(),
     reducer: chatReducer,
     environment: env
   )
-  
+
   static var previews: some View {
     ChatView(store: store)
   }
-  
+
 }
 
 struct ChatListView: View {
   let store: Store<ChatState, ChatAction>
-  
+
   var body: some View {
     WithViewStore(self.store) { viewStore in
       ForEachStore(
@@ -116,18 +116,18 @@ struct ChatListView: View {
 }
 
 struct ChatRowView: View {
-  
+
   @Environment(\.colorScheme) var colorScheme
   let store: Store<ChatMessageResponse.Item, MessageAction>
-  
+
   var body: some View {
     WithViewStore(self.store) { viewStore in
       Group {
-        
+
         if !currenuser(viewStore.sender.id) {
           HStack {
             Group {
-              
+
               if viewStore.sender.avatarUrl != nil {
                 AsyncImage(
                   urlString: viewStore.sender.avatarUrl,
@@ -147,9 +147,9 @@ struct ChatRowView: View {
                   .foregroundColor(Color.backgroundColor(for: self.colorScheme))
                   .clipShape(Circle())
                   .overlay(Circle().stroke(Color.black, lineWidth: 1))
-                
+
               }
-              
+
               Text(viewStore.messageBody)
                 .bold()
                 .padding(10)
@@ -171,7 +171,7 @@ struct ChatRowView: View {
                 .padding(10)
                 .background(Color.red)
                 .cornerRadius(10)
-              
+
               if viewStore.sender.avatarUrl != nil {
                 AsyncImage(
                   urlString: viewStore.sender.avatarUrl,
@@ -192,9 +192,9 @@ struct ChatRowView: View {
                   .clipShape(Circle())
                   .overlay(Circle().stroke(Color.black, lineWidth: 1))
               }
-              
+
             }
-            
+
           }
           .background(Color(.systemBackground))
         }
@@ -202,13 +202,13 @@ struct ChatRowView: View {
       .background(Color(.systemBackground))
     }
   }
-  
+
   func currenuser(_ userId: String) -> Bool {
       guard let currentUSER: User = KeychainService.loadCodable(for: .user) else {
         return false
       }
-      
+
       return currentUSER.id == userId ? true : false
-      
+
     }
 }

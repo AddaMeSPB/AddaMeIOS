@@ -10,11 +10,11 @@ import SwiftUI
 import Combine
 
 public struct AdaptsToSoftwareKeyboard: ViewModifier {
-  
+
   @State var currentHeight: CGFloat = 0
-  
+
   public init() {}
-  
+
   public func body(content: Content) -> some View {
     content
       .padding(.bottom, currentHeight)
@@ -22,7 +22,7 @@ public struct AdaptsToSoftwareKeyboard: ViewModifier {
       .edgesIgnoringSafeArea(currentHeight == 0 ? [] : .bottom)
       .onAppear(perform: subscribeToKeyboardEvents)
   }
-  
+
   private func subscribeToKeyboardEvents() {
     NotificationCenter.Publisher(
       center: NotificationCenter.default,
@@ -32,13 +32,12 @@ public struct AdaptsToSoftwareKeyboard: ViewModifier {
     }.map { rect in
       rect.height
     }.subscribe(Subscribers.Assign(object: self, keyPath: \.currentHeight))
-    
+
     NotificationCenter.Publisher(
       center: NotificationCenter.default,
       name: UIResponder.keyboardWillHideNotification
-    ).compactMap { notification in
+    ).compactMap { _ in
       CGFloat.zero
     }.subscribe(Subscribers.Assign(object: self, keyPath: \.currentHeight))
   }
 }
-

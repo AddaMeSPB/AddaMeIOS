@@ -34,8 +34,8 @@ extension ConversationsView {
       self.contactsState = contactsState
       self.createConversation = createConversation
     }
-    
-    public var alert: AlertState<ConversationsAction>? = nil
+
+    public var alert: AlertState<ConversationsAction>?
     public var isLoadingPage = false
     public var conversations: IdentifiedArrayOf<ConversationResponse.Item> = []
     public var conversation: ConversationResponse.Item?
@@ -44,7 +44,7 @@ extension ConversationsView {
     public var isSheetPresented: Bool { self.contactsState != nil }
     public var createConversation: CreateConversation?
   }
-  
+
   public enum ViewAction: Equatable {
     case onAppear
     case alertDismissed
@@ -56,21 +56,21 @@ extension ConversationsView {
     case chat(ChatAction)
     case contacts(ContactsAction)
   }
-  
+
 }
 
 public struct ConversationsView: View {
-  
+
   @State private var showingSheet = false
   public let store: Store<ConversationsState, ConversationsAction>
-  
+
   public init(store: Store<ConversationsState, ConversationsAction>) {
     self.store = store
   }
-  
+
   public var body: some View {
     WithViewStore(self.store.scope(state: { $0.view }, action: ConversationsAction.view)) { viewStore in
-      
+
       ZStack {
         List {
           ConversationListView(
@@ -87,7 +87,7 @@ public struct ConversationsView: View {
         .onAppear {
           viewStore.send(.onAppear)
         }
-        
+
       }
       .navigationTitle("Chats")
       .toolbar {
@@ -116,7 +116,7 @@ public struct ConversationsView: View {
 //          then: ContactsView.init(store:)
 //        )
 //      }
-      
+
     }
     .navigate(
       using: store.scope(
@@ -138,24 +138,24 @@ public struct ConversationsView: View {
         ViewStore(store.stateless).send(.contactsView(isPresented: false))
       }
     )
-    
+
   }
 }
 
 struct ConversationsView_Previews: PreviewProvider {
-  
+
   static let environment = ConversationEnvironment(
     conversationClient: .happyPath,
     backgroundQueue: .immediate,
     mainQueue: .immediate
   )
-  
+
   static let store = Store(
     initialState: ConversationsState.placholderConversations,
     reducer: conversationsReducer,
     environment: environment
   )
-  
+
   static var previews: some View {
     TabView {
       NavigationView {
@@ -166,25 +166,24 @@ struct ConversationsView_Previews: PreviewProvider {
       }
     }
   }
-  
+
 }
 
-
 public struct ConversationListView: View {
-  
+
   public let store: Store<ConversationsState, ConversationsAction>
-  
+
   public var body: some View {
     WithViewStore(self.store) { viewStore in
       ForEachStore(
         self.store.scope(state: \.conversations, action: ConversationsAction.chatRoom)
       ) { conversationStore in
         WithViewStore(conversationStore) { conversationViewStore in
-          
+
           Button(action: {
             viewStore.send(.conversationTapped(conversationViewStore.state) )
             viewStore.send(.chatView(isPresented: true) )
-          } ) {
+          }) {
             ConversationRow(store: conversationStore)
               .onAppear {
                 viewStore.send(
@@ -195,24 +194,22 @@ public struct ConversationListView: View {
               }
           }
           .buttonStyle(PlainButtonStyle())
-          
+
         }
       }
     }
   }
 }
 
-
-
 struct ConversationRow: View {
-  
+
   @Environment(\.colorScheme) var colorScheme
   public let store: Store<ConversationResponse.Item, ConversationAction>
-  
+
   public init(store: Store<ConversationResponse.Item, ConversationAction>) {
     self.store = store
   }
-  
+
   public var body: some View {
     WithViewStore(self.store) { viewStore  in
       Group {
@@ -240,60 +237,60 @@ struct ConversationRow: View {
               .overlay(Circle().stroke(Color.blue, lineWidth: 1))
               .padding(.trailing, 5)
           }
-          
+
           VStack(alignment: .leading, spacing: 5) {
             Text(viewStore.title)
               .lineLimit(1)
               .font(.system(size: 18, weight: .semibold, design: .rounded))
               .foregroundColor(Color(.systemBlue))
-            
+
             if viewStore.lastMessage != nil {
               Text(viewStore.lastMessage!.messageBody).lineLimit(1)
             }
           }
           .padding(5)
-          
+
           Spacer(minLength: 3)
-          
+
           VStack(alignment: .trailing, spacing: 5) {
             if viewStore.lastMessage != nil {
               Text("\(viewStore.lastMessage!.createdAt?.dateFormatter ?? String.empty)")
             }
-            
+
             if viewStore.lastMessage?.messageBody != String.empty {
-              //Text("6").padding(8).background(Color("bg"))
+              // Text("6").padding(8).background(Color("bg"))
               //  .foregroundColor(.white).clipShape(Circle())
             } else {
               Spacer()
             }
           }
-          
+
         }
         .frame(minWidth: 0, maxWidth: .infinity, minHeight: 20, alignment: .leading)
         .padding(2)
       }
     }
   }
-  
+
 }
 
-public struct ConversationList:  Identifiable, Equatable {
+public struct ConversationList: Identifiable, Equatable {
   public init(id: String, conversation: ConversationResponse.Item) {
     self.id = id
     self.conversation = conversation
   }
-  
+
   public let id: String
   public let conversation: ConversationResponse.Item
 }
 
 public struct MessageList: Identifiable, Equatable {
-  
+
   public init(id: String = "", messages: [ChatMessageResponse.Item] = [] ) {
     self.id = id
     self.messages = messages
   }
-  
+
   public var id = ""
   public var messages = [ChatMessageResponse.Item]()
 }

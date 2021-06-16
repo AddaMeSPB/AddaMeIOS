@@ -23,6 +23,7 @@ import CoreDataClient
 import WebsocketClient
 import WebsocketClientLive
 
+// swiftlint:disable:next line_length
 public let conversationsReducer = Reducer<ConversationsState, ConversationsAction, ConversationEnvironment> { state, action, environment in
 
   func fetchMoreConversations() -> Effect<ConversationsAction, Never> {
@@ -36,7 +37,7 @@ public let conversationsReducer = Reducer<ConversationsState, ConversationsActio
       .catchToEffect()
       .map(ConversationsAction.conversationsResponse)
   }
-  
+
   func createOrFine() -> Effect<ConversationsAction, Never> {
     return environment.conversationClient.create(state.createConversation!, "")
       .retry(3)
@@ -45,13 +46,13 @@ public let conversationsReducer = Reducer<ConversationsState, ConversationsActio
       .catchToEffect()
       .map(ConversationsAction.conversationResponse)
   }
-  
+
   func presentChatView() -> Effect<ConversationsAction, Never> {
     return Effect(value: ConversationsAction.chatView(isPresented: true))
       .receive(on: environment.mainQueue)
       .eraseToEffect()
   }
-  
+
   switch action {
 
   case .onAppear:
@@ -66,7 +67,7 @@ public let conversationsReducer = Reducer<ConversationsState, ConversationsActio
 
     let threshouldIndex = state.conversations.index(state.conversations.endIndex, offsetBy: -7)
 
-    if state.conversations.firstIndex(where: { $0.id == item.id } ) == threshouldIndex {
+    if state.conversations.firstIndex(where: { $0.id == item.id }) == threshouldIndex {
       return fetchMoreConversations()
     }
 
@@ -75,7 +76,7 @@ public let conversationsReducer = Reducer<ConversationsState, ConversationsActio
   case .chatView(isPresented: let present):
     state.chatState = present ? ChatState(conversation: state.conversation) : nil
     return .none
-    
+
   case .contactsView(isPresented: let present):
 
     state.contactsState = present ? ContactsState() : nil
@@ -112,17 +113,17 @@ public let conversationsReducer = Reducer<ConversationsState, ConversationsActio
     state.conversation = conversationItem
 
     return .none
-  case .chatRoom(index: let index, action: let chatRoomAction):
-    
+  case let .chatRoom(index: index, action: chatRoomAction):
+
     return .none
 
   case .chat(let chatAction):
-    
+
     return .none
 
   case .contacts(let contactsAction):
     switch contactsAction {
-    
+
     case .onAppear, .alertDismissed:
       return .none
     case .moveChatRoom(let present):
@@ -131,7 +132,7 @@ public let conversationsReducer = Reducer<ConversationsState, ConversationsActio
       return .none
     case .contactsResponse(.failure(let error)):
       return .none
-      
+
     case .contactsAuthorizationStatus(.notDetermined),
          .contactsAuthorizationStatus(.denied),
          .contactsAuthorizationStatus(.restricted),
@@ -141,15 +142,18 @@ public let conversationsReducer = Reducer<ConversationsState, ConversationsActio
 
     case .chat(_):
       return .none
-    
-    case .chatRoom(index: let index, action: let action):
+
+    case let .chatRoom(index: index, action: action):
       return .none
-  
-    case .chatWith(name: let name, phoneNumber: let phoneNumber):
-      state.createConversation = CreateConversation(title: "currenUser + \(name)", type: .oneToOne, opponentPhoneNumber: phoneNumber)
-      
+
+    case let .chatWith(name: name, phoneNumber: phoneNumber):
+      state.createConversation = CreateConversation(
+        title: "currenUser + \(name)",
+        type: .oneToOne, opponentPhoneNumber: phoneNumber
+      )
+
       return createOrFine()
-    
+
     case .none:
       return .none
     }
@@ -158,9 +162,9 @@ public let conversationsReducer = Reducer<ConversationsState, ConversationsActio
     print(#line, "conversation: \(response)")
 //    state.contactsState = nil
     state.conversation = response
-    
+
     return presentChatView()
-    
+
   case .conversationResponse(.failure(let error)):
     return .none
   }
@@ -186,7 +190,7 @@ public let conversationsReducer = Reducer<ConversationsState, ConversationsActio
   action: /ConversationsAction.contacts,
   environment: {
     ContactsEnvironment(
-      coreDataClient: CoreDataClient.init(
+      coreDataClient: CoreDataClient(
         contactClient: ContactClient.live(api: .build)
       ),
       backgroundQueue: $0.backgroundQueue,

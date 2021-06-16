@@ -29,8 +29,7 @@ extension NavigationLink {
     label: @escaping () -> Label
   ) -> some View
   where DestinationContent: View,
-        Destination == IfLetStore<State, Action, DestinationContent?>
-  {
+        Destination == IfLetStore<State, Action, DestinationContent?> {
     WithViewStore(store.scope(state: { $0 != nil })) { viewStore in
       NavigationLink(
         destination: IfLetStore(
@@ -64,8 +63,7 @@ extension View {
     destination: @escaping (_ destinationStore: Store<State, Action>) -> DestinationContent,
     onDismiss: @escaping () -> Void
   ) -> some View
-  where DestinationContent: View
-  {
+  where DestinationContent: View {
     background(
       NavigationLink.store(
         store,

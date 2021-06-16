@@ -5,17 +5,18 @@ import HttpRequest
 import SharedModels
 
 public struct ConversationClient {
-  
-  public typealias ConversationCreateHandler = (CreateConversation, String) -> AnyPublisher<ConversationResponse.Item, HTTPError>
+
+  public typealias ConversationCreateHandler =
+    (CreateConversation, String) -> AnyPublisher<ConversationResponse.Item, HTTPError>
   public typealias AddUserToConversationHandler = (AddUser, String) -> AnyPublisher<String, HTTPError>
   public typealias ConversationListHandler = (QueryItem, String) -> AnyPublisher<ConversationResponse, HTTPError>
   public typealias ConversationFindHandler = (String, String) -> AnyPublisher<ConversationResponse.Item, HTTPError>
-  
+
   public let create: ConversationCreateHandler
   public let addUserToConversation: AddUserToConversationHandler
   public let list: ConversationListHandler
   public let find: ConversationFindHandler
-  
+
   public init(
     create: @escaping ConversationCreateHandler,
     addUserToConversation: @escaping AddUserToConversationHandler,
@@ -27,5 +28,5 @@ public struct ConversationClient {
     self.list = list
     self.find = find
   }
-  
+
 }

@@ -9,7 +9,6 @@
 import Foundation
 import CoreData
 
-
 extension ContactEntity {
 
     @nonobjc public class func fetchRequest() -> NSFetchRequest<ContactEntity> {

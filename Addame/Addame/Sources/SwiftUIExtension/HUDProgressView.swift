@@ -12,23 +12,28 @@ public struct HUDProgressView: View {
   @Binding public var show: Bool
   @State public var animate = false
   @Environment(\.colorScheme) var colorScheme
-  
+
   public init(placeHolder: String, show: Binding<Bool>) {
     self.placeHolder = placeHolder
     self._show = show
   }
-  
+
   public var body: some View {
     VStack {
       Circle()
-        .stroke(AngularGradient(gradient: .init(colors: [Color(.systemBlue), Color.primary.opacity(0)]), center: .center))
+        .stroke(AngularGradient(
+          gradient: .init(colors: [Color(.systemBlue),
+                                   Color.primary.opacity(0)
+                                  ]),
+          center: .center)
+        )
         .frame(width: 80, height: 80)
         .rotationEffect(.init(degrees: animate ? 360 : 0))
-      
+
       Text(placeHolder)
         .fontWeight(.bold)
         .foregroundColor(colorScheme == .dark ? .white : .black)
-      
+
     }
     .padding(.vertical, 25)
     .padding(.horizontal, 35)
@@ -59,8 +64,6 @@ public struct BlueView: UIViewRepresentable {
     let view = UIVisualEffectView(effect: effect)
     return view
   }
-  
+
   public func updateUIView(_ uiView: UIViewType, context: Context) {}
 }
-
-

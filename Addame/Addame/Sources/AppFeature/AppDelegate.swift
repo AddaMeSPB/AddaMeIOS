@@ -24,7 +24,7 @@ struct AppDelegateEnvironment {
   var userNotifications: UserNotificationClient
   var remoteNotifications: RemoteNotificationsClient
   var authClient: AuthClient
-  
+
 //  #if DEBUG
 //    static let failing = Self(
 //      backgroundQueue: .failing("backgroundQueue"),
@@ -105,6 +105,6 @@ let appDelegateReducer = Reducer<
         //     can set the user interface style.
         .subscribe(on: environment.mainQueue)
         .fireAndForget()
-    
+
   }
 }

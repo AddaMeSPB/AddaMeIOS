@@ -10,21 +10,22 @@ import Foundation
 import HttpRequest
 import SharedModels
 
+// swiftlint:disable all
 extension EventClient {
   public static let empty = Self(
     events: { _, _  in
       Just(EventResponse.emptry)
       .setFailureType(to: HTTPError.self)
       .eraseToAnyPublisher()
-    }, create: { _,_   in
+    }, create: { _, _   in
       Just(Event.draff)
       .setFailureType(to: HTTPError.self)
       .eraseToAnyPublisher()
     }
   )
-  
+
   public static let happyPath = Self(
-    events: { _,_   in
+    events: { _, _   in
       Just(
         EventResponse(
           items: [
@@ -38,7 +39,7 @@ extension EventClient {
       )
       .setFailureType(to: HTTPError.self)
       .eraseToAnyPublisher()
-    }, create: { _,_  in
+    }, create: { _, _  in
       Just(
         Event(id: "5fb1510012de9980bd0c2efc", name: "Testing data", details: "Waitting for details", imageUrl: "https://avatars.mds.yandex.net/get-pdb/2776508/af73774d-7409-4e73-81c8-c8ab127c2f8b/s1200?webp=false", duration: 14400, categories: "General", isActive: true, addressName: "8к1литД улица Вавиловых , Saint Petersburg", type: .Point, sponsored: false, overlay: false, coordinates: [60.020532228306031, 30.388014239849944])
       )
@@ -48,5 +49,5 @@ extension EventClient {
     }
 
   )
-  
+
 }

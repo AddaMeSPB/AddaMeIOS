@@ -7,16 +7,6 @@
 
 import SwiftUI
 
-//public struct RoundLeft: Shape {
-//  public init() {}
-//
-//  public func path(in rect: CGRect) -> Path {
-//    let path = UIBezierPath(roundedRect: rect, byRoundingCorners: .topLeft, cornerRadii: CGSize(width: 55, height: 55) )
-//
-//    return Path(path.cgPath)
-//  }
-//}
-
 public struct CornerRadiusStyle: ViewModifier {
     var radius: CGFloat
     var corners: UIRectCorner
@@ -27,7 +17,11 @@ public struct CornerRadiusStyle: ViewModifier {
         var corners = UIRectCorner.allCorners
 
     public func path(in rect: CGRect) -> Path {
-            let path = UIBezierPath(roundedRect: rect, byRoundingCorners: corners, cornerRadii: CGSize(width: radius, height: radius))
+            let path = UIBezierPath(
+              roundedRect: rect,
+              byRoundingCorners: corners,
+              cornerRadii: CGSize(width: radius, height: radius)
+            )
             return Path(path.cgPath)
         }
     }
