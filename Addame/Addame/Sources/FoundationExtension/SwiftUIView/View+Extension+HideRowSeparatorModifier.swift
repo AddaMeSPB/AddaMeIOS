@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-//public struct HideRowSeparatorModifier: ViewModifier {
+// public struct HideRowSeparatorModifier: ViewModifier {
 //  
 //  public static let defaultListRowHeight: CGFloat = 44
 //  public var insets: EdgeInsets
@@ -17,11 +17,11 @@ import SwiftUI
 //    self.insets = insets
 //    var alpha: CGFloat = 0
 //        
-////    if #available(iOS 14.0, *) {
-////      Color(background).getWhite(nil, alpha: &alpha)
-////    } else {
-////      Color.clear
-////    }
+//    if #available(iOS 14.0, *) {
+//      Color(background).getWhite(nil, alpha: &alpha)
+//    } else {
+//      Color.clear
+//    }
 //    assert(alpha == 1, "Setting background to a non-opaque color will result in separators remaining visible.")
 //    self.background = background
 //  }
@@ -37,13 +37,13 @@ import SwiftUI
 //      .listRowInsets(EdgeInsets())
 //      .background(background)
 //  }
-//}
+// }
 //
-//public extension EdgeInsets {
+// public extension EdgeInsets {
 //  static let defaultListRowInsets = Self(top: 0, leading: 16, bottom: 0, trailing: 16)
-//}
+// }
 //
-//public extension View {
+// public extension View {
 //  func hideRowSeparator(
 //    insets: EdgeInsets = .defaultListRowInsets,
 //    background: Color = Color(UIColor.systemBackground)
@@ -53,4 +53,4 @@ import SwiftUI
 //      background: background
 //    ))
 //  }
-//}
+// }

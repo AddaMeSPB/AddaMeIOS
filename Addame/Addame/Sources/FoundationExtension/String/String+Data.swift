@@ -12,6 +12,6 @@ public extension String {
     return Data(
       base64Encoded: self,
       options: Data.Base64DecodingOptions.ignoreUnknownCharacters
-    ) ?? nil
+    )
   }
 }

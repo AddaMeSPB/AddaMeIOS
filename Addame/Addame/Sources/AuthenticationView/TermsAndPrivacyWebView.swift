@@ -10,7 +10,7 @@ import SwiftUI
 public struct TermsAndPrivacyWebView: View {
   @Environment(\.presentationMode) var presentationMode
   let urlString: String
-  
+
   public var body: some View {
     TermsAndPrivacyWebRepresentableView(urlString: urlString)
       .overlay(
@@ -21,10 +21,10 @@ public struct TermsAndPrivacyWebView: View {
         })
         .padding(.bottom, 10)
         .padding(),
-        
+
         alignment: .bottomTrailing
       )
-    
+
   }
 }
 

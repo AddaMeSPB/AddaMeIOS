@@ -35,12 +35,12 @@ public struct UserSettings: Codable, Equatable {
   public init(colorScheme: ColorScheme = .system) {
     self.colorScheme = colorScheme
   }
-  
+
   public init(from decoder: Decoder) throws {
     let container = try decoder.container(keyedBy: CodingKeys.self)
     self.colorScheme = (try? container.decode(ColorScheme.self, forKey: .colorScheme)) ?? .system
   }
-  
+
 }
 
 public enum SettingsAction: Equatable {
@@ -53,7 +53,6 @@ public enum SettingsAction: Equatable {
   case userNotificationAuthorizationResponse(Result<Bool, NSError>)
   case userNotificationSettingsResponse(UserNotificationClient.Notification.Settings)
 }
-
 
 public struct SettingsState: Equatable {
   public var alert: AlertState<SettingsAction>?

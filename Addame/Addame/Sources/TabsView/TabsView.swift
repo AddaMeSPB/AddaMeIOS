@@ -7,21 +7,21 @@
 
 import ComposableArchitecture
 import EventView
-import ConversationView
+import ConversationsView
 import ProfileView
 import SwiftUI
 
 public struct TabsView: View {
-  
+
   @AppStorage("isUserFirstNameEmpty")
   public var isUserFirstNameEmpty: Bool = true
-  
+
   public init(store: Store<TabsState, TabsAction>) {
     self.store = store
   }
-  
+
   let store: Store<TabsState, TabsAction>
-  
+
   public var body: some View {
     WithViewStore(store.scope(state: TabsViewState.init(state:))) { viewStore in
       TabView(selection: viewStore.binding(
@@ -32,7 +32,7 @@ public struct TabsView: View {
       }
     }
   }
-  
+
   private func tabView(_ tabs: Tabs) -> some View {
     view(for: tabs)
       .tabItem {
@@ -41,7 +41,7 @@ public struct TabsView: View {
       }
       .tag(tabs)
   }
-  
+
   private func title(for tab: Tabs) -> String {
     switch tab {
     case .event: return "Events"
@@ -49,7 +49,7 @@ public struct TabsView: View {
     case .profile: return "Profile"
     }
   }
-  
+
   private func image(for tab: Tabs) -> String {
     switch tab {
     case .event: return "list.bullet.below.rectangle"
@@ -57,7 +57,7 @@ public struct TabsView: View {
     case .profile: return "person"
     }
   }
-  
+
   @ViewBuilder
   private func view(for tabs: Tabs) -> some View {
     switch tabs {
@@ -67,7 +67,7 @@ public struct TabsView: View {
           state: \.event,
           action: TabsAction.event
         ))
-        
+
 //        .sheet(
 //          isPresented: $isUserFirstNameEmpty
 //        ) {
@@ -78,18 +78,18 @@ public struct TabsView: View {
         ViewStore(store.stateless).send(.event(.onAppear))
       }
       .navigationViewStyle(StackNavigationViewStyle())
-      
+
     case .conversation:
       NavigationView {
-        ConversationView(store: store.scope(
+        ConversationsView(store: store.scope(
           state: \.conversations,
           action: TabsAction.conversation
         ))
       }
       .navigationViewStyle(StackNavigationViewStyle())
-      
+
     case .profile:
-      
+
       NavigationView {
         ProfileView(store: store.scope(
           state: \.profile,
@@ -102,22 +102,26 @@ public struct TabsView: View {
 }
 
 struct TabsView_Previews: PreviewProvider {
-  
+
+  static let tabsEnv = TabsEnvironment(
+    backgroundQueue: .immediate,
+    mainQueue: .immediate
+  )
+
   static let tabsState = TabsState(
     selectedTab: .event,
     event: EventsState(),
     conversations: ConversationsState(chatState: .init()),
     profile: ProfileState()
   )
-  
+
   static let store = Store(
     initialState: tabsState,
     reducer: tabsReducer,
-    environment: ()
+    environment: tabsEnv
   )
-  
+
   static var previews: some View {
     TabsView(store: store)
   }
 }
-

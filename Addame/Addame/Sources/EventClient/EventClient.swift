@@ -9,7 +9,7 @@ public struct EventClient {
   public typealias EventCreateHandler = (Event, String) -> AnyPublisher<Event, HTTPError>
   public let events: EventFetchHandler
   public let create: EventCreateHandler
-  
+
   public init(
     events: @escaping EventFetchHandler,
     create: @escaping EventCreateHandler

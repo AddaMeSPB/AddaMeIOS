@@ -32,12 +32,11 @@ public extension ChatAction {
       return .messages(messages)
     case .fetchMoreMessagIfNeeded(currentItem: let currentItem):
       return .fetchMoreMessagIfNeeded(currentItem: currentItem)
-    case let .message(index,action):
+    case let .message(index, action):
       return .message(index: index, action: action)
     }
   }
 }
 
-
-//public extension ProfileAction {
+// public extension ProfileAction {
 //  static func view(_ localAction: ProfileView.ViewAction) -> Self {

@@ -19,8 +19,11 @@ extension Publisher {
 extension Publishers {
     public struct FlatMapLatest<Upstream, P>: Publisher
         where P: Publisher, Upstream: Publisher, P.Failure == Upstream.Failure {
+
+        // swiftlint:disable:next nesting
         public typealias Output = P.Output
         public typealias Failure = Upstream.Failure
+        // swiftlint:disable:previous nesting
 
         private let upstream: Upstream
         private let transform: (Upstream.Output) -> P

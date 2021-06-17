@@ -85,8 +85,7 @@ extension Publisher {
   public func shareReplay(
     _ bufferSize: Int
   )
-    -> Publishers.Autoconnect<Publishers.Multicast<Self, ReplaySubject<Output, Failure>>>
-  {
+    -> Publishers.Autoconnect<Publishers.Multicast<Self, ReplaySubject<Output, Failure>>> {
     self
       .multicast(subject: ReplaySubject(bufferSize))
       .autoconnect()

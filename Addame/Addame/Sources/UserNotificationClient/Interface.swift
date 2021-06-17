@@ -10,10 +10,13 @@ import ComposableArchitecture
 import UserNotifications
 
 public struct UserNotificationClient {
+
   public var add: (UNNotificationRequest) -> Effect<Void, Error>
   public var delegate: Effect<DelegateEvent, Never>
   public var getNotificationSettings: Effect<Notification.Settings, Never>
+  // swiftlint:disable:next identifier_name
   public var removeDeliveredNotificationsWithIdentifiers: ([String]) -> Effect<Never, Never>
+  // swiftlint:disable:next identifier_name
   public var removePendingNotificationRequestsWithIdentifiers: ([String]) -> Effect<Never, Never>
   public var requestAuthorization: (UNAuthorizationOptions) -> Effect<Bool, Error>
 
@@ -49,6 +52,7 @@ public struct UserNotificationClient {
       self.request = request
     }
 
+    // swiftlint:disable:next nesting
     public struct Response: Equatable {
       public var notification: Notification
 
@@ -58,6 +62,7 @@ public struct UserNotificationClient {
     }
 
     // TODO: should this be nested in UserNotificationClient instead of Notification?
+    // swiftlint:disable:next nesting
     public struct Settings: Equatable {
       public var authorizationStatus: UNAuthorizationStatus
 
@@ -67,4 +72,3 @@ public struct UserNotificationClient {
     }
   }
 }
-

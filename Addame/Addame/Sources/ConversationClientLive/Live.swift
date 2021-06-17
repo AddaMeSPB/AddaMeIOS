@@ -19,17 +19,17 @@ func token() -> AnyPublisher<String, HTTPError> {
     return Fail(error: HTTPError.missingTokenFromIOS )
       .eraseToAnyPublisher()
   }
-  
+
   return Just(token.accessToken)
     .setFailureType(to: HTTPError.self)
     .eraseToAnyPublisher()
 }
 
 public struct ConversationAPI {
-  
-  public static let build = Self ()
+
+  public static let build = Self()
   private var baseURL: URL { EnvironmentKeys.rootURL.appendingPathComponent("/conversations") }
-  
+
   private func tokenHandle<Input: Encodable, Output: Decodable>(
     input: Input,
     path: String,
@@ -45,9 +45,8 @@ public struct ConversationAPI {
         contentType: .json,
         dataType: .encodable(input: input, encoder: .init() )
       )
-      
+
       return builder.send(scheduler: RunLoop.main)
-        .map { $0 }
         .catch { (error: HTTPError) -> AnyPublisher<Output, HTTPError> in
           return Fail(error: error).eraseToAnyPublisher()
         }
@@ -60,67 +59,61 @@ public struct ConversationAPI {
     .receive(on: DispatchQueue.main)
     .eraseToAnyPublisher()
   }
-  
+
   public func create(event: Event, path: String) -> AnyPublisher<Event, HTTPError> {
-    
+
     return tokenHandle(input: event, path: path, method: .post)
-      .map { $0 }
       .catch { (error: HTTPError) -> AnyPublisher<Event, HTTPError> in
         return Fail(error: error).eraseToAnyPublisher()
       }
       .receive(on: DispatchQueue.main)
       .eraseToAnyPublisher()
   }
-  
+
   public func create(
     conversation: CreateConversation,
     path: String
   ) -> AnyPublisher<ConversationResponse.Item, HTTPError> {
     return tokenHandle(input: conversation, path: path, method: .post)
-      .map { $0 }
       .catch { (error: HTTPError) -> AnyPublisher<ConversationResponse.Item, HTTPError> in
         return Fail(error: error).eraseToAnyPublisher()
       }
       .receive(on: DispatchQueue.main)
       .eraseToAnyPublisher()
-    
+
   }
-  
+
   public func addUserToConversation(
     addUser: AddUser,
     path: String
   ) -> AnyPublisher<String, HTTPError> {
     return tokenHandle(input: addUser, path: path, method: .post)
-      .map { $0 }
       .catch { (error: HTTPError) -> AnyPublisher<String, HTTPError> in
         return Fail(error: error).eraseToAnyPublisher()
       }
       .receive(on: DispatchQueue.main)
       .eraseToAnyPublisher()
   }
-  
+
   public func list(query: QueryItem, path: String ) -> AnyPublisher<ConversationResponse, HTTPError> {
     return tokenHandle(input: query, path: path, method: .get)
-      .map { $0 }
       .catch { (error: HTTPError) -> AnyPublisher<ConversationResponse, HTTPError> in
         return Fail(error: error).eraseToAnyPublisher()
       }
       .receive(on: DispatchQueue.main)
       .eraseToAnyPublisher()
   }
-  
-  
+
   public func find(conversationsId: String, path: String ) -> AnyPublisher<ConversationResponse.Item, HTTPError> {
     return tokenHandle(input: conversationsId, path: path, method: .get)
-      .map { $0 }
       .catch { (error: HTTPError) -> AnyPublisher<ConversationResponse.Item, HTTPError> in
         return Fail(error: error).eraseToAnyPublisher()
       }
       .receive(on: DispatchQueue.main)
       .eraseToAnyPublisher()
-    
+
   }
-  
+
 }
 
 extension ConversationClient {

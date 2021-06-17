@@ -10,16 +10,16 @@ import Combine
 import SwiftUI
 
 public struct EventFormView: View {
-  
+
   public init(store: Store<EventFormState, EventFormAction>) {
     self.store = store
   }
 
   let store: Store<EventFormState, EventFormAction>
-  
+
   public var body: some View {
     WithViewStore(store.scope(state: EventFormViewState.init(state:) )) { viewStore in
-      VStack{
+      VStack {
         Text("Hello, world! I am Event From")
           .background(Color.red)
           .padding()
@@ -46,7 +46,7 @@ public enum EventFormAction: Equatable {
   case didDisappear
 }
 
-public let eventFormReducer = Reducer<EventFormState, EventFormAction, Void> { state, action, _ in
+public let eventFormReducer = Reducer<EventFormState, EventFormAction, Void> { _, action, _ in
   switch action {
   case .didAppear:
     return .none

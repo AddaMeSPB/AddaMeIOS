@@ -8,7 +8,7 @@
 import Foundation
 import CoreData
 
-typealias APIData = Encodable
+public typealias APIData = Encodable
 
 protocol ManagedModel: class, NSFetchRequestResult {
     static var entity: NSEntityDescription { get }
@@ -24,7 +24,7 @@ extension ManagedModel {
     }
 
     public static var defaultPredicate: NSPredicate { return NSPredicate(value: true) }
-    
+
     public static var sortedFetchRequest: NSFetchRequest<Self> {
         let request = NSFetchRequest<Self>(entityName: entityName)
         request.sortDescriptors = defaultSortDescriptors
@@ -47,8 +47,11 @@ extension ManagedModel {
         return NSCompoundPredicate(andPredicateWithSubpredicates: [defaultPredicate, predicate])
     }
 
-    //swiftlint:disable force_try
-    public static func fetch(in context: NSManagedObjectContext, configurationBlock: (NSFetchRequest<Self>) -> Void = { _ in }) -> [Self] {
+    // swiftlint:disable force_try
+    public static func fetch(
+      in context: NSManagedObjectContext,
+      configurationBlock: (NSFetchRequest<Self>
+    ) -> Void = { _ in }) -> [Self] {
         let request = NSFetchRequest<Self>(entityName: Self.entityName)
         configurationBlock(request)
         return try! context.fetch(request)
@@ -57,11 +60,15 @@ extension ManagedModel {
 
 extension ManagedModel where Self: NSManagedObject {
 
-    static var entity: NSEntityDescription { return entity()  }
+    static var entity: NSEntityDescription { return entity() }
 
     static var entityName: String { return entity.name! }
 
-    static func findOrCreate(in context: NSManagedObjectContext, matching predicate: NSPredicate, configure: (Self) -> Void) -> Self {
+    static func findOrCreate(
+      in context: NSManagedObjectContext,
+      matching predicate: NSPredicate,
+      configure: (Self) -> Void
+    ) -> Self {
         guard let object = findOrFetch(in: context, matching: predicate) else {
             let newObject: Self = context.insertManaged()
             configure(newObject)
@@ -81,7 +88,10 @@ extension ManagedModel where Self: NSManagedObject {
         return object
     }
 
-    static func fetch(in context: NSManagedObjectContext, configurationBlock: (NSFetchRequest<Self>) -> Void = { _ in }) -> [Self] {
+    static func fetch(
+      in context: NSManagedObjectContext,
+      configurationBlock: (NSFetchRequest<Self>) -> Void = { _ in }
+    ) -> [Self] {
         let request = NSFetchRequest<Self>(entityName: Self.entityName)
         configurationBlock(request)
         return try! context.fetch(request)
@@ -102,7 +112,7 @@ extension ManagedModel where Self: NSManagedObject {
             self.managedObjectContext?.delete(self)
         })
     }
-    
+
     func copy() {
         managedObjectContext?.performChanges(inBlock: {
             self.managedObjectContext?.copy()

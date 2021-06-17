@@ -8,7 +8,7 @@
 import ComposableArchitecture
 import SwiftUI
 import EventView
-import ConversationView
+import ConversationsView
 import ProfileView
 import TabsView
 import AuthenticationView

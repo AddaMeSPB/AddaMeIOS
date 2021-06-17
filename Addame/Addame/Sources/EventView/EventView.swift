@@ -1,4 +1,3 @@
-
 import ComposableArchitecture
 import SwiftUI
 import SharedModels
@@ -22,28 +21,28 @@ extension EventView {
     public var myEvents: [EventResponse.Item] = []
     public var eventDetails: EventResponse.Item?
     public var isLoadingPage = false
-    
+
     public var eventFormState: EventFormState?
   }
-  
+
   public enum ViewAction: Equatable {
     case alertDismissed
     case dismissEventDetails
     case presentEventForm(Bool)
     case eventForm(EventFormAction)
     case event(index: Int, action: EventAction)
-    
+
     case fetchMoreEventIfNeeded(item: EventResponse.Item?)
     case fetchMyEvents
     case fetachAddressFromCLLocation(_ cllocation: CLLocation? = nil)
     case addressResponse(Result<String, Never>)
-    
+
     case currentLocationButtonTapped
     case locationManager(LocationManager.Action)
     case eventsResponse(Result<EventResponse, HTTPError>)
     case myEventsResponse(Result<EventResponse, HTTPError>)
     case eventTapped(EventResponse.Item)
-    
+
     case popupSettings
     case dismissEvent
     case onAppear
@@ -61,7 +60,7 @@ public struct EventView: View {
   public var body: some View {
     WithViewStore(self.store.scope(state: { $0.view }, action: EventsAction.view)) { viewStore in
 
-      ZStack(alignment: .bottom)  {
+      ZStack(alignment: .bottom) {
 
         ScrollView {
           LazyVStack {
@@ -162,20 +161,21 @@ public struct EventView: View {
 }
 
 struct EventView_Previews: PreviewProvider {
-  
+
   static let environment = EventsEnvironment(
     pathMonitorClient: .satisfied,
     locationManager: .live,
     eventClient: .happyPath,
+    backgroundQueue: .immediate,
     mainQueue: .immediate
   )
-  
+
   static let store = Store(
     initialState: EventsState.placeholderEvents,
     reducer: eventReducer,
     environment: environment
   )
-  
+
   static var previews: some View {
     TabView {
       NavigationView {
@@ -207,7 +207,7 @@ struct EventView_Previews: PreviewProvider {
 
 struct EventsListView: View {
   let store: Store<EventsState, EventsAction>
-  
+
   var body: some View {
     WithViewStore(self.store) { viewStore in
       ForEachStore(
@@ -229,21 +229,21 @@ struct EventsListView: View {
 }
 
 public struct EventRowView: View {
-  
+
   let currentLocation: Location?
   @Environment(\.colorScheme) var colorScheme
-  
+
   public let store: Store<EventResponse.Item, EventAction>
-  
+
   public init(store: Store<EventResponse.Item, EventAction>, currentLocation: Location?) {
     self.currentLocation = currentLocation
     self.store = store
   }
-  
+
   public var body: some View {
     WithViewStore(self.store) { viewStore in
       HStack {
-        
+
         if viewStore.imageUrl != nil {
           AsyncImage(
             urlString: viewStore.imageUrl,
@@ -264,38 +264,37 @@ public struct EventRowView: View {
             .padding(10)
             .cornerRadius(radius: 10, corners: [.topLeft, .bottomLeft])
         }
-        
+
         VStack(alignment: .leading) {
           Text(viewStore.name)
             .foregroundColor(colorScheme  == .dark ? Color.white : Color.black)
             .lineLimit(2)
-            .alignmentGuide(.leading) { d in d[.leading] }
+            .alignmentGuide(.leading) { viewDimensions in viewDimensions[.leading] }
             .font(.system(size: 23, weight: .light, design: .rounded))
             .padding(.top, 10)
             .padding(.bottom, 5)
-          
+
           Text(viewStore.addressName)
             .lineLimit(2)
-            .alignmentGuide(.leading) { d in d[.leading] }
+            .alignmentGuide(.leading) { viewDimensions in viewDimensions[.leading] }
             .font(.system(size: 15, weight: .light, design: .rounded))
             .foregroundColor(.blue)
             .padding(.bottom, 5)
-          
-          
+
           Spacer()
           HStack {
             Spacer()
             Text("\(distance(location: viewStore.location)) away")
               .lineLimit(2)
-              .alignmentGuide(.leading) { d in d[.leading] }
+              .alignmentGuide(.leading) { viewDimensions in viewDimensions[.leading] }
               .font(.system(size: 15, weight: .light, design: .rounded))
               .foregroundColor(.blue)
               .padding(.bottom, 10)
           }
           .padding(.bottom, 5)
-          
+
         }
-        
+
         Spacer()
       }
       .background(
@@ -305,15 +304,14 @@ public struct EventRowView: View {
       .padding(10)
     }
   }
-  
+
   func distance(location: CLLocation) -> String {
     guard let currentCoordinate = currentLocation?.rawValue else {
       print(#line, "Missing currentCoordinate")
       return "Loading Coordinate"
     }
-    
+
     let distance = currentCoordinate.distance(from: location) / 1000
     return String(format: "%.02f km", distance)
   }
 }
-

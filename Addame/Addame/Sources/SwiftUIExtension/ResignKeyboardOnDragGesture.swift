@@ -11,18 +11,16 @@ import Foundation
 public extension UIApplication {
   func endEditing(_ force: Bool) {
     self.windows
-      .filter{$0.isKeyWindow}
-      .first?
+      .first(where: { $0.isKeyWindow == true })?
       .endEditing(force)
   }
 }
 
-
 public struct ResignKeyboardOnDragGesture: ViewModifier {
-  public var gesture = DragGesture().onChanged{_ in
+  public var gesture = DragGesture().onChanged {_ in
     UIApplication.shared.endEditing(true)
   }
-  
+
   public func body(content: Content) -> some View {
     content.gesture(gesture)
   }
