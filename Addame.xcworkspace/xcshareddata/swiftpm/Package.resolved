@@ -2,7 +2,7 @@
   "object": {
     "pins": [
       {
-        "package": "aws-sdk-swift",
+        "package": "AWSSDKSwift",
         "repositoryURL": "https://github.com/swift-aws/aws-sdk-swift.git",
         "state": {
           "branch": null,
@@ -56,7 +56,7 @@
         }
       },
       {
-        "package": "Perfect-INIParser",
+        "package": "INIParser",
         "repositoryURL": "https://github.com/swift-aws/Perfect-INIParser.git",
         "state": {
           "branch": null,
@@ -74,7 +74,7 @@
         }
       },
       {
-        "package": "soto-core",
+        "package": "AWSSDKSwiftCore",
         "repositoryURL": "https://github.com/soto-project/soto-core.git",
         "state": {
           "branch": null,

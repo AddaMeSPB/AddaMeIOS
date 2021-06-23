@@ -84,10 +84,6 @@ public struct ConversationsView: View {
           )
           .redacted(reason: viewStore.isLoadingPage ? .placeholder : [])
         }
-        .onAppear {
-          viewStore.send(.onAppear)
-        }
-
       }
       .navigationTitle("Chats")
       .toolbar {
@@ -185,13 +181,13 @@ public struct ConversationListView: View {
             viewStore.send(.chatView(isPresented: true) )
           }) {
             ConversationRow(store: conversationStore)
-              .onAppear {
-                viewStore.send(
-                  .fetchMoreConversationIfNeeded(
-                    currentItem: conversationViewStore.state
-                  )
-                )
-              }
+//              .onAppear {
+//                viewStore.send(
+//                  .fetchMoreConversationIfNeeded(
+//                    currentItem: conversationViewStore.state
+//                  )
+//                )
+//              }
           }
           .buttonStyle(PlainButtonStyle())
 

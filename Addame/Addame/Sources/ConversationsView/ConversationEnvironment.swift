@@ -9,7 +9,7 @@ import Combine
 import ComposableArchitecture
 import ChatClient
 import ConversationClient
-import WebsocketClient
+import WebSocketClient
 import SharedModels
 
 public struct ConversationEnvironment {
@@ -32,11 +32,11 @@ public struct ConversationEnvironment {
 
 // public class WebsocketEnvironment {
 //    
-//  let websocketClient: WebsocketClient
+//  let websocketClient: WebSocketClient
 //  public var mainQueue: AnySchedulerOf<DispatchQueue>
 //  
 //  public init(
-//    websocketClient: WebsocketClient,
+//    websocketClient: WebSocketClient,
 //    mainQueue: AnySchedulerOf<DispatchQueue>
 //  ) {
 //    self.websocketClient = websocketClient

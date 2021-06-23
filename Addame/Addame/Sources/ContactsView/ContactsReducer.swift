@@ -16,8 +16,8 @@ import ChatView
 import ChatClient
 import ChatClientLive
 
-import WebsocketClient
-import WebsocketClientLive
+import WebSocketClient
+import WebSocketClientLive
 
 import CoreDataStore
 import CoreData
@@ -95,7 +95,7 @@ public let contactsReducer = Reducer<ContactsState, ContactsAction, ContactsEnvi
 //    ChatEnvironment(
 //      chatClient: ChatClient.live(api: .build),
 //      websocket: WebsocketEnvironment(
-//        websocketClient: WebsocketClient.live(api: .build),
+//        websocketClient: WebSocketClient.live(api: .build),
 //        mainQueue: $0.mainQueue
 //      ),
 //      mainQueue: $0.mainQueue

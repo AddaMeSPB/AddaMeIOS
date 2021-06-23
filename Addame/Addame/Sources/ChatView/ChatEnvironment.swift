@@ -9,43 +9,23 @@ import Combine
 import ComposableArchitecture
 import ChatClient
 import ConversationClient
-import WebsocketClient
+import WebSocketClient
 import SharedModels
 
 public struct ChatEnvironment {
 
   let chatClient: ChatClient
-  let websocket: WebsocketEnvironment
+  public let websocketClient: WebSocketClient
   public var mainQueue: AnySchedulerOf<DispatchQueue>
 
   public init(
     chatClient: ChatClient,
-    websocket: WebsocketEnvironment,
+    websocketClient: WebSocketClient,
     mainQueue: AnySchedulerOf<DispatchQueue>
   ) {
     self.chatClient = chatClient
-    self.websocket = websocket
-    self.mainQueue = mainQueue
-  }
-
-}
-
-public class WebsocketEnvironment {
-
-  let websocketClient: WebsocketClient
-  public var mainQueue: AnySchedulerOf<DispatchQueue>
-
-  public init(
-    websocketClient: WebsocketClient,
-    mainQueue: AnySchedulerOf<DispatchQueue>
-  ) {
     self.websocketClient = websocketClient
-    self.websocketClient.handshake()
     self.mainQueue = mainQueue
-  }
-
-  public func send(_ msg: SocketMessage) {
-    self.websocketClient.send(msg.localMsg, msg.remostJSON)
   }
 
 }

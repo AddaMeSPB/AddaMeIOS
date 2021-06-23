@@ -10,6 +10,7 @@ import ComposableArchitecture
 import SwiftUI
 import SharedModels
 import HttpRequest
+
 import ChatView
 import ContactsView
 
@@ -20,13 +21,13 @@ import ContactClient
 import ContactClientLive
 import CoreDataClient
 
-import WebsocketClient
-import WebsocketClientLive
+import WebSocketClient
+import WebSocketClientLive
 
 // swiftlint:disable:next line_length
 public let conversationsReducer = Reducer<ConversationsState, ConversationsAction, ConversationEnvironment> { state, action, environment in
 
-  func fetchMoreConversations() -> Effect<ConversationsAction, Never> {
+  var fetchMoreConversations: Effect<ConversationsAction, Never> {
 
     let query = QueryItem(page: "\(state.currentPage)", per: "10")
 
@@ -57,18 +58,18 @@ public let conversationsReducer = Reducer<ConversationsState, ConversationsActio
 
   case .onAppear:
 
-    return fetchMoreConversations()
+    return fetchMoreConversations
 
   case .fetchMoreConversationIfNeeded(let currentItem):
 
     guard let item = currentItem, state.conversations.count > 7 else {
-      return fetchMoreConversations()
+      return fetchMoreConversations
     }
 
     let threshouldIndex = state.conversations.index(state.conversations.endIndex, offsetBy: -7)
 
     if state.conversations.firstIndex(where: { $0.id == item.id }) == threshouldIndex {
-      return fetchMoreConversations()
+      return fetchMoreConversations
     }
 
     return .none
@@ -176,10 +177,7 @@ public let conversationsReducer = Reducer<ConversationsState, ConversationsActio
   environment: {
     ChatEnvironment(
       chatClient: ChatClient.live(api: .build),
-      websocket: WebsocketEnvironment(
-        websocketClient: WebsocketClient.live(api: .build),
-        mainQueue: $0.mainQueue
-      ),
+      websocketClient: .live,
       mainQueue: $0.mainQueue
     )
   }

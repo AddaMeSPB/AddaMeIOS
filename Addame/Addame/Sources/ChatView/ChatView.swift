@@ -2,6 +2,8 @@ import ComposableArchitecture
 import SwiftUI
 import SharedModels
 import HttpRequest
+import Foundation
+import WebSocketClient
 
 extension ChatView {
   public struct ViewState: Equatable {
@@ -9,17 +11,20 @@ extension ChatView {
     public var alert: AlertState<ChatAction>?
     public var conversation: ConversationResponse.Item?
     public var messages: IdentifiedArrayOf<ChatMessageResponse.Item> = []
+    public var messageToSend = ""
 
     public init(
       isLoadingPage: Bool = false,
       alert: AlertState<ChatAction>? = nil,
       conversation: ConversationResponse.Item? = nil,
-      messages: IdentifiedArrayOf<ChatMessageResponse.Item> = []
+      messages: IdentifiedArrayOf<ChatMessageResponse.Item> = [],
+      messageToSend: String = ""
     ) {
       self.isLoadingPage = isLoadingPage
       self.alert = alert
       self.conversation = conversation
       self.messages = messages
+      self.messageToSend = messageToSend
     }
   }
 
@@ -30,6 +35,12 @@ extension ChatView {
     case messages(Result<ChatMessageResponse, HTTPError>)
     case fetchMoreMessagIfNeeded(currentItem: ChatMessageResponse.Item?)
     case message(index: String?, action: MessageAction)
+    case sendResponse(NSError?)
+    case webSocket(WebSocketClient.Action)
+    case pingResponse(NSError?)
+    case receivedSocketMessage(Result<WebSocketClient.Message, NSError>)
+    case messageToSendChanged(String)
+    case sendButtonTapped
   }
 }
 
@@ -46,49 +57,53 @@ public struct ChatView: View {
   public var body: some View {
 
     WithViewStore(self.store.scope(state: { $0.view }, action: ChatAction.view )) { viewStore  in
-      ZStack {
-        List {
-          ChatListView(
-            store: viewStore.isLoadingPage
+      VStack {
+        ZStack {
+          List {
+            ChatListView(
+              store: viewStore.isLoadingPage
               ? Store(
                 initialState: ChatState.placeholderMessages,
                 reducer: .empty,
                 environment: ()
               )
               : self.store
-          )
-          .redacted(reason: viewStore.isLoadingPage ? .placeholder : [])
-
+            )
+              .redacted(reason: viewStore.isLoadingPage ? .placeholder : [])
+          }
         }
+        .onAppear {
+          viewStore.send(.onAppear)
+        }
+        .navigationBarTitle(viewStore.state.conversation?.title ?? "", displayMode: .automatic)
       }
-      .onAppear {
-        viewStore.send(.onAppear)
-      }
-      .navigationBarTitle(viewStore.state.conversation?.title ?? "", displayMode: .automatic)
+      .alert(self.store.scope(state: { $0.alert }), dismiss: .alertDismissed)
     }
-    .alert(self.store.scope(state: { $0.alert }), dismiss: .alertDismissed)
+
+    Spacer()
+    ChatBottomView(store: store)
   }
 }
 
-struct ChatView_Previews: PreviewProvider {
-
-  static let env = ChatEnvironment(
-    chatClient: .happyPath,
-    websocket: .init(
-      websocketClient: .happyPath,
-      mainQueue: .immediate)
-    ,
-    mainQueue: .immediate
-  )
-
-  static let store = Store(
-    initialState: ChatState(),
-    reducer: chatReducer,
-    environment: env
-  )
-
-  static var previews: some View {
-    ChatView(store: store)
-  }
-
-}
+// struct ChatView_Previews: PreviewProvider {
+//
+//  static let env = ChatEnvironment(
+//    chatClient: .happyPath,
+//    websocket: .init(
+//      websocketClient: .happyPath,
+//      mainQueue: .immediate)
+//    ,
+//    mainQueue: .immediate
+//  )
+//
+//  static let store = Store(
+//    initialState: ChatState(),
+//    reducer: chatReducer,
+//    environment: env
+//  )
+//
+//  static var previews: some View {
+//    ChatView(store: store)
+//  }
+//
+// }

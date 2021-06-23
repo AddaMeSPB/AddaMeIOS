@@ -30,6 +30,9 @@ public struct TabsView: View {
       )) {
         ForEach(Tabs.allCases, content: tabView(_:))
       }
+      .onAppear {
+        ViewStore(store.stateless).send(.onAppear)
+      }
     }
   }
 
@@ -68,11 +71,6 @@ public struct TabsView: View {
           action: TabsAction.event
         ))
 
-//        .sheet(
-//          isPresented: $isUserFirstNameEmpty
-//        ) {
-//          EmptyView()
-//        }
       }
       .onAppear {
         ViewStore(store.stateless).send(.event(.onAppear))
@@ -86,6 +84,9 @@ public struct TabsView: View {
           action: TabsAction.conversation
         ))
       }
+      .onAppear {
+        ViewStore(store.stateless).send(.conversation(.onAppear))
+      }
       .navigationViewStyle(StackNavigationViewStyle())
 
     case .profile:
@@ -96,6 +97,9 @@ public struct TabsView: View {
           action: TabsAction.profile
         ))
       }
+      .onAppear {
+        ViewStore(store.stateless).send(.profile(.fetchMyData))
+      }
       .navigationViewStyle(StackNavigationViewStyle())
     }
   }
@@ -105,7 +109,8 @@ struct TabsView_Previews: PreviewProvider {
 
   static let tabsEnv = TabsEnvironment(
     backgroundQueue: .immediate,
-    mainQueue: .immediate
+    mainQueue: .immediate,
+    webSocketClient: .live
   )
 
   static let tabsState = TabsState(

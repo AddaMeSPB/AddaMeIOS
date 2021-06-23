@@ -24,7 +24,8 @@ public struct AppView: View {
 
   static let tabsEnv = TabsEnvironment(
     backgroundQueue: .main,
-    mainQueue: .main
+    mainQueue: .main,
+    webSocketClient: .live
   )
 
   static let tabsState = TabsState(
@@ -36,7 +37,7 @@ public struct AppView: View {
 
   let tabsStore = Store(
     initialState: tabsState,
-    reducer: tabsReducer.debug(),
+    reducer: tabsReducer, // .debug(),
     environment: tabsEnv
   )
 
@@ -48,6 +49,7 @@ public struct AppView: View {
   static let authState = LoginState.build
   let authStore = Store(initialState: authState, reducer: loginReducer, environment: environment)
 
+  @ViewBuilder
   public var body: some View {
     Group {
       if isAuthorized {

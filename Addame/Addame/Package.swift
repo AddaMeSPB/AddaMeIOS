@@ -42,8 +42,8 @@ let package = Package(
     .library(name: "PathMonitorClientLive", targets: ["PathMonitorClientLive"]),
     .library(name: "UserClient", targets: ["UserClient"]),
     .library(name: "UserClientLive", targets: ["UserClientLive"]),
-    .library(name: "WebsocketClient", targets: ["WebsocketClient"]),
-    .library(name: "WebsocketClientLive", targets: ["WebsocketClientLive"]),
+    .library(name: "WebSocketClient", targets: ["WebSocketClient"]),
+    .library(name: "WebSocketClientLive", targets: ["WebSocketClientLive"]),
 
     // Views
     .library(name: "AuthenticationView", targets: ["AuthenticationView"]),
@@ -80,7 +80,7 @@ let package = Package(
         .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
         "UserNotificationClient", "RemoteNotificationsClient", "NotificationHelpers",
         "AuthClient", "AuthClientLive", "AttachmentClient", "ChatClient", "ContactClient",
-        "ConversationClient", "EventClient", "UserClient", "WebsocketClient",
+        "ConversationClient", "EventClient", "UserClient", "WebSocketClient",
 
         "EventView", "ConversationsView", "ProfileView", "TabsView", "AuthenticationView",
         "SettingsView"
@@ -206,11 +206,17 @@ let package = Package(
     .target(name: "UserClientLive", dependencies: ["UserClient"]),
 
     .target(
-      name: "WebsocketClient",
-      dependencies: ["FoundationExtension", "HttpRequest", "SharedModels", "InfoPlist", "KeychainService"]),
+      name: "WebSocketClient",
+      dependencies: [
+        .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
+        "FoundationExtension", "HttpRequest", "SharedModels", "InfoPlist", "KeychainService"
+      ]),
     .target(
-      name: "WebsocketClientLive",
-      dependencies: ["WebsocketClient"]),
+      name: "WebSocketClientLive",
+      dependencies: [
+        .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
+        "WebSocketClient"
+      ]),
 
     // Views
     .target(
@@ -229,7 +235,7 @@ let package = Package(
         "EventClient", "EventClientLive", "AttachmentClient", "AttachmentClientLive",
         "PathMonitorClient", "PathMonitorClientLive", "ConversationClient", "ConversationClientLive",
         "EventView", "ConversationsView", "ProfileView",
-        "SwiftUIExtension"
+        "SwiftUIExtension", "WebSocketClient", "WebSocketClientLive"
       ]),
 
     .target(
@@ -237,10 +243,10 @@ let package = Package(
       dependencies: [
         .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
         "SharedModels", "InfoPlist", "KeychainService",
-        "WebsocketClient", "ConversationClient", "ChatClient",
+        "WebSocketClient", "ConversationClient", "ChatClient",
         "SwiftUIExtension", "FoundationExtension", "AsyncImageLoder",
         "HttpRequest", "ChatClientLive", "ConversationClientLive",
-        "WebsocketClientLive"
+        "WebSocketClientLive"
       ]
     ),
 
@@ -249,10 +255,10 @@ let package = Package(
       dependencies: [
         .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
         "SharedModels", "InfoPlist", "KeychainService",
-        "WebsocketClient", "ChatClient", "ChatClientLive",
+        "WebSocketClient", "ChatClient", "ChatClientLive",
         "SwiftUIExtension", "FoundationExtension", "AsyncImageLoder",
         "HttpRequest", "ConversationClient", "ConversationClientLive",
-        "WebsocketClientLive", "ChatView", "ComposableArchitectureHelpers",
+        "WebSocketClientLive", "ChatView", "ComposableArchitectureHelpers",
         "ContactClient", "ContactClientLive", "ContactsView", "CoreDataClient"
       ]
     ),
@@ -262,8 +268,8 @@ let package = Package(
       dependencies: [
         .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
         "SharedModels", "AsyncImageLoder", "HttpRequest",
-        "ContactClient", "ContactClientLive", "WebsocketClient",
-        "WebsocketClientLive", "ChatClient", "ChatClientLive",
+        "ContactClient", "ContactClientLive", "WebSocketClient",
+        "WebSocketClientLive", "ChatClient", "ChatClientLive",
         "CoreDataStore", "CoreDataClient",
         "ChatView", "ComposableArchitectureHelpers"
       ]),
@@ -274,7 +280,7 @@ let package = Package(
         .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
         .product(name: "ComposableCoreLocation", package: "composable-core-location"),
         "SharedModels", "EventClient", "InfoPlist", "EventForm",
-        "PathMonitorClient", "WebsocketClient", "ConversationClient",
+        "PathMonitorClient", "WebSocketClient", "ConversationClient",
         "SwiftUIExtension", "FoundationExtension", "AsyncImageLoder",
         "HttpRequest", "KeychainService", "ChatClient",
         "PathMonitorClientLive", "EventClientLive", "ComposableArchitectureHelpers"
