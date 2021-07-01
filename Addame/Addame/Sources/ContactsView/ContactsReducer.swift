@@ -22,83 +22,85 @@ import WebSocketClientLive
 import CoreDataStore
 import CoreData
 
-public let contactsReducer = Reducer<ContactsState, ContactsAction, ContactsEnvironment> { state, action, environment in
+public let contactsReducer: Reducer<ContactsState, ContactsAction, ContactsEnvironment> = .combine(
 
-  switch action {
+  contactRowReducer
+    .forEach(
+      state: \ContactsState.contacts,
+      action: /ContactsAction.contact(id:action:),
+      environment: { _ in ContactRowEnvironment() }
+    ),
 
-  case .onAppear:
-    state.isLoading = true
+  .init { state, action, environment in
 
-    return environment.coreDataClient.contactClient.authorization()
-      .map(ContactsAction.contactsAuthorizationStatus)
-      .eraseToEffect()
+    switch action {
 
-  case .alertDismissed:
-    state.alert = nil
-    return .none
+    case .onAppear:
+      state.isLoading = true
 
-  case .moveChatRoom(let present):
-    state.isActivityIndicatorVisible = present
-    return .none
+      return environment.coreDataClient.contactClient.authorization()
+        .map(ContactsAction.contactsAuthorizationStatus)
+        .eraseToEffect()
 
-  case .contactsResponse(.success(let contacts)):
-    print(#line, contacts)
-    state.isLoading = false
-    state.contacts = .init(contacts)
-    return .none
+    case .alertDismissed:
+      state.alert = nil
+      return .none
 
-  case .contactsResponse(.failure(let error)):
-    state.alert = .init(title: TextState("Something went worng please try again \(error.description)") )
-    return .none
+    case .contactsResponse(.success(let contacts)):
+      print(#line, contacts)
+      state.isLoading = false
 
-  case .contactsAuthorizationStatus(.notDetermined):
-    state.alert = .init(title: TextState("Permission notDetermined"))
-    return .none
+      let contactRowStates = contacts.map { ContactRowState(contact: $0) }
+      state.contacts = .init(contactRowStates)
+      return .none
 
-  case .contactsAuthorizationStatus(.denied):
-    state.alert = .init(title: TextState("Permission denied"))
-    return .none
+    case .contactsResponse(.failure(let error)):
+      state.alert = .init(title: TextState("Something went worng please try again \(error.description)") )
+      return .none
 
-  case .contactsAuthorizationStatus(.restricted):
-    state.alert = .init(title: TextState("Permission restricted"))
+    case .contactsAuthorizationStatus(.notDetermined):
+      state.alert = .init(title: TextState("Permission notDetermined"))
+      return .none
 
-    return .none
+    case .contactsAuthorizationStatus(.denied):
+      state.alert = .init(title: TextState("Permission denied"))
+      return .none
 
-  case .contactsAuthorizationStatus(.authorized):
+    case .contactsAuthorizationStatus(.restricted):
+      state.alert = .init(title: TextState("Permission restricted"))
 
-    return environment.coreDataClient.getContacts()
-        .subscribe(on: environment.backgroundQueue)
-        .receive(on: environment.mainQueue)
-        .catchToEffect()
-        .map(ContactsAction.contactsResponse)
+      return .none
 
-  case .chat(_):
-    return .none
+    case .contactsAuthorizationStatus(.authorized):
+        return environment.coreDataClient.getContacts()
+            .subscribe(on: environment.backgroundQueue)
+            .receive(on: environment.mainQueue)
+            .catchToEffect()
+            .map(ContactsAction.contactsResponse)
 
-  case .contactsAuthorizationStatus(_):
-    return .none
+    case .contactsAuthorizationStatus(_):
+      return .none
 
-  case let .chatRoom(index: index, action: action):
-    return .none
+    case let .contact(id: id, action: action):
+      return .none
 
-  case let .chatWith(name: name, phoneNumber: phoneNumber):
+    case let .moveToChatRoom(present):
+      return .none
 
-    return .none
+    case let .chatWith(name: name, phoneNumber: phoneNumber):
+      return .none
+
+    }
   }
+)
 
+extension Reducer {
+  func optional() -> Reducer<State?, Action, Environment> {
+    .init { state, action, environment in
+      guard var wrappedState = state
+      else { return .none }
+      defer { state = wrappedState }
+      return self.run(&wrappedState, action, environment)
+    }
+  }
 }
-// .presents(
-//  chatReducer,
-//  state: \.chatState,
-//  action: /ContactsAction.chat,
-//  environment: {
-//    ChatEnvironment(
-//      chatClient: ChatClient.live(api: .build),
-//      websocket: WebsocketEnvironment(
-//        websocketClient: WebSocketClient.live(api: .build),
-//        mainQueue: $0.mainQueue
-//      ),
-//      mainQueue: $0.mainQueue
-//    )
-//  }
-// )

@@ -18,6 +18,15 @@ struct ChatRowView: View {
   @Environment(\.colorScheme) var colorScheme
   let store: Store<ChatMessageResponse.Item, MessageAction>
 
+//  struct ViewState: Equatable {
+//    let chatItem: ChatMessageResponse.Item
+//
+//
+//    init(state: ChatState) {
+//      self.chatItem = state.
+//    }
+//  }
+
   @ViewBuilder func currentUserRow(viewStore: ViewStore<ChatMessageResponse.Item, MessageAction>) -> some View {
     HStack {
       Group {
@@ -95,10 +104,10 @@ struct ChatRowView: View {
     .background(Color(.systemBackground))
   }
 
+  @ViewBuilder
   var body: some View {
     WithViewStore(self.store) { viewStore in
       Group {
-
         if !currenuser(viewStore.sender.id) {
           if #available(iOS 15.0, *) {
             currentUserRow(viewStore: viewStore)
@@ -115,16 +124,15 @@ struct ChatRowView: View {
           }
         }
       }
-
     }
   }
 
   func currenuser(_ userId: String) -> Bool {
-      guard let currentUSER: User = KeychainService.loadCodable(for: .user) else {
-        return false
-      }
-
-      return currentUSER.id == userId ? true : false
-
+    guard let currentUSER: User = KeychainService.loadCodable(for: .user) else {
+      return false
     }
+
+    return currentUSER.id == userId ? true : false
+  }
+
 }

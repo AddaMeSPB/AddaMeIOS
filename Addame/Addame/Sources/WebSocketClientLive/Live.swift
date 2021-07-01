@@ -197,8 +197,8 @@ extension WebSocketClient {
   public static let live = WebSocketClient(
     cancel: { id, closeCode, reason in
       .fireAndForget {
-        dependencies[id]?.task.cancel(with: closeCode, reason: reason)
-        dependencies[id]?.subscriber.send(completion: .finished)
+        dependencies[id]!.task.cancel(with: closeCode, reason: reason)
+        dependencies[id]!.subscriber.send(completion: .finished)
         dependencies[id] = nil
       }
     },
@@ -207,7 +207,7 @@ extension WebSocketClient {
 
         guard let authToken: AuthTokenResponse = KeychainService.loadCodable(for: .token) else {
           return AnyCancellable {
-            dependencies[id]?.subscriber.send(completion: .finished)
+            dependencies[id]!.subscriber.send(completion: .finished)
             dependencies[id] = nil
           }
         }
@@ -245,12 +245,17 @@ extension WebSocketClient {
     },
     receive: { id in
       .future { callback in
-        dependencies[id]?.task.receive { result in
+        guard let dependency = dependencies[id] else {
+          assertionFailure("dependency id is missing")
+          return
+        }
+
+        dependency.task.receive { result in
           switch result.map(Message.init) {
           case let .success(.some(message)):
             callback(.success(message))
           case .success(.none):
-            callback(.failure(NSError(domain: "co.pointfree", code: 1)))
+            callback(.failure(NSError(domain: "com.adda", code: 1)))
           case let .failure(error):
             callback(.failure(error as NSError))
           }
@@ -259,14 +264,18 @@ extension WebSocketClient {
     },
     send: { id, message in
       .future { callback in
-        dependencies[id]?.task.send(message) { error in
+        guard let dependency = dependencies[id] else {
+          assertionFailure("dependency id is missing")
+          return
+        }
+        dependency.task.send(message) { error in
           callback(.success(error as NSError?))
         }
       }
     },
     sendPing: { id in
       .future { callback in
-        dependencies[id]?.task.sendPing { error in
+        dependencies[id]!.task.sendPing { error in
           callback(.success(error as NSError?))
         }
       }

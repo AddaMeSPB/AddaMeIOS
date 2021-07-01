@@ -55,7 +55,6 @@ public extension ChatAction {
       return .messageToSendChanged(string)
     case .sendButtonTapped:
       return .sendButtonTapped
-
     }
   }
 }

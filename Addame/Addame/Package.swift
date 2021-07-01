@@ -66,11 +66,11 @@ let package = Package(
   dependencies: [
     .package(name: "AWSSDKSwift", url: "https://github.com/swift-aws/aws-sdk-swift.git", from: "4.9.0"),
     .package(url: "https://github.com/marmelroy/PhoneNumberKit", .upToNextMajor(from: "3.3.3")),
-    .package(url: "https://github.com/pointfreeco/swift-composable-architecture.git", from: "0.17.0"),
+    .package(url: "https://github.com/pointfreeco/swift-composable-architecture.git", from: "0.20.0"),
     .package(url: "https://github.com/pointfreeco/composable-core-location", from: "0.1.0"),
     .package(url: "https://github.com/pointfreeco/xctest-dynamic-overlay", from: "0.1.0"),
     .package(url: "https://github.com/AddaMeSPB/CombineContacts.git", from: "1.0.0"),
-    .package(url: "https://github.com/AddaMeSPB/HttpRequest.git", from: "1.0.1")
+    .package(url: "https://github.com/AddaMeSPB/HttpRequest.git", from: "2.1.0")
   ],
 
   targets: [

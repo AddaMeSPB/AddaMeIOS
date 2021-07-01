@@ -71,17 +71,20 @@ public struct ChatView: View {
             )
               .redacted(reason: viewStore.isLoadingPage ? .placeholder : [])
           }
+          .listStyle(.plain)
+          .scaleEffect(x: 1, y: -1, anchor: .center)
+          .offset(x: 0, y: 2)
         }
         .onAppear {
           viewStore.send(.onAppear)
         }
-        .navigationBarTitle(viewStore.state.conversation?.title ?? "", displayMode: .automatic)
+        .navigationBarTitle(viewStore.state.conversation?.title ?? "", displayMode: .inline)
       }
       .alert(self.store.scope(state: { $0.alert }), dismiss: .alertDismissed)
+
+      ChatBottomView(store: store)
     }
 
-    Spacer()
-    ChatBottomView(store: store)
   }
 }
 

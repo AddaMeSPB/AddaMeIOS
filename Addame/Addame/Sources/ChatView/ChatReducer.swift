@@ -20,10 +20,11 @@ public let chatReducer = Reducer<ChatState, ChatAction, ChatEnvironment> { state
       return .none
     }
 
-    let query = QueryItem(page: "\(state.currentPage)", per: "60")
+    let query = QueryItem(page: "\(state.currentPage)", per: "10")
 
     return environment.chatClient
       .messages(query, conversationsID, "/by/conversations/\(conversationsID)")
+      .subscribe(on: environment.backgroundQueue)
       .retry(3)
       .receive(on: environment.mainQueue.animation(.default))
       .catchToEffect()
@@ -31,27 +32,30 @@ public let chatReducer = Reducer<ChatState, ChatAction, ChatEnvironment> { state
   }
 
   var receiveSocketMessageEffect: Effect<ChatAction, Never> {
-    return environment.websocketClient.receive(WebSocketId())
+
+    return environment.websocketClient.receive(environment.currentUser.id)
+      .subscribe(on: environment.backgroundQueue)
       .receive(on: environment.mainQueue)
       .catchToEffect()
       .map(ChatAction.receivedSocketMessage)
-      .cancellable(id: WebSocketId())
+      .cancellable(id: environment.currentUser.id)
   }
 
   var sendPingEffect: Effect<ChatAction, Never> {
-    return environment.websocketClient.sendPing(WebSocketId())
+
+    return environment.websocketClient.sendPing(environment.currentUser.id)
+      .subscribe(on: environment.backgroundQueue)
       .receive(on: environment.mainQueue)
       .delay(for: 10, scheduler: environment.mainQueue)
       .map(ChatAction.pingResponse)
       .eraseToEffect()
-      .cancellable(id: WebSocketId())
+      .cancellable(id: environment.currentUser.id)
   }
-
-  struct WebSocketId: Hashable {}
 
   switch action {
 
   case .onAppear:
+
     return fetchMoreMessages
 
   case .alertDismissed:
@@ -67,6 +71,7 @@ public let chatReducer = Reducer<ChatState, ChatAction, ChatEnvironment> { state
     state.isLoadingPage = false
     state.currentPage += 1
 
+   print(#line, "currentPage: \(state.currentPage) response: \(response.items.map { $0.messageBody })")
     let combineMessageResults = (response.items + state.messages).uniqElemets().sorted()
     state.messages = .init(combineMessageResults)
 //    self.messageSubject.send(combineMessageResults)
@@ -77,13 +82,13 @@ public let chatReducer = Reducer<ChatState, ChatAction, ChatEnvironment> { state
     state.alert = .init(title: TextState("\(error.description)") )
     return .none
 
-  case .fetchMoreMessagIfNeeded(currentItem: let currentItem):
+  case let .fetchMoreMessagIfNeeded(currentItem: currentItem):
 
-    guard let item = currentItem, state.messages.count > 10 else {
+    guard let item = currentItem, state.messages.count > 7 else {
       return fetchMoreMessages
     }
 
-    let threshouldIndex = state.messages.index(state.messages.endIndex, offsetBy: -10)
+    let threshouldIndex = state.messages.index(state.messages.endIndex, offsetBy: -7)
     if state.messages.firstIndex(where: { $0.id == item.id }) == threshouldIndex {
       return fetchMoreMessages
     }
@@ -99,15 +104,16 @@ public let chatReducer = Reducer<ChatState, ChatAction, ChatEnvironment> { state
 
   case let .webSocket(.didClose(code, _)):
     // state.connectivityState = .disconnected
-    return .cancel(id: WebSocketId())
+    return .cancel(id: environment.currentUser.id)
 
   case let .webSocket(.didBecomeInvalidWithError(error)),
     let .webSocket(.didCompleteWithError(error)):
     // state.connectivityState = .disconnected
+
     if error != nil {
       state.alert = .init(title: .init("Disconnected from socket for some reason. Try again."))
     }
-    return .cancel(id: WebSocketId())
+    return .cancel(id: environment.currentUser.id)
 
   case .webSocket(.didOpenWithProtocol):
     // state.connectivityState = .connected
@@ -120,32 +126,7 @@ public let chatReducer = Reducer<ChatState, ChatAction, ChatEnvironment> { state
     // Ping the socket again in 10 seconds
     return sendPingEffect
 
-  case .receivedSocketMessage(.success(.data(let data))):
-
-    let chatOutGoingEvent = ChatOutGoingEvent.decode(data: data)
-
-    switch chatOutGoingEvent {
-    case .connect(_):
-      break
-    case .disconnect(_):
-      break
-    case .conversation(let message):
-      break
-    case .message(let message):
-      state.messages.append(message)
-      return .none
-    case .notice(let msg):
-      break
-    case .error(let error):
-      print(#line, error)
-    case .none:
-      print(#line, "decode error")
-      return .none
-    }
-
-    return .none
-
-  case .receivedSocketMessage(.failure):
+  case .receivedSocketMessage(_):
     return .none
 
   case let .messageToSendChanged(message):
@@ -157,17 +138,14 @@ public let chatReducer = Reducer<ChatState, ChatAction, ChatEnvironment> { state
     let composedMessage = state.messageToSend
     state.messageToSend = ""
 
-    guard
-      let currentUSER: User = KeychainService.loadCodable(for: .user),
-      let conversationsID = state.conversation?.id
-    else {
-      print(#line, "current user or conversation id missing")
+    guard let conversationsID = state.conversation?.id else {
+      print(#line, "conversation id missing")
       return .none
     }
 
     let localMessage = ChatMessageResponse.Item(
       id: ObjectIdGenerator.shared.generate(), conversationId: conversationsID,
-      messageBody: composedMessage, sender: currentUSER, recipient: nil,
+      messageBody: composedMessage, sender: environment.currentUser, recipient: nil,
       messageType: .text, isRead: false,
       isDelivered: false, createdAt: nil, updatedAt: nil
     )
@@ -177,16 +155,12 @@ public let chatReducer = Reducer<ChatState, ChatAction, ChatEnvironment> { state
       return .none
     }
 
-    state.messages.append(localMessage)
+    state.messages.insert(localMessage, at: 0)
 
-    return environment.websocketClient.send(
-      WebSocketId(), .string(sendServerMsgJsonString)
-    )
+    return environment.websocketClient.send(environment.currentUser.id, .string(sendServerMsgJsonString))
+    .receive(on: environment.mainQueue)
     .eraseToEffect()
     .map(ChatAction.sendResponse)
 
-  case .receivedSocketMessage(.success(.string(_))):
-
-    return .none
   }
 }

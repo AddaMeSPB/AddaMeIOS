@@ -16,6 +16,20 @@ public struct TabsView: View {
   @AppStorage("isUserFirstNameEmpty")
   public var isUserFirstNameEmpty: Bool = true
 
+  struct ViewState: Equatable {
+    public init(state: TabsState) {
+      self.selectedTab = state.selectedTab
+      self.event = state.event
+      self.conversations = state.conversations
+      self.profile = state.profile
+    }
+
+    public var selectedTab: Tabs
+    public var event: EventsState
+    public var conversations: ConversationsState
+    public var profile: ProfileState
+  }
+
   public init(store: Store<TabsState, TabsAction>) {
     self.store = store
   }
@@ -23,7 +37,7 @@ public struct TabsView: View {
   let store: Store<TabsState, TabsAction>
 
   public var body: some View {
-    WithViewStore(store.scope(state: TabsViewState.init(state:))) { viewStore in
+    WithViewStore(self.store.scope(state: ViewState.init)) { viewStore in
       TabView(selection: viewStore.binding(
         get: \.selectedTab,
         send: TabsAction.didSelectTab

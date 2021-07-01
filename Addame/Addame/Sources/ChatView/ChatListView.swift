@@ -13,7 +13,12 @@ struct ChatListView: View {
   let store: Store<ChatState, ChatAction>
 
   var body: some View {
-    WithViewStore(self.store) { viewStore in
+    WithViewStore(
+      self.store.scope(
+        state: { $0.view },
+        action: ChatAction.view
+      )
+    ) { viewStore in
       ForEachStore(
         self.store.scope(state: \.messages, action: ChatAction.message)
       ) { chatStore in
@@ -22,6 +27,7 @@ struct ChatListView: View {
             .onAppear {
               viewStore.send(.fetchMoreMessagIfNeeded(currentItem: messageViewStore.state) )
             }
+            .scaleEffect(x: 1, y: -1, anchor: .center)
         }
       }
     }

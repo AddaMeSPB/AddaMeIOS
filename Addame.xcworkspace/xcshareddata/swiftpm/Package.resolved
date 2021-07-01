@@ -2,7 +2,7 @@
   "object": {
     "pins": [
       {
-        "package": "AWSSDKSwift",
+        "package": "aws-sdk-swift",
         "repositoryURL": "https://github.com/swift-aws/aws-sdk-swift.git",
         "state": {
           "branch": null,
@@ -42,8 +42,8 @@
         "repositoryURL": "https://github.com/AddaMeSPB/HttpRequest.git",
         "state": {
           "branch": null,
-          "revision": "69d40b1cbe09fe3e75f2ebbaea79a3a1f1cd7205",
-          "version": "1.0.1"
+          "revision": "4c697e51797a9ed15b30d2629f3bf6187c751cee",
+          "version": "2.1.0"
         }
       },
       {
@@ -56,7 +56,7 @@
         }
       },
       {
-        "package": "INIParser",
+        "package": "Perfect-INIParser",
         "repositoryURL": "https://github.com/swift-aws/Perfect-INIParser.git",
         "state": {
           "branch": null,
@@ -74,7 +74,7 @@
         }
       },
       {
-        "package": "AWSSDKSwiftCore",
+        "package": "soto-core",
         "repositoryURL": "https://github.com/soto-project/soto-core.git",
         "state": {
           "branch": null,
@@ -96,8 +96,8 @@
         "repositoryURL": "https://github.com/pointfreeco/swift-composable-architecture.git",
         "state": {
           "branch": null,
-          "revision": "0f026d395d414efab5cfdf8d697ec0ae766dd021",
-          "version": "0.18.0"
+          "revision": "3ca8249bd3262e9837c6cb4d352cc58e370e33fc",
+          "version": "0.20.0"
         }
       },
       {
@@ -105,8 +105,8 @@
         "repositoryURL": "https://github.com/apple/swift-nio.git",
         "state": {
           "branch": null,
-          "revision": "21782f3bdc9581148d38d0ccaab6ec952ccda56b",
-          "version": "2.28.0"
+          "revision": "d79e33308b0ac83326b0ead0ea6446e604b8162d",
+          "version": "2.30.0"
         }
       },
       {
@@ -114,8 +114,8 @@
         "repositoryURL": "https://github.com/apple/swift-nio-ssl.git",
         "state": {
           "branch": null,
-          "revision": "3d576964a1ace80d2a3f8bab96cab03e5ee074dc",
-          "version": "2.12.0"
+          "revision": "9db7cee4b62c39160a6bd513a47a1ecdcceac18a",
+          "version": "2.14.0"
         }
       },
       {
@@ -123,8 +123,8 @@
         "repositoryURL": "https://github.com/apple/swift-nio-transport-services.git",
         "state": {
           "branch": null,
-          "revision": "657537c2cf1845f8d5201ecc4e48f21f21841128",
-          "version": "1.10.0"
+          "revision": "39587bceccda72780e2a8a8c5e857e42a9df2fa8",
+          "version": "1.11.0"
         }
       },
       {

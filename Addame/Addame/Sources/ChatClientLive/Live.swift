@@ -32,7 +32,8 @@ public struct ChatAPI {
   private func tokenHandle<Input: Encodable, Output: Decodable>(
     input: Input,
     path: String,
-    method: HTTPMethod
+    method: HTTPMethod,
+    params: [String: Any] = [:]
   ) -> AnyPublisher<Output, HTTPError> {
 
     return token().flatMap { token -> AnyPublisher<Output, HTTPError> in
@@ -42,7 +43,7 @@ public struct ChatAPI {
         authType: .bearer(token: token),
         path: path,
         contentType: .json,
-        dataType: .encodable(input: input, encoder: .init() )
+        dataType: .query(with: params)
       )
 
       return builder.send(scheduler: RunLoop.main)
@@ -62,7 +63,7 @@ public struct ChatAPI {
   public func messages(
     query: QueryItem, conversationID: String, path: String
   ) -> AnyPublisher<ChatMessageResponse, HTTPError> {
-    return tokenHandle(input: query, path: path, method: .get)
+    return tokenHandle(input: query, path: path, method: .get, params: query.parameters)
       .catch { (error: HTTPError) -> AnyPublisher<ChatMessageResponse, HTTPError> in
         return Fail(error: error).eraseToAnyPublisher()
       }
