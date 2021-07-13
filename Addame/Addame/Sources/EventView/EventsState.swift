@@ -9,25 +9,22 @@ import SharedModels
 import ComposableArchitecture
 import ComposableCoreLocation
 import MapKit
-import EventForm
+import EventFormView
+import ChatView
+import EventDetailsView
 
 public struct EventsState: Equatable {
   public init(
-    alert: AlertState<EventsAction>? = nil,
-    isConnected: Bool = true,
-    isLocationAuthorized: Bool = false,
-    isRequestingCurrentLocation: Bool = false,
+    alert: AlertState<EventsAction>? = nil, isConnected: Bool = true,
+    isLocationAuthorized: Bool = false, isRequestingCurrentLocation: Bool = false,
     waitingForUpdateLocation: Bool = true,
-    isLoadingPage: Bool = false,
-    canLoadMorePages: Bool = true,
-    currentPage: Int = 1,
-    fetchAddress: String = "",
-    currentEventPlace: EventResponse.Item = EventResponse.Item.draff,
-    location: Location? = nil,
-    eventFormState: EventFormState? = nil,
-    events: [EventResponse.Item] = [],
-    myEvents: [EventResponse.Item] = [],
-    eventDetails: EventResponse.Item? = nil
+    isMovingChatRoom: Bool = false, isLoadingPage: Bool = false,
+    canLoadMorePages: Bool = true, currentPage: Int = 1,
+    fetchAddress: String = "", currentEventPlace: EventResponse.Item = EventResponse.Item.draff,
+    location: Location? = nil, events: [EventResponse.Item] = [],
+    myEvents: [EventResponse.Item] = [], event: EventResponse.Item? = nil,
+    eventFormState: EventFormState? = nil, eventDetailsState: EventDetailsState? = nil,
+    chatState: ChatState? = nil
   ) {
     self.alert = alert
     self.isConnected = isConnected
@@ -36,14 +33,17 @@ public struct EventsState: Equatable {
     self.waitingForUpdateLocation = waitingForUpdateLocation
     self.isLoadingPage = isLoadingPage
     self.canLoadMorePages = canLoadMorePages
+    self.isMovingChatRoom = isMovingChatRoom
     self.currentPage = currentPage
     self.fetchAddress = fetchAddress
     self.currentEventPlace = currentEventPlace
     self.location = location
-    self.eventFormState = eventFormState
     self.events = events
     self.myEvents = myEvents
-    self.eventDetails = eventDetails
+    self.event = event
+    self.eventFormState = eventFormState
+    self.eventDetailsState = eventDetailsState
+    self.chatState = chatState
   }
 
   public var alert: AlertState<EventsAction>?
@@ -53,6 +53,7 @@ public struct EventsState: Equatable {
   public var waitingForUpdateLocation = true
   public var isLoadingPage = false
   public var canLoadMorePages = true
+  public var isMovingChatRoom: Bool = false
 
   public var currentPage = 1
   public var fetchAddress = ""
@@ -60,24 +61,30 @@ public struct EventsState: Equatable {
   public var location: Location?
   public var events: [EventResponse.Item] = []
   public var myEvents: [EventResponse.Item] = []
-  public var eventDetails: EventResponse.Item?
+  public var event: EventResponse.Item?
+  public var conversation: ConversationResponse.Item?
 
   public var eventFormState: EventFormState?
+  public var eventDetailsState: EventDetailsState?
+  public var chatState: ChatState?
+
+  public var isEventDetailsSheetPresented: Bool { self.eventDetailsState != nil }
+
 }
 
 extension EventsState {
   var view: EventView.ViewState {
     EventView.ViewState(
-      alert: self.alert,
-      isConnected: self.isConnected,
+      alert: self.alert, isConnected: self.isConnected,
       isLocationAuthorized: self.isLocationAuthorized,
       waitingForUpdateLocation: self.waitingForUpdateLocation,
-      fetchAddress: self.fetchAddress,
-      events: self.events,
-      myEvents: self.myEvents,
-      eventDetails: self.eventDetails,
-      isLoadingPage: self.isLoadingPage,
-      eventFormState: self.eventFormState
+      isLoadingPage: self.isLoadingPage, isMovingChatRoom: self.isMovingChatRoom,
+      fetchAddress: self.fetchAddress, location: self.location,
+      events: self.events, myEvents: self.myEvents,
+      event: self.event,
+      eventFormState: self.eventFormState, eventDetailsState: self.eventDetailsState,
+      chatState: self.chatState,
+      conversation: self.conversation
     )
   }
 }

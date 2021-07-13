@@ -8,7 +8,8 @@ public struct ConversationClient {
 
   public typealias ConversationCreateHandler =
     (CreateConversation, String) -> AnyPublisher<ConversationResponse.Item, HTTPError>
-  public typealias AddUserToConversationHandler = (AddUser, String) -> AnyPublisher<String, HTTPError>
+  public typealias AddUserToConversationHandler = (AddUser, String)
+    -> AnyPublisher<ConversationResponse.UserAdd, HTTPError>
   public typealias ConversationListHandler = (QueryItem, String) -> AnyPublisher<ConversationResponse, HTTPError>
   public typealias ConversationFindHandler = (String, String) -> AnyPublisher<ConversationResponse.Item, HTTPError>
 
