@@ -102,7 +102,6 @@ public struct ConversationsView: View {
             } else {
               Image(systemName: "square.and.pencil")
                 .opacity(viewStore.isSheetPresented ? 0 : 1)
-
             }
 
           }
@@ -136,16 +135,6 @@ public struct ConversationsView: View {
         ViewStore(store.stateless).send(.chatView(isPresented: false))
       }
     )
-//    .navigate(
-//      using: store.scope(
-//        state: \.contactsState,
-//        action: ConversationsAction.contacts
-//      ),
-//      destination: ContactsView.init(store:),
-//      onDismiss: {
-//        ViewStore(store.stateless).send(.contactsView(isPresented: false))
-//      }
-//    )
 
   }
 }

@@ -2,6 +2,7 @@
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
+import Foundation
 
 let package = Package(
   name: "Addame",
@@ -44,6 +45,7 @@ let package = Package(
     .library(name: "UserClientLive", targets: ["UserClientLive"]),
     .library(name: "WebSocketClient", targets: ["WebSocketClient"]),
     .library(name: "WebSocketClientLive", targets: ["WebSocketClientLive"]),
+    .library(name: "LocationSearchClient", targets: ["LocationSearchClient"]),
 
     // Views
     .library(name: "AuthenticationView", targets: ["AuthenticationView"]),
@@ -51,16 +53,19 @@ let package = Package(
     .library(name: "ConversationsView", targets: ["ConversationsView"]),
     .library(name: "ContactsView", targets: ["ContactsView"]),
     .library(name: "EventView", targets: ["EventView"]),
-    .library(name: "EventForm", targets: ["EventForm"]),
+    .library(name: "EventDetailsView", targets: ["EventDetailsView"]),
+    .library(name: "EventFormView", targets: ["EventFormView"]),
     .library(name: "ProfileView", targets: ["ProfileView"]),
     .library(name: "TabsView", targets: ["TabsView"]),
     .library(name: "SettingsView", targets: ["SettingsView"]),
+    .library(name: "MapView", targets: ["MapView"]),
 
     // Helpers
     .library(name: "NotificationHelpers", targets: ["NotificationHelpers"]),
     .library(name: "SwiftUIHelpers", targets: ["SwiftUIHelpers"]),
     .library(name: "CombineHelpers", targets: ["CombineHelpers"]),
     .library(name: "ComposableArchitectureHelpers", targets: ["ComposableArchitectureHelpers"])
+
   ],
 
   dependencies: [
@@ -70,7 +75,7 @@ let package = Package(
     .package(url: "https://github.com/pointfreeco/composable-core-location", from: "0.1.0"),
     .package(url: "https://github.com/pointfreeco/xctest-dynamic-overlay", from: "0.1.0"),
     .package(url: "https://github.com/AddaMeSPB/CombineContacts.git", from: "1.0.0"),
-    .package(url: "https://github.com/AddaMeSPB/HttpRequest.git", from: "2.1.0")
+    .package(url: "https://github.com/AddaMeSPB/HttpRequest.git", from: "2.2.0")
   ],
 
   targets: [
@@ -218,6 +223,13 @@ let package = Package(
         "WebSocketClient"
       ]),
 
+      .target(
+        name: "LocationSearchClient",
+        dependencies: [
+          .product(name: "ComposableArchitecture", package: "swift-composable-architecture")
+        ]
+      ),
+
     // Views
     .target(
       name: "AuthenticationView",
@@ -279,19 +291,39 @@ let package = Package(
       dependencies: [
         .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
         .product(name: "ComposableCoreLocation", package: "composable-core-location"),
-        "SharedModels", "EventClient", "InfoPlist", "EventForm",
-        "PathMonitorClient", "WebSocketClient", "ConversationClient",
+        "SharedModels", "EventClient", "InfoPlist", "EventFormView",
+        "PathMonitorClient", "WebSocketClient", "WebSocketClientLive",
         "SwiftUIExtension", "FoundationExtension", "AsyncImageLoder",
-        "HttpRequest", "KeychainService", "ChatClient",
-        "PathMonitorClientLive", "EventClientLive", "ComposableArchitectureHelpers"
+        "HttpRequest", "KeychainService", "ChatClient", "ChatView",
+        "PathMonitorClientLive", "EventClientLive", "ComposableArchitectureHelpers",
+        "EventDetailsView", "ConversationClient", "ConversationClientLive"
       ]
     ),
 
     .target(
-      name: "EventForm",
+      name: "EventFormView",
       dependencies: [
         .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
-        "SharedModels", "EventClient", "InfoPlist"
+        .product(name: "ComposableCoreLocation", package: "composable-core-location"),
+        "SharedModels", "EventClient", "InfoPlist",
+        "PathMonitorClient", "ConversationClient",
+        "SwiftUIExtension", "FoundationExtension", "AsyncImageLoder",
+        "HttpRequest", "KeychainService", "ChatClient",
+        "PathMonitorClientLive", "ComposableArchitectureHelpers"
+      ]
+    ),
+
+    .target(
+      name: "EventDetailsView",
+      dependencies: [
+        .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
+        .product(name: "ComposableCoreLocation", package: "composable-core-location"),
+        "SharedModels", "EventClient", "InfoPlist",
+        "PathMonitorClient", "ConversationClient",
+        "SwiftUIExtension", "FoundationExtension", "AsyncImageLoder",
+        "HttpRequest", "KeychainService", "ChatClient",
+        "PathMonitorClientLive", "ComposableArchitectureHelpers", "MapView",
+        "ConversationClientLive", "ChatView"
       ]
     ),
 
@@ -316,6 +348,8 @@ let package = Package(
         .product(name: "XCTestDynamicOverlay", package: "xctest-dynamic-overlay")
       ]
     ),
+
+    .target(name: "MapView"),
 
     // Helpers
     .target(

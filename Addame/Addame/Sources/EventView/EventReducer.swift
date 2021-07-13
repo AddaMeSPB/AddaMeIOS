@@ -5,13 +5,27 @@
 //  Created by Saroar Khandoker on 06.04.2021.
 //
 
-import Combine
-import ComposableArchitecture
 import SwiftUI
 import MapKit
+import Combine
+
+import ComposableArchitecture
+
 import SharedModels
 import HttpRequest
-import EventForm
+
+import EventFormView
+import EventDetailsView
+
+import ChatView
+import ChatClient
+import ChatClientLive
+
+import WebSocketClient
+import WebSocketClientLive
+
+import ConversationClient
+import ConversationClientLive
 
 struct Foo {
   @AppStorage("isAuthorized")
@@ -64,10 +78,18 @@ public let eventReducer = Reducer<EventsState, EventsAction, EventsEnvironment> 
       .map(EventsAction.myEventsResponse)
   }
 
+  func presentChatView() -> Effect<EventsAction, Never> {
+    state.eventDetailsState = nil
+    state.chatState = nil
+    return Effect(value: EventsAction.chatView(isNavigate: true))
+      .receive(on: environment.mainQueue)
+      .eraseToEffect()
+  }
+
   switch action {
 
-  case let .presentEventForm(present):
-    state.eventFormState = present ? EventFormState() : nil
+  case let .eventFormView(isNavigate: active):
+    state.eventFormState = active ? EventFormState() : nil
     return .none
 
   case .dismissEvent:
@@ -143,20 +165,18 @@ public let eventReducer = Reducer<EventsState, EventsAction, EventsEnvironment> 
       title: TextState("fetch my event error")
     )
 
-    print(#line )
-
     return .none
 
   case .eventTapped(let event):
-    state.eventDetails = event
-    return .none
+    state.event = event
+    return Effect(value: EventsAction.eventDetailsView(isPresented: true))
+      .receive(on: environment.mainQueue)
+      .eraseToEffect()
 
-  case .fetachAddressFromCLLocation(let cllocation):
-
+  case let .fetachAddressFromCLLocation(cllocation):
     return .none
 
   case .addressResponse(.success(let address)):
-
     return .none
 
   case .locationManager(.didChangeAuthorization(.authorizedAlways)),
@@ -288,12 +308,92 @@ public let eventReducer = Reducer<EventsState, EventsAction, EventsEnvironment> 
     }
 
     return .none
+
   case .dismissEventDetails:
-    state.eventDetails = nil
+    state.event = nil
+    state.eventDetailsState = nil
     return .none
 
   case .eventForm(_):
-
     return .none
+
+  case let .chat(isNavigate):
+    return .none
+
+  case let .eventDetailsView(isPresented: present):
+
+    guard let event = state.event else { return .none }
+
+    if present {
+      let eventDetailsOverlayState = EventDetailsOverlayState(alert: nil, event: event)
+
+      state.eventDetailsState = EventDetailsState(
+        event: event,
+        eventDetailsOverlayState: eventDetailsOverlayState
+      )
+    } else {
+      state.eventDetailsState = nil
+      state.event = nil
+    }
+    return .none
+
+  case let .eventDetails(action):
+    switch action {
+
+    case .onAppear, .alertDismissed, .moveToChatRoom(_), .updateRegion(_):
+      return .none
+
+    case let .eventDetailsOverlay(eventDetailsAction):
+      switch eventDetailsAction {
+      case .onAppear, .alertDismissed:
+        return .none
+      case let .startChat(present):
+        return presentChatView()
+
+      case let .askJoinRequest(bool):
+        state.isMovingChatRoom = bool
+        return .none
+
+      case let .joinToEvent(.success(string)): // joinToEventRequest
+        return presentChatView()
+
+      case let .joinToEvent(.failure(error)): // joinToEventRequest
+        return .none
+      case let .conversationResponse(.success(conversationItem)):
+        state.conversation = conversationItem
+        return .none
+      case let .conversationResponse(.failure(error)):
+        return .none
+      }
+    }
+
+  case .chatView(isNavigate: let isNavigate):
+    state.chatState = isNavigate ? ChatState(conversation: state.conversation) : nil
+    return .none
+
   }
 }
+.presents(
+  chatReducer,
+  state: \.chatState,
+  action: /EventsAction.chat,
+  environment: {
+    ChatEnvironment(
+      chatClient: ChatClient.live(api: .build),
+      websocketClient: .live,
+      mainQueue: $0.mainQueue,
+      backgroundQueue: $0.backgroundQueue
+    )
+  }
+)
+.presents(
+  eventDetailsReducer,
+  state: \.eventDetailsState,
+  action: /EventsAction.eventDetails,
+  environment: {
+    EventDetailsEnvironment(
+      conversationClient: ConversationClient.live(api: .build),
+      mainQueue: $0.mainQueue
+    )
+  }
+)

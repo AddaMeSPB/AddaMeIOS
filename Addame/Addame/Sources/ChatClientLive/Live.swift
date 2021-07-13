@@ -33,7 +33,8 @@ public struct ChatAPI {
     input: Input,
     path: String,
     method: HTTPMethod,
-    params: [String: Any] = [:]
+    params: [String: Any] = [:],
+    queryItems: [URLQueryItem] = []
   ) -> AnyPublisher<Output, HTTPError> {
 
     return token().flatMap { token -> AnyPublisher<Output, HTTPError> in
@@ -43,7 +44,7 @@ public struct ChatAPI {
         authType: .bearer(token: token),
         path: path,
         contentType: .json,
-        dataType: .query(with: params)
+        dataType: !params.isEmpty ? .query(with: params) : .query(with: queryItems)
       )
 
       return builder.send(scheduler: RunLoop.main)

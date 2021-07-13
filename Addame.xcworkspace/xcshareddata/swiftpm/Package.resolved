@@ -41,9 +41,9 @@
         "package": "HttpRequest",
         "repositoryURL": "https://github.com/AddaMeSPB/HttpRequest.git",
         "state": {
-          "branch": null,
-          "revision": "4c697e51797a9ed15b30d2629f3bf6187c751cee",
-          "version": "2.1.0"
+          "branch": "feature/datatype",
+          "revision": "19e0c0c57d31bf3f08a852527e836b55f84bc9a2",
+          "version": null
         }
       },
       {
@@ -87,8 +87,17 @@
         "repositoryURL": "https://github.com/pointfreeco/swift-case-paths",
         "state": {
           "branch": null,
-          "revision": "a313f0cc10e07bb5ce7e2ff5da600cce7efa8e8a",
-          "version": "0.2.0"
+          "revision": "ac1cf1c35b63d70bf05707ad368c9459f31513ff",
+          "version": "0.4.0"
+        }
+      },
+      {
+        "package": "swift-collections",
+        "repositoryURL": "https://github.com/apple/swift-collections",
+        "state": {
+          "branch": null,
+          "revision": "3426dba9ee5c9f8e4981b0fc9d39a818d36eec28",
+          "version": "0.0.4"
         }
       },
       {
@@ -96,8 +105,17 @@
         "repositoryURL": "https://github.com/pointfreeco/swift-composable-architecture.git",
         "state": {
           "branch": null,
-          "revision": "3ca8249bd3262e9837c6cb4d352cc58e370e33fc",
-          "version": "0.20.0"
+          "revision": "b4f5d0e3297662a6e26f024f010dc4dd457489a7",
+          "version": "0.21.0"
+        }
+      },
+      {
+        "package": "swift-identified-collections",
+        "repositoryURL": "https://github.com/pointfreeco/swift-identified-collections",
+        "state": {
+          "branch": null,
+          "revision": "930bd6e400a30b71018385cd2853dba7b120e88e",
+          "version": "0.1.0"
         }
       },
       {
