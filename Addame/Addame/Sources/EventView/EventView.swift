@@ -6,8 +6,10 @@ import MapKit
 import ComposableCoreLocation
 import AsyncImageLoder
 import SwiftUIExtension
-import EventForm
 import ComposableArchitectureHelpers
+import EventFormView
+import EventDetailsView
+import ChatView
 
 extension EventView {
   public struct ViewState: Equatable {
@@ -15,34 +17,38 @@ extension EventView {
     public var isConnected = true
     public var isLocationAuthorized = false
     public var waitingForUpdateLocation = true
-    public var fetchAddress = ""
-    public var location: Location?
-    public var events: [EventResponse.Item] = []
-    public var myEvents: [EventResponse.Item] = []
-    public var eventDetails: EventResponse.Item?
     public var isLoadingPage = false
+    public var isMovingChatRoom: Bool = false
+    public var location: Location?
+    public var events: IdentifiedArrayOf<EventResponse.Item> = []
+    public var myEvents: IdentifiedArrayOf<EventResponse.Item> = []
+    public var event: EventResponse.Item?
+    public var placeMark: CLPlacemark?
 
     public var eventFormState: EventFormState?
+    public var eventDetailsState: EventDetailsState?
+    public var isEventDetailsSheetPresented: Bool { self.eventDetailsState != nil }
+    public var chatState: ChatState?
+    public var conversation: ConversationResponse.Item?
   }
 
   public enum ViewAction: Equatable {
     case alertDismissed
     case dismissEventDetails
-    case presentEventForm(Bool)
-    case eventForm(EventFormAction)
-    case event(index: Int, action: EventAction)
 
-    case fetchMoreEventIfNeeded(item: EventResponse.Item?)
-    case fetchMyEvents
-    case fetachAddressFromCLLocation(_ cllocation: CLLocation? = nil)
-    case addressResponse(Result<String, Never>)
+    case event(index: EventResponse.Item.ID, action: EventAction)
+
+    case eventFormView(isNavigate: Bool)
+    case eventForm(EventFormAction)
+
+    case eventDetailsView(isPresented: Bool)
+    case eventDetails(EventDetailsAction)
+
+    case chatView(isNavigate: Bool)
+    case chat(ChatAction)
 
     case currentLocationButtonTapped
-    case locationManager(LocationManager.Action)
-    case eventsResponse(Result<EventResponse, HTTPError>)
-    case myEventsResponse(Result<EventResponse, HTTPError>)
     case eventTapped(EventResponse.Item)
-
     case popupSettings
     case dismissEvent
     case onAppear
@@ -51,6 +57,8 @@ extension EventView {
 
 public struct EventView: View {
 
+  @Environment(\.colorScheme) var colorScheme
+
   public init(store: Store<EventsState, EventsAction>) {
     self.store = store
   }
@@ -58,9 +66,21 @@ public struct EventView: View {
   public let store: Store<EventsState, EventsAction>
 
   public var body: some View {
-    WithViewStore(self.store.scope(state: { $0.view }, action: EventsAction.view)) { viewStore in
+    WithViewStore(
+      self.store.scope(
+        state: { $0.view },
+        action: EventsAction.view)
+    ) { viewStore in
 
-      ZStack(alignment: .bottom) {
+      ZStack(alignment: .bottomTrailing) {
+
+        VStack {
+          if viewStore.isEventDetailsSheetPresented && viewStore.isMovingChatRoom {
+            ProgressView()
+              .frame(width: 150.0, height: 150.0)
+              .padding(50.0)
+          }
+        }
 
         ScrollView {
           LazyVStack {
@@ -106,6 +126,7 @@ public struct EventView: View {
 
           }
         }
+        .background(colorScheme == .dark ? Color.gray.edgesIgnoringSafeArea(.all) : nil )
 
         HStack {
           Spacer()
@@ -126,25 +147,28 @@ public struct EventView: View {
         }
 
       }
-      .sheet(
-        item: viewStore.binding(get: \.eventDetails, send: .dismissEventDetails)
-      ) { event in
-        EventDetailsView(event: event)
-      }
       .navigationBarTitleDisplayMode(.automatic)
       .toolbar {
         ToolbarItem(placement: ToolbarItemPlacement.navigationBarTrailing) {
-          return Button(action: {
-            viewStore.send(.presentEventForm(true))
-          }) {
-            Image(systemName: "plus.circle")
-              .font(.title)
-              .foregroundColor(viewStore.state.isLocationAuthorized ? Color.black : Color.gray)
-          }
+          toolbarItemTrailingButton(viewStore)
         }
       }
       .navigationTitle("Events")
       .alert(self.store.scope(state: { $0.alert }), dismiss: .alertDismissed)
+      .sheet(isPresented:
+        viewStore.binding(
+          get: { $0.isEventDetailsSheetPresented },
+          send: EventView.ViewAction.eventDetailsView(isPresented:)
+        )
+      ) {
+        IfLetStore(
+          self.store.scope(
+            state: { $0.eventDetailsState },
+            action: EventsAction.eventDetails
+          ),
+          then: EventDetailsView.init(store:)
+        )
+      }
     }
     .navigate(
       using: store.scope(
@@ -153,11 +177,51 @@ public struct EventView: View {
       ),
       destination: EventFormView.init(store:),
       onDismiss: {
-        ViewStore(store.stateless).send(.presentEventForm(false))
+        ViewStore(store.stateless).send(.eventFormView(isNavigate: false))
+      }
+    )
+    .navigate(
+      using: store.scope(
+        state: \.chatState,
+        action: EventsAction.chat
+      ),
+      destination: ChatView.init(store:),
+      onDismiss: {
+        ViewStore(store.stateless).send(.chatView(isNavigate: false))
       }
     )
   }
 
+  private func toolbarItemTrailingButton(
+    _ viewStore: ViewStore<EventView.ViewState, EventView.ViewAction>
+  ) -> some View {
+      Button(action: {
+        viewStore.send(.eventFormView(isNavigate: true))
+      }) {
+        if #available(iOS 15.0, *) {
+          Image(systemName: "plus.circle")
+            .font(.title)
+//            .foregroundColor(
+//              viewStore.state.isLocationAuthorized ? Color.black : Color.gray
+//            )
+            .foregroundColor(colorScheme == .dark ? .white : .blue )
+            .opacity(viewStore.isEventDetailsSheetPresented ? 0 : 1)
+            .overlay {
+              if viewStore.isEventDetailsSheetPresented {
+                ProgressView()
+                  .frame(width: 150.0, height: 150.0)
+                  .padding(50.0)
+              }
+            }
+        } else {
+          Image(systemName: "plus.circle")
+            .font(.title)
+            .foregroundColor(viewStore.state.isLocationAuthorized ? Color.black : Color.gray)
+        }
+      }
+      .disabled(viewStore.state.placeMark == nil)
+      .opacity(viewStore.state.placeMark == nil ? 0 : 1)
+  }
 }
 
 struct EventView_Previews: PreviewProvider {
@@ -177,31 +241,31 @@ struct EventView_Previews: PreviewProvider {
   )
 
   static var previews: some View {
-    TabView {
-      NavigationView {
+//    TabView {
+//      NavigationView {
 
-        EventView(store: store)
+//        EventView(store: store)
 //          .redacted(reason: .placeholder)
 //          .redacted(reason: EventsState.events.isLoadingPage ? .placeholder : [])
-          .environment(\.colorScheme, .dark)
-      }
-    }
-//
-//    Group {
-//      TabView {
-//        NavigationView {
-//          EventView(store: store)
-//  //          .redacted(reason: .placeholder)
-//        }
-//      }
-//      TabView {
-//        NavigationView {
-//          EventView(store: store)
-//  //          .redacted(reason: .placeholder)
-//            .environment(\.colorScheme, .dark)
-//        }
+          // .environment(\.colorScheme, .dark)
 //      }
 //    }
+//
+    Group {
+      TabView {
+        NavigationView {
+          EventView(store: store)
+        }
+      }
+
+      TabView {
+        NavigationView {
+          EventView(store: store)
+            .environment(\.colorScheme, .dark)
+        }
+      }
+      .environment(\.colorScheme, .dark)
+    }
   }
 }
 
@@ -214,12 +278,15 @@ struct EventsListView: View {
         self.store.scope(state: \.events, action: EventsAction.event)
       ) { eventStore in
         WithViewStore(eventStore) { eventViewStore in
-          Button(action: { viewStore.send(.eventTapped(eventViewStore.state)) }) {
+          Button(action: {
+            viewStore.send(.eventTapped(eventViewStore.state))
+          }) {
             EventRowView(store: eventStore, currentLocation: viewStore.state.location)
               .onAppear {
                 viewStore.send(.fetchMoreEventIfNeeded(item: eventViewStore.state) )
 //                viewStore.send(.fetchMyEvents)
               }
+
           }
           .buttonStyle(PlainButtonStyle())
         }
@@ -243,7 +310,6 @@ public struct EventRowView: View {
   public var body: some View {
     WithViewStore(self.store) { viewStore in
       HStack {
-
         if viewStore.imageUrl != nil {
           AsyncImage(
             urlString: viewStore.imageUrl,

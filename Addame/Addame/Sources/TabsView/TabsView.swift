@@ -15,20 +15,40 @@ public struct TabsView: View {
 
   @AppStorage("isUserFirstNameEmpty")
   public var isUserFirstNameEmpty: Bool = true
+  @Environment(\.colorScheme) var colorScheme
+
+  struct ViewState: Equatable {
+    public init(state: TabsState) {
+      self.selectedTab = state.selectedTab
+      self.event = state.event
+      self.conversations = state.conversations
+      self.profile = state.profile
+    }
+
+    public var selectedTab: Tabs
+    public var event: EventsState
+    public var conversations: ConversationsState
+    public var profile: ProfileState
+  }
+
+  let store: Store<TabsState, TabsAction>
 
   public init(store: Store<TabsState, TabsAction>) {
     self.store = store
   }
 
-  let store: Store<TabsState, TabsAction>
-
   public var body: some View {
-    WithViewStore(store.scope(state: TabsViewState.init(state:))) { viewStore in
+    WithViewStore(self.store.scope(state: ViewState.init)) { viewStore in
       TabView(selection: viewStore.binding(
         get: \.selectedTab,
         send: TabsAction.didSelectTab
       )) {
-        ForEach(Tabs.allCases, content: tabView(_:))
+        ForEach(
+          Tabs.allCases, content: tabView(_:)
+        )
+      }
+      .onAppear {
+        ViewStore(store.stateless).send(.onAppear)
       }
     }
   }
@@ -67,12 +87,6 @@ public struct TabsView: View {
           state: \.event,
           action: TabsAction.event
         ))
-
-//        .sheet(
-//          isPresented: $isUserFirstNameEmpty
-//        ) {
-//          EmptyView()
-//        }
       }
       .onAppear {
         ViewStore(store.stateless).send(.event(.onAppear))
@@ -86,6 +100,9 @@ public struct TabsView: View {
           action: TabsAction.conversation
         ))
       }
+      .onAppear {
+        ViewStore(store.stateless).send(.conversation(.onAppear))
+      }
       .navigationViewStyle(StackNavigationViewStyle())
 
     case .profile:
@@ -96,6 +113,9 @@ public struct TabsView: View {
           action: TabsAction.profile
         ))
       }
+      .onAppear {
+        ViewStore(store.stateless).send(.profile(.fetchMyData))
+      }
       .navigationViewStyle(StackNavigationViewStyle())
     }
   }
@@ -105,13 +125,14 @@ struct TabsView_Previews: PreviewProvider {
 
   static let tabsEnv = TabsEnvironment(
     backgroundQueue: .immediate,
-    mainQueue: .immediate
+    mainQueue: .immediate,
+    webSocketClient: .live
   )
 
   static let tabsState = TabsState(
     selectedTab: .event,
-    event: EventsState(),
-    conversations: ConversationsState(chatState: .init()),
+    event: EventsState.placeholderEvents,
+    conversations: ConversationsState.placholderConversations,
     profile: ProfileState()
   )
 

@@ -16,6 +16,7 @@ public struct ChatState: Equatable {
   public var alert: AlertState<ChatAction>?
   public var conversation: ConversationResponse.Item?
   public var messages: IdentifiedArrayOf<ChatMessageResponse.Item> = []
+  public var messageToSend = ""
 
   public init(
     isLoadingPage: Bool = false,
@@ -36,7 +37,8 @@ public extension ChatState {
       isLoadingPage: self.isLoadingPage,
       alert: self.alert,
       conversation: self.conversation,
-      messages: self.messages
+      messages: self.messages,
+      messageToSend: self.messageToSend
     )
   }
 }

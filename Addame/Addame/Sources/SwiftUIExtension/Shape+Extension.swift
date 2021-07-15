@@ -37,3 +37,20 @@ public extension View {
         ModifiedContent(content: self, modifier: CornerRadiusStyle(radius: radius, corners: corners))
     }
 }
+
+public struct AnyShape: Shape {
+    public init<S: Shape>(_ wrapped: S) {
+        _path = { rect in
+            print("rect=\(rect)")
+            let path = wrapped.path(in: rect)
+            print("path=\(path)")
+            return path
+        }
+    }
+
+    public func path(in rect: CGRect) -> Path {
+        return _path(rect)
+    }
+
+    private let _path: (CGRect) -> Path
+}

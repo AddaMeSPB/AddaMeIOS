@@ -8,6 +8,7 @@
 import Combine
 import UIKit
 
+@available(iOSApplicationExtension, unavailable)
 extension UIApplicationClient {
   public static let live = Self(
     alternateIconName: { UIApplication.shared.alternateIconName },

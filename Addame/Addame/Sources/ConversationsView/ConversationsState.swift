@@ -54,6 +54,7 @@ extension ConversationsState {
   var view: ConversationsView.ViewState {
     ConversationsView.ViewState(
       alert: self.alert,
+      isLoadingPage: self.isLoadingPage,
       conversations: self.conversations,
       conversation: self.conversation,
       chatState: self.chatState,
@@ -65,8 +66,7 @@ extension ConversationsState {
 extension ConversationsState {
   public static let placholderConversations = Self(
     isLoadingPage: true,
-    conversations: .init(
-      [
+    conversations: .init(uniqueElements: [
         ConversationResponse.Item(
           Conversation(
             id: UUID().uuidString, title: "Walk Around 🚶🏽🚶🏼‍♀️",
@@ -82,7 +82,7 @@ extension ConversationsState {
         ConversationResponse.Item(
           Conversation(id: UUID().uuidString, title: "Running", type: .group, createdAt: Date(), updatedAt: Date())
         )
-      ]
+    ]
     ),
     conversation: .init(
       Conversation(id: UUID().uuidString, title: "Running", type: .group, createdAt: Date(), updatedAt: Date())

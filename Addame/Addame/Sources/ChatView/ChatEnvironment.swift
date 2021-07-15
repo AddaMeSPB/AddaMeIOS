@@ -9,52 +9,35 @@ import Combine
 import ComposableArchitecture
 import ChatClient
 import ConversationClient
-import WebsocketClient
+import WebSocketClient
 import SharedModels
+import KeychainService
 
 public struct ChatEnvironment {
 
   let chatClient: ChatClient
-  let websocket: WebsocketEnvironment
+  public let websocketClient: WebSocketClient
   public var mainQueue: AnySchedulerOf<DispatchQueue>
+  public var backgroundQueue: AnySchedulerOf<DispatchQueue>
 
   public init(
     chatClient: ChatClient,
-    websocket: WebsocketEnvironment,
-    mainQueue: AnySchedulerOf<DispatchQueue>
+    websocketClient: WebSocketClient,
+    mainQueue: AnySchedulerOf<DispatchQueue>,
+    backgroundQueue: AnySchedulerOf<DispatchQueue>
   ) {
     self.chatClient = chatClient
-    self.websocket = websocket
-    self.mainQueue = mainQueue
-  }
-
-}
-
-public class WebsocketEnvironment {
-
-  let websocketClient: WebsocketClient
-  public var mainQueue: AnySchedulerOf<DispatchQueue>
-
-  public init(
-    websocketClient: WebsocketClient,
-    mainQueue: AnySchedulerOf<DispatchQueue>
-  ) {
     self.websocketClient = websocketClient
-    self.websocketClient.handshake()
     self.mainQueue = mainQueue
+    self.backgroundQueue = backgroundQueue
   }
 
-  public func send(_ msg: SocketMessage) {
-    self.websocketClient.send(msg.localMsg, msg.remostJSON)
-  }
+  public var currentUser: User {
+    guard let currentUSER: User = KeychainService.loadCodable(for: .user) else {
+      assertionFailure("current user is missing")
+      return User.draff
+    }
 
-}
-
-public struct SocketMessage: Equatable {
-  public var localMsg: ChatMessageResponse.Item
-  public var remostJSON: String
-
-  public static func == (lhs: SocketMessage, rhs: SocketMessage) -> Bool {
-      return lhs.localMsg == rhs.localMsg && lhs.remostJSON == rhs.remostJSON
+    return currentUSER
   }
 }

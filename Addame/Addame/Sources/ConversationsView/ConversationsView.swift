@@ -56,7 +56,6 @@ extension ConversationsView {
     case chat(ChatAction)
     case contacts(ContactsAction)
   }
-
 }
 
 public struct ConversationsView: View {
@@ -69,9 +68,14 @@ public struct ConversationsView: View {
   }
 
   public var body: some View {
-    WithViewStore(self.store.scope(state: { $0.view }, action: ConversationsAction.view)) { viewStore in
+    WithViewStore(
+      self.store.scope(
+        state: { $0.view },
+        action: ConversationsAction.view
+      )
+    ) { viewStore in
 
-      ZStack {
+      ZStack(alignment: .center) {
         List {
           ConversationListView(
             store: viewStore.isLoadingPage
@@ -84,9 +88,6 @@ public struct ConversationsView: View {
           )
           .redacted(reason: viewStore.isLoadingPage ? .placeholder : [])
         }
-        .onAppear {
-          viewStore.send(.onAppear)
-        }
 
       }
       .navigationTitle("Chats")
@@ -95,29 +96,41 @@ public struct ConversationsView: View {
           Button(action: {
             viewStore.send(.contactsView(isPresented: true))
           }) {
-            Image(systemName: "plus.circle")
-              .font(.title)
+            if #available(iOS 15.0, *) {
+              Image(systemName: "bubble.left.and.bubble.right")
+                .opacity(viewStore.isSheetPresented ? 0 : 1)
+                .overlay {
+                  if viewStore.isSheetPresented {
+                    ProgressView()
+                  }
+                }
+            } else {
+              Image(systemName: "square.and.pencil")
+                .opacity(viewStore.isSheetPresented ? 0 : 1)
+            }
+
           }
         }
       }
       .background(Color(.systemBackground))
       .alert(self.store.scope(state: { $0.alert }), dismiss: ConversationsAction.alertDismissed)
-//      .sheet(isPresented:
-//          viewStore.binding(
-//            get: { $0.isSheetPresented },
-//            send: ConversationsView.ViewAction.contactsView(isPresented:)
-//          )
-//      ) {
-//        IfLetStore(
-//          self.store.scope(
-//            state: { $0.contactsState },
-//            action: ConversationsAction.contacts
-//          ),
-//          then: ContactsView.init(store:)
-//        )
-//      }
+      .sheet(isPresented:
+          viewStore.binding(
+            get: { $0.isSheetPresented },
+            send: ConversationsView.ViewAction.contactsView(isPresented:)
+          )
+      ) {
+        IfLetStore(
+          self.store.scope(
+            state: { $0.contactsState },
+            action: ConversationsAction.contacts
+          ),
+          then: ContactsView.init(store:)
+        )
+      }
 
     }
+    .debug("ConversationView")
     .navigate(
       using: store.scope(
         state: \.chatState,
@@ -128,16 +141,6 @@ public struct ConversationsView: View {
         ViewStore(store.stateless).send(.chatView(isPresented: false))
       }
     )
-    .navigate(
-      using: store.scope(
-        state: \.contactsState,
-        action: ConversationsAction.contacts
-      ),
-      destination: ContactsView.init(store:),
-      onDismiss: {
-        ViewStore(store.stateless).send(.contactsView(isPresented: false))
-      }
-    )
 
   }
 }
@@ -146,6 +149,7 @@ struct ConversationsView_Previews: PreviewProvider {
 
   static let environment = ConversationEnvironment(
     conversationClient: .happyPath,
+    websocketClient: .live,
     backgroundQueue: .immediate,
     mainQueue: .immediate
   )
@@ -181,17 +185,16 @@ public struct ConversationListView: View {
         WithViewStore(conversationStore) { conversationViewStore in
 
           Button(action: {
-            viewStore.send(.conversationTapped(conversationViewStore.state) )
-            viewStore.send(.chatView(isPresented: true) )
+            viewStore.send(.conversationTapped(conversationViewStore.state))
           }) {
             ConversationRow(store: conversationStore)
-              .onAppear {
-                viewStore.send(
-                  .fetchMoreConversationIfNeeded(
-                    currentItem: conversationViewStore.state
-                  )
-                )
-              }
+//              .onAppear {
+//                viewStore.send(
+//                  .fetchMoreConversationIfNeeded(
+//                    currentItem: conversationViewStore.state
+//                  )
+//                )
+//              }
           }
           .buttonStyle(PlainButtonStyle())
 

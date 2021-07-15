@@ -10,6 +10,7 @@ import SharedModels
 import HttpRequest
 
 public enum ProfileAction: Equatable {
+  case onAppear
   case alertDismissed
   case isUploadingImage
   case showingImagePicker
@@ -24,7 +25,7 @@ public enum ProfileAction: Equatable {
   case userResponse(Result<User, HTTPError>)
   case attacmentResponse(Result<Attachment, HTTPError>)
   case myEventsResponse(Result<EventResponse, HTTPError>)
-  case event(index: Int, action: MyEventAction)
+  case event(index: EventResponse.Item.ID, action: MyEventAction)
 
   case resetAuthData
 }
@@ -36,6 +37,8 @@ public extension ProfileAction {
   static func view(_ localAction: ProfileView.ViewAction) -> Self {
     // swiftlint:disable:next superfluous_disable_command
     switch localAction {
+    case .onAppear:
+      return .onAppear
     case .alertDismissed:
       return .alertDismissed
     case .isUploadingImage:

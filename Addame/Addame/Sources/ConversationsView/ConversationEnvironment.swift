@@ -9,22 +9,25 @@ import Combine
 import ComposableArchitecture
 import ChatClient
 import ConversationClient
-import WebsocketClient
+import WebSocketClient
 import SharedModels
 
 public struct ConversationEnvironment {
 
-  let conversationClient: ConversationClient
+  public let conversationClient: ConversationClient
+  public let websocketClient: WebSocketClient
   public var backgroundQueue: AnySchedulerOf<DispatchQueue>
   public var mainQueue: AnySchedulerOf<DispatchQueue>
 
   public init(
     conversationClient: ConversationClient,
+    websocketClient: WebSocketClient,
     backgroundQueue: AnySchedulerOf<DispatchQueue>,
     mainQueue: AnySchedulerOf<DispatchQueue>
   ) {
     self.backgroundQueue = backgroundQueue
     self.conversationClient = conversationClient
+    self.websocketClient = websocketClient
     self.mainQueue = mainQueue
   }
 
@@ -32,11 +35,11 @@ public struct ConversationEnvironment {
 
 // public class WebsocketEnvironment {
 //    
-//  let websocketClient: WebsocketClient
+//  let websocketClient: WebSocketClient
 //  public var mainQueue: AnySchedulerOf<DispatchQueue>
 //  
 //  public init(
-//    websocketClient: WebsocketClient,
+//    websocketClient: WebSocketClient,
 //    mainQueue: AnySchedulerOf<DispatchQueue>
 //  ) {
 //    self.websocketClient = websocketClient

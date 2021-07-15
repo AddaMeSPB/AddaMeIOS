@@ -157,6 +157,42 @@ public struct ConversationResponse: Codable, Equatable {
 
 }
 
+extension ConversationResponse {
+  public struct UserAdd: Codable, Hashable, Identifiable, Comparable, Equatable {
+
+    public let id, title: String
+    public let type: ConversationType
+    public let createdAt, updatedAt: Date
+    public let deletedAt: Date?
+
+    static public var diff: Self {
+      .init(
+        id: "", title: "", type: .group,
+        createdAt: Date(), updatedAt: Date()
+      )
+    }
+
+    public init(
+      id: String, title: String, type: ConversationType,
+      createdAt: Date, updatedAt: Date, deletedAt: Date? = nil
+    ) {
+      self.id = id
+      self.title = title
+      self.type = type
+      self.createdAt = createdAt
+      self.updatedAt = updatedAt
+      self.deletedAt = deletedAt
+    }
+
+    public static func < (lhs: ConversationResponse.UserAdd, rhs: ConversationResponse.UserAdd) -> Bool {
+      return lhs.id == rhs.id
+      && lhs.createdAt == rhs.createdAt
+      && lhs.updatedAt == rhs.updatedAt
+    }
+
+  }
+}
+
 // public extension ConversationResponse.Item {
 //
 //    func canJoinConversation() -> Bool {

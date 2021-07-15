@@ -41,7 +41,27 @@ public func getUserFromKeychain() -> Effect<User, HTTPError> {
 //
 
 public let profileReducer = Reducer<ProfileState, ProfileAction, ProfileEnvironment> { state, action, environment in
+
+  func fetchMoreMyEvents() -> Effect<ProfileAction, Never> {
+
+    guard !state.isLoadingPage && state.canLoadMorePages else { return .none }
+
+    state.isLoadingPage = true
+
+    let query = QueryItem(page: "\(state.currentPage)", per: "10")
+
+    return environment.eventClient.events(query, "my")
+      .retry(3)
+      .receive(on: environment.mainQueue.animation(.default))
+      .removeDuplicates()
+      .catchToEffect()
+      .map(ProfileAction.myEventsResponse)
+  }
+
   switch action {
+  case .onAppear:
+    return fetchMoreMyEvents()
+
   case .alertDismissed:
     state.alert = nil
     return .none
@@ -144,7 +164,21 @@ public let profileReducer = Reducer<ProfileState, ProfileAction, ProfileEnvironm
     state.alert = .init(title: TextState( "\(#line) \(error.description)"))
     return .none
 
-  case .myEventsResponse(_):
+  case .myEventsResponse(.success(let events)):
+
+    state.canLoadMorePages = state.myEvents.count < events.metadata.total
+    state.isLoadingPage = false
+    state.currentPage += 1
+
+    state.myEvents = .init(uniqueElements: events.items)
+
+    return.none
+
+  case .myEventsResponse(.failure(let error)):
+
+    state.alert = .init(
+      title: TextState("fetch my event error")
+    )
 
     return .none
   }
