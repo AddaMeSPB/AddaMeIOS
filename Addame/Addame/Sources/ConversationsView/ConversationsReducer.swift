@@ -10,6 +10,7 @@ import ComposableArchitecture
 import SwiftUI
 import SharedModels
 import HttpRequest
+
 import ChatView
 import ContactsView
 
@@ -20,13 +21,13 @@ import ContactClient
 import ContactClientLive
 import CoreDataClient
 
-import WebsocketClient
-import WebsocketClientLive
+import WebSocketClient
+import WebSocketClientLive
 
 // swiftlint:disable:next line_length
 public let conversationsReducer = Reducer<ConversationsState, ConversationsAction, ConversationEnvironment> { state, action, environment in
 
-  func fetchMoreConversations() -> Effect<ConversationsAction, Never> {
+  var fetchMoreConversations: Effect<ConversationsAction, Never> {
 
     let query = QueryItem(page: "\(state.currentPage)", per: "10")
 
@@ -57,23 +58,24 @@ public let conversationsReducer = Reducer<ConversationsState, ConversationsActio
 
   case .onAppear:
 
-    return fetchMoreConversations()
+    return fetchMoreConversations
 
   case .fetchMoreConversationIfNeeded(let currentItem):
 
     guard let item = currentItem, state.conversations.count > 7 else {
-      return fetchMoreConversations()
+      return fetchMoreConversations
     }
 
     let threshouldIndex = state.conversations.index(state.conversations.endIndex, offsetBy: -7)
 
     if state.conversations.firstIndex(where: { $0.id == item.id }) == threshouldIndex {
-      return fetchMoreConversations()
+      return fetchMoreConversations
     }
 
     return .none
 
   case .chatView(isPresented: let present):
+
     state.chatState = present ? ChatState(conversation: state.conversation) : nil
     return .none
 
@@ -121,51 +123,44 @@ public let conversationsReducer = Reducer<ConversationsState, ConversationsActio
 
     return .none
 
-  case .contacts(let contactsAction):
-    switch contactsAction {
-
-    case .onAppear, .alertDismissed:
-      return .none
-    case .moveChatRoom(let present):
-      return .none
-    case .contactsResponse(.success(let contacts)):
-      return .none
-    case .contactsResponse(.failure(let error)):
-      return .none
-
-    case .contactsAuthorizationStatus(.notDetermined),
-         .contactsAuthorizationStatus(.denied),
-         .contactsAuthorizationStatus(.restricted),
-         .contactsAuthorizationStatus(.authorized),
-         .contactsAuthorizationStatus(_):
-      return .none
-
-    case .chat(_):
-      return .none
-
-    case let .chatRoom(index: index, action: action):
-      return .none
-
-    case let .chatWith(name: name, phoneNumber: phoneNumber):
-      state.createConversation = CreateConversation(
-        title: "currenUser + \(name)",
-        type: .oneToOne, opponentPhoneNumber: phoneNumber
-      )
-
-      return createOrFine()
-
-    case .none:
-      return .none
-    }
-
   case .conversationResponse(.success(let response)):
-    print(#line, "conversation: \(response)")
-//    state.contactsState = nil
+    state.contactsState = nil
     state.conversation = response
 
     return presentChatView()
 
   case .conversationResponse(.failure(let error)):
+    return .none
+  case .contacts(.none):
+    return .none
+  case .contacts(.some(.onAppear)):
+    return .none
+  case .contacts(.some(.alertDismissed)):
+    return .none
+  case let .contacts(.contact(id: id, action: action)):
+    switch action {
+
+    case let .moveToChatRoom(bool):
+      print(#line, bool)
+      return .none
+    case let .chatWith(name: name, phoneNumber: phoneNumber):
+
+      state.createConversation = CreateConversation(
+        title: "currenUser + \(name)",
+        type: .oneToOne,
+        opponentPhoneNumber: phoneNumber
+      )
+
+      return createOrFine()
+    }
+
+  case .contacts(.contactsAuthorizationStatus(_)):
+    return .none
+  case .contacts(.contactsResponse(_)):
+    return .none
+  case .contacts(.moveToChatRoom(_)):
+    return .none
+  case let .contacts(.chatWith(name: name, phoneNumber: phoneNumber)):
     return .none
   }
 }
@@ -176,11 +171,9 @@ public let conversationsReducer = Reducer<ConversationsState, ConversationsActio
   environment: {
     ChatEnvironment(
       chatClient: ChatClient.live(api: .build),
-      websocket: WebsocketEnvironment(
-        websocketClient: WebsocketClient.live(api: .build),
-        mainQueue: $0.mainQueue
-      ),
-      mainQueue: $0.mainQueue
+      websocketClient: .live,
+      mainQueue: $0.mainQueue,
+      backgroundQueue: $0.backgroundQueue
     )
   }
 )
