@@ -6,8 +6,10 @@ import MapKit
 import ComposableCoreLocation
 import AsyncImageLoder
 import SwiftUIExtension
-import EventForm
 import ComposableArchitectureHelpers
+import EventFormView
+import EventDetailsView
+import ChatView
 
 extension EventView {
   public struct ViewState: Equatable {
@@ -15,22 +17,35 @@ extension EventView {
     public var isConnected = true
     public var isLocationAuthorized = false
     public var waitingForUpdateLocation = true
+    public var isLoadingPage = false
+    public var isMovingChatRoom: Bool = false
     public var fetchAddress = ""
     public var location: Location?
     public var events: [EventResponse.Item] = []
     public var myEvents: [EventResponse.Item] = []
-    public var eventDetails: EventResponse.Item?
-    public var isLoadingPage = false
+    public var event: EventResponse.Item?
 
     public var eventFormState: EventFormState?
+    public var eventDetailsState: EventDetailsState?
+    public var isEventDetailsSheetPresented: Bool { self.eventDetailsState != nil }
+    public var chatState: ChatState?
+    public var conversation: ConversationResponse.Item?
   }
 
   public enum ViewAction: Equatable {
     case alertDismissed
     case dismissEventDetails
-    case presentEventForm(Bool)
-    case eventForm(EventFormAction)
+
     case event(index: Int, action: EventAction)
+
+    case eventFormView(isNavigate: Bool)
+    case eventForm(EventFormAction)
+
+    case eventDetailsView(isPresented: Bool)
+    case eventDetails(EventDetailsAction)
+
+    case chatView(isNavigate: Bool)
+    case chat(ChatAction)
 
     case fetchMoreEventIfNeeded(item: EventResponse.Item?)
     case fetchMyEvents
@@ -60,91 +75,124 @@ public struct EventView: View {
   public var body: some View {
     WithViewStore(self.store.scope(state: { $0.view }, action: EventsAction.view)) { viewStore in
 
-      ZStack(alignment: .bottom) {
+      ZStack(alignment: .center) {
 
-        ScrollView {
-          LazyVStack {
-            if viewStore.waitingForUpdateLocation {
-              VStack {
-                ActivityIndicator()
-                  .frame(maxWidth: .infinity)
-                  .padding()
-                  .padding(.top, 20)
+        VStack {
+          if viewStore.isEventDetailsSheetPresented && viewStore.isMovingChatRoom {
+            ProgressView()
+              .frame(width: 150.0, height: 150.0)
+              .padding(50.0)
+          }
+        }
 
-                if viewStore.isLoadingPage {
-                  Text("Now fetching near by Hanghouts!")
+        ZStack(alignment: .bottom) {
+
+          ScrollView {
+            LazyVStack {
+              if viewStore.waitingForUpdateLocation {
+                VStack {
+                  ActivityIndicator()
                     .frame(maxWidth: .infinity)
                     .padding()
-                    .animation(.easeOut)
+                    .padding(.top, 20)
 
-                } else if viewStore.waitingForUpdateLocation {
+                  if viewStore.isLoadingPage {
+                    Text("Now fetching near by Hanghouts!")
+                      .frame(maxWidth: .infinity)
+                      .padding()
+                      .animation(.easeOut)
 
-                  Text("Please wait we are updating your current location!")
-                    .font(.body)
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .padding(.bottom, 10)
-                    .animation(.easeIn)
+                  } else if viewStore.waitingForUpdateLocation {
+
+                    Text("Please wait we are updating your current location!")
+                      .font(.body)
+                      .frame(maxWidth: .infinity)
+                      .padding()
+                      .padding(.bottom, 10)
+                      .animation(.easeIn)
+                  }
                 }
+                .background(Color.red)
+                .cornerRadius(25)
+                .padding()
+
               }
-              .background(Color.red)
-              .cornerRadius(25)
-              .padding()
+
+              EventsListView(
+                store: viewStore.isLoadingPage
+                ? Store(
+                  initialState: EventsState.placeholderEvents,
+                  reducer: .empty,
+                  environment: ()
+                )
+                : self.store
+              )
+              .redacted(reason: viewStore.isLoadingPage ? .placeholder : [])
 
             }
+          }
 
-            EventsListView(
-              store: viewStore.isLoadingPage
-              ? Store(
-                initialState: EventsState.placeholderEvents,
-                reducer: .empty,
-                environment: ()
-              )
-              : self.store
-            )
-            .redacted(reason: viewStore.isLoadingPage ? .placeholder : [])
-
+          HStack {
+            Spacer()
+            Button(action: { viewStore.send(.currentLocationButtonTapped) }) {
+              Image(systemName: viewStore.state.isLocationAuthorized ? "circle" : "location")
+                .foregroundColor(Color.white)
+                .frame(
+                  width: viewStore.state.isLocationAuthorized ? 20 : 60,
+                  height: viewStore.state.isLocationAuthorized ? 20 : 60
+                )
+                .background(viewStore.state.isLocationAuthorized ? Color.green : Color.red)
+                .clipShape(Circle())
+                .padding([.trailing], 26)
+                .padding([.bottom], 26)
+            }
+            .animation(.easeIn)
+            .shadow(color: viewStore.state.isLocationAuthorized ? Color.green : Color.red, radius: 20, y: 5)
           }
         }
-
-        HStack {
-          Spacer()
-          Button(action: { viewStore.send(.currentLocationButtonTapped) }) {
-            Image(systemName: viewStore.state.isLocationAuthorized ? "circle" : "location")
-              .foregroundColor(Color.white)
-              .frame(
-                width: viewStore.state.isLocationAuthorized ? 20 : 60,
-                height: viewStore.state.isLocationAuthorized ? 20 : 60
-              )
-              .background(viewStore.state.isLocationAuthorized ? Color.green : Color.red)
-              .clipShape(Circle())
-              .padding([.trailing], 26)
-              .padding([.bottom], 26)
-          }
-          .animation(.easeIn)
-          .shadow(color: viewStore.state.isLocationAuthorized ? Color.green : Color.red, radius: 20, y: 5)
-        }
-
-      }
-      .sheet(
-        item: viewStore.binding(get: \.eventDetails, send: .dismissEventDetails)
-      ) { event in
-        EventDetailsView(event: event)
       }
       .navigationBarTitleDisplayMode(.automatic)
       .toolbar {
         ToolbarItem(placement: ToolbarItemPlacement.navigationBarTrailing) {
-          return Button(action: {
-            viewStore.send(.presentEventForm(true))
+          Button(action: {
+            viewStore.send(.eventFormView(isNavigate: true))
           }) {
-            Image(systemName: "plus.circle")
-              .font(.title)
-              .foregroundColor(viewStore.state.isLocationAuthorized ? Color.black : Color.gray)
+            if #available(iOS 15.0, *) {
+              Image(systemName: "plus.circle")
+                .font(.title)
+                .foregroundColor(viewStore.state.isLocationAuthorized ? Color.black : Color.gray)
+                .opacity(viewStore.isEventDetailsSheetPresented ? 0 : 1)
+                .overlay {
+                  if viewStore.isEventDetailsSheetPresented {
+                    ProgressView()
+                      .frame(width: 150.0, height: 150.0)
+                      .padding(50.0)
+                  }
+                }
+            } else {
+              Image(systemName: "plus.circle")
+                .font(.title)
+                .foregroundColor(viewStore.state.isLocationAuthorized ? Color.black : Color.gray)
+            }
           }
         }
       }
       .navigationTitle("Events")
       .alert(self.store.scope(state: { $0.alert }), dismiss: .alertDismissed)
+      .sheet(isPresented:
+        viewStore.binding(
+          get: { $0.isEventDetailsSheetPresented },
+          send: EventView.ViewAction.eventDetailsView(isPresented:)
+        )
+      ) {
+        IfLetStore(
+          self.store.scope(
+            state: { $0.eventDetailsState },
+            action: EventsAction.eventDetails
+          ),
+          then: EventDetailsView.init(store:)
+        )
+      }
     }
     .navigate(
       using: store.scope(
@@ -153,7 +201,17 @@ public struct EventView: View {
       ),
       destination: EventFormView.init(store:),
       onDismiss: {
-        ViewStore(store.stateless).send(.presentEventForm(false))
+        ViewStore(store.stateless).send(.eventFormView(isNavigate: false))
+      }
+    )
+    .navigate(
+      using: store.scope(
+        state: \.chatState,
+        action: EventsAction.chat
+      ),
+      destination: ChatView.init(store:),
+      onDismiss: {
+        ViewStore(store.stateless).send(.chatView(isNavigate: false))
       }
     )
   }
@@ -214,12 +272,15 @@ struct EventsListView: View {
         self.store.scope(state: \.events, action: EventsAction.event)
       ) { eventStore in
         WithViewStore(eventStore) { eventViewStore in
-          Button(action: { viewStore.send(.eventTapped(eventViewStore.state)) }) {
+          Button(action: {
+            viewStore.send(.eventTapped(eventViewStore.state))
+          }) {
             EventRowView(store: eventStore, currentLocation: viewStore.state.location)
               .onAppear {
                 viewStore.send(.fetchMoreEventIfNeeded(item: eventViewStore.state) )
 //                viewStore.send(.fetchMyEvents)
               }
+
           }
           .buttonStyle(PlainButtonStyle())
         }
@@ -243,7 +304,6 @@ public struct EventRowView: View {
   public var body: some View {
     WithViewStore(self.store) { viewStore in
       HStack {
-
         if viewStore.imageUrl != nil {
           AsyncImage(
             urlString: viewStore.imageUrl,
