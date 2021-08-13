@@ -7,12 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		C33DFAB5261F05A000132010 /* AddameSPM in Frameworks */ = {isa = PBXBuildFile; productRef = C33DFAB4261F05A000132010 /* AddameSPM */; };
-		C33DFABE261F1A9700132010 /* ProductionCopy.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = C33DFABA261F1A9700132010 /* ProductionCopy.xcconfig */; };
-		C33DFABF261F1A9700132010 /* Production.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = C33DFABB261F1A9700132010 /* Production.xcconfig */; };
-		C33DFAC0261F1A9700132010 /* DevelopmentCopy.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = C33DFABC261F1A9700132010 /* DevelopmentCopy.xcconfig */; };
+		C3186C642647F1FB00E1B69F /* AppFeature in Frameworks */ = {isa = PBXBuildFile; productRef = C3186C632647F1FB00E1B69F /* AppFeature */; };
 		C33DFAC8261F1B4100132010 /* Environment.swift in Sources */ = {isa = PBXBuildFile; fileRef = C33DFAC7261F1B4100132010 /* Environment.swift */; };
-		C3D8FF7F2629A80D000F39AA /* Development.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = C33DFABD261F1A9700132010 /* Development.xcconfig */; };
 		C3E50CA0261B5DFA00285977 /* Addame.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3E50C9F261B5DFA00285977 /* Addame.swift */; };
 		C3E50CA4261B5DFF00285977 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C3E50CA3261B5DFF00285977 /* Assets.xcassets */; };
 		C3E50CA7261B5DFF00285977 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C3E50CA6261B5DFF00285977 /* Preview Assets.xcassets */; };
@@ -24,39 +20,11 @@
 		C33DFABC261F1A9700132010 /* DevelopmentCopy.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = DevelopmentCopy.xcconfig; sourceTree = "<group>"; };
 		C33DFABD261F1A9700132010 /* Development.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = Development.xcconfig; sourceTree = "<group>"; };
 		C33DFAC7261F1B4100132010 /* Environment.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Environment.swift; sourceTree = "<group>"; };
-		C33DFACA261F1D2000132010 /* PhoneNumberCommon */ = {isa = PBXFileReference; lastKnownFileType = folder; path = PhoneNumberCommon; sourceTree = "<group>"; };
-		C33DFADA261F3DB600132010 /* AddaMeModels */ = {isa = PBXFileReference; lastKnownFileType = folder; path = AddaMeModels; sourceTree = "<group>"; };
-		C33DFADB261F3DC300132010 /* SwiftUIExtension */ = {isa = PBXFileReference; lastKnownFileType = folder; path = SwiftUIExtension; sourceTree = "<group>"; };
-		C33DFADC261F3DC300132010 /* CoreDataStore */ = {isa = PBXFileReference; lastKnownFileType = folder; path = CoreDataStore; sourceTree = "<group>"; };
-		C33DFADD261F3DC300132010 /* KeychainService */ = {isa = PBXFileReference; lastKnownFileType = folder; path = KeychainService; sourceTree = "<group>"; };
-		C33DFADE261F3DC300132010 /* FuncNetworking */ = {isa = PBXFileReference; lastKnownFileType = folder; path = FuncNetworking; sourceTree = "<group>"; };
-		C33DFADF261F3DC300132010 /* CombineContacts */ = {isa = PBXFileReference; lastKnownFileType = folder; path = CombineContacts; sourceTree = "<group>"; };
-		C33DFAE0261F3DC400132010 /* InfoPlist */ = {isa = PBXFileReference; lastKnownFileType = folder; path = InfoPlist; sourceTree = "<group>"; };
-		C33DFAE1261F3DC400132010 /* FoundationExtension */ = {isa = PBXFileReference; lastKnownFileType = folder; path = FoundationExtension; sourceTree = "<group>"; };
-		C33DFAE2261F3DC400132010 /* AsyncImageLoder */ = {isa = PBXFileReference; lastKnownFileType = folder; path = AsyncImageLoder; sourceTree = "<group>"; };
-		C3414C23261F406600278CED /* ContactClient */ = {isa = PBXFileReference; lastKnownFileType = folder; path = ContactClient; sourceTree = "<group>"; };
-		C3414C24261F406600278CED /* PathMonitorClient */ = {isa = PBXFileReference; lastKnownFileType = folder; path = PathMonitorClient; sourceTree = "<group>"; };
-		C3414C25261F406600278CED /* ConversationClient */ = {isa = PBXFileReference; lastKnownFileType = folder; path = ConversationClient; sourceTree = "<group>"; };
-		C3414C26261F406600278CED /* CoreDataClient */ = {isa = PBXFileReference; lastKnownFileType = folder; path = CoreDataClient; sourceTree = "<group>"; };
-		C3414C27261F406600278CED /* EventClient */ = {isa = PBXFileReference; lastKnownFileType = folder; path = EventClient; sourceTree = "<group>"; };
-		C3414C28261F406600278CED /* ChatClient */ = {isa = PBXFileReference; lastKnownFileType = folder; path = ChatClient; sourceTree = "<group>"; };
-		C3414C29261F406700278CED /* WebsocketClient */ = {isa = PBXFileReference; lastKnownFileType = folder; path = WebsocketClient; sourceTree = "<group>"; };
-		C3414C2A261F406700278CED /* AuthClient */ = {isa = PBXFileReference; lastKnownFileType = folder; path = AuthClient; sourceTree = "<group>"; };
-		C3414C2B261F406700278CED /* UserClient */ = {isa = PBXFileReference; lastKnownFileType = folder; path = UserClient; sourceTree = "<group>"; };
-		C3414C2C261F406800278CED /* AttachmentClient */ = {isa = PBXFileReference; lastKnownFileType = folder; path = AttachmentClient; sourceTree = "<group>"; };
-		C3414C2E261F41A600278CED /* ContactsView */ = {isa = PBXFileReference; lastKnownFileType = folder; path = ContactsView; sourceTree = "<group>"; };
-		C3C22FDF261F031C0003FCC0 /* AddameSPM */ = {isa = PBXFileReference; lastKnownFileType = folder; path = AddameSPM; sourceTree = "<group>"; };
 		C3E50C9C261B5DFA00285977 /* Addame.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Addame.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		C3E50C9F261B5DFA00285977 /* Addame.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Addame.swift; sourceTree = "<group>"; };
 		C3E50CA3261B5DFF00285977 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		C3E50CA6261B5DFF00285977 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		C3E50CA8261B5DFF00285977 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		C3E50CB0261B5EC700285977 /* Tabs */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Tabs; sourceTree = "<group>"; };
-		C3E50CB2261B5F2400285977 /* Common */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Common; sourceTree = "<group>"; };
-		C3E50CB5261B608600285977 /* EventView */ = {isa = PBXFileReference; lastKnownFileType = folder; path = EventView; sourceTree = "<group>"; };
-		C3E50CB7261B617800285977 /* ChatView */ = {isa = PBXFileReference; lastKnownFileType = folder; path = ChatView; sourceTree = "<group>"; };
-		C3E50CB9261B619C00285977 /* ProfileView */ = {isa = PBXFileReference; lastKnownFileType = folder; path = ProfileView; sourceTree = "<group>"; };
-		C3E50CDD261DA43C00285977 /* AuthenticationCore */ = {isa = PBXFileReference; lastKnownFileType = folder; path = AuthenticationCore; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -64,7 +32,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C33DFAB5261F05A000132010 /* AddameSPM in Frameworks */,
+				C3186C642647F1FB00E1B69F /* AppFeature in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -81,48 +49,6 @@
 				C33DFABA261F1A9700132010 /* ProductionCopy.xcconfig */,
 			);
 			path = Configs;
-			sourceTree = "<group>";
-		};
-		C3BB96D0261DA9B000A8ADB1 /* Domains */ = {
-			isa = PBXGroup;
-			children = (
-				C33DFADA261F3DB600132010 /* AddaMeModels */,
-			);
-			path = Domains;
-			sourceTree = "<group>";
-		};
-		C3C22FD5261EFFA20003FCC0 /* Core */ = {
-			isa = PBXGroup;
-			children = (
-				C33DFAE2261F3DC400132010 /* AsyncImageLoder */,
-				C33DFADF261F3DC300132010 /* CombineContacts */,
-				C3E50CB2261B5F2400285977 /* Common */,
-				C33DFADC261F3DC300132010 /* CoreDataStore */,
-				C33DFAE1261F3DC400132010 /* FoundationExtension */,
-				C33DFADE261F3DC300132010 /* FuncNetworking */,
-				C33DFAE0261F3DC400132010 /* InfoPlist */,
-				C33DFADD261F3DC300132010 /* KeychainService */,
-				C33DFACA261F1D2000132010 /* PhoneNumberCommon */,
-				C33DFADB261F3DC300132010 /* SwiftUIExtension */,
-			);
-			path = Core;
-			sourceTree = "<group>";
-		};
-		C3C22FE1261F03980003FCC0 /* Services */ = {
-			isa = PBXGroup;
-			children = (
-				C3414C2C261F406800278CED /* AttachmentClient */,
-				C3414C2A261F406700278CED /* AuthClient */,
-				C3414C28261F406600278CED /* ChatClient */,
-				C3414C23261F406600278CED /* ContactClient */,
-				C3414C25261F406600278CED /* ConversationClient */,
-				C3414C26261F406600278CED /* CoreDataClient */,
-				C3414C27261F406600278CED /* EventClient */,
-				C3414C24261F406600278CED /* PathMonitorClient */,
-				C3414C2B261F406700278CED /* UserClient */,
-				C3414C29261F406700278CED /* WebsocketClient */,
-			);
-			path = Services;
 			sourceTree = "<group>";
 		};
 		C3E50C93261B5DFA00285977 = {
@@ -146,8 +72,6 @@
 			isa = PBXGroup;
 			children = (
 				C33DFAB9261F1A7A00132010 /* Configs */,
-				C3C22FDF261F031C0003FCC0 /* AddameSPM */,
-				C3E50CAF261B5EA800285977 /* Modules */,
 				C3E50C9F261B5DFA00285977 /* Addame.swift */,
 				C3E50CA3261B5DFF00285977 /* Assets.xcassets */,
 				C3E50CA8261B5DFF00285977 /* Info.plist */,
@@ -162,30 +86,6 @@
 				C3E50CA6261B5DFF00285977 /* Preview Assets.xcassets */,
 			);
 			path = "Preview Content";
-			sourceTree = "<group>";
-		};
-		C3E50CAF261B5EA800285977 /* Modules */ = {
-			isa = PBXGroup;
-			children = (
-				C3C22FE1261F03980003FCC0 /* Services */,
-				C3C22FD5261EFFA20003FCC0 /* Core */,
-				C3BB96D0261DA9B000A8ADB1 /* Domains */,
-				C3E50CB4261B605400285977 /* Views */,
-			);
-			path = Modules;
-			sourceTree = "<group>";
-		};
-		C3E50CB4261B605400285977 /* Views */ = {
-			isa = PBXGroup;
-			children = (
-				C3E50CDD261DA43C00285977 /* AuthenticationCore */,
-				C3E50CB7261B617800285977 /* ChatView */,
-				C3414C2E261F41A600278CED /* ContactsView */,
-				C3E50CB5261B608600285977 /* EventView */,
-				C3E50CB9261B619C00285977 /* ProfileView */,
-				C3E50CB0261B5EC700285977 /* Tabs */,
-			);
-			path = Views;
 			sourceTree = "<group>";
 		};
 		C3E50CC2261C4E2900285977 /* Frameworks */ = {
@@ -205,6 +105,7 @@
 				C3E50C98261B5DFA00285977 /* Sources */,
 				C3E50C99261B5DFA00285977 /* Frameworks */,
 				C3E50C9A261B5DFA00285977 /* Resources */,
+				C3F9CB0A2678E4540007F6B9 /* SwiftLint */,
 			);
 			buildRules = (
 			);
@@ -212,7 +113,7 @@
 			);
 			name = Addame;
 			packageProductDependencies = (
-				C33DFAB4261F05A000132010 /* AddameSPM */,
+				C3186C632647F1FB00E1B69F /* AppFeature */,
 			);
 			productName = TComposableAAddaMe;
 			productReference = C3E50C9C261B5DFA00285977 /* Addame.app */;
@@ -255,16 +156,33 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C3D8FF7F2629A80D000F39AA /* Development.xcconfig in Resources */,
 				C3E50CA7261B5DFF00285977 /* Preview Assets.xcassets in Resources */,
-				C33DFABF261F1A9700132010 /* Production.xcconfig in Resources */,
 				C3E50CA4261B5DFF00285977 /* Assets.xcassets in Resources */,
-				C33DFABE261F1A9700132010 /* ProductionCopy.xcconfig in Resources */,
-				C33DFAC0261F1A9700132010 /* DevelopmentCopy.xcconfig in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		C3F9CB0A2678E4540007F6B9 /* SwiftLint */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = SwiftLint;
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "if which swiftlint >/dev/null; then\n  swiftlint --fix --config \".swiftlint.yml\" && swiftlint\nelse\n  echo \"warning: SwiftLint not installed, download from https://github.com/realm/SwiftLint\"\nfi\n";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		C3E50C98261B5DFA00285977 /* Sources */ = {
@@ -469,9 +387,9 @@
 /* End XCConfigurationList section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		C33DFAB4261F05A000132010 /* AddameSPM */ = {
+		C3186C632647F1FB00E1B69F /* AppFeature */ = {
 			isa = XCSwiftPackageProductDependency;
-			productName = AddameSPM;
+			productName = AppFeature;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

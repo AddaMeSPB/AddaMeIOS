@@ -8,47 +8,20 @@
 import ComposableArchitecture
 import SwiftUI
 import EventView
-import ChatView
+import ConversationsView
 import ProfileView
-import Tabs
-import AuthenticationCore
+import TabsView
+import AuthenticationView
 import AuthClient
 import AuthClientLive
+import AppFeature
 
 @main
 struct AddameApp: App {
-  
-  @AppStorage("isAuthorized")
-  public var isAuthorized: Bool = false
-  
-  static let tabsState = TabsState(
-    selectedTab: .event,
-    event: EventsState(),
-    conversations: ConversationsState(),
-    profile: ProfileState()
-  )
-
-  let tabsStore = Store(
-    initialState: tabsState,
-    reducer: tabsReducer.debug(),
-    environment: ()
-  )
-
-  static let environment = AuthenticationEnvironment(
-    authClient: AuthClient.live(api: .build) ,
-    mainQueue: DispatchQueue.main.eraseToAnyScheduler()
-  )
-
-  static let authState = LoginState.build
-  let authStore = Store(initialState: authState, reducer: loginReducer, environment: environment)
 
   var body: some Scene {
     WindowGroup {
-      if isAuthorized {
-        TabsView(store: tabsStore)
-      } else {
-        AuthenticationView(store: authStore)
-      }
+      AppView()
     }
   }
 }
