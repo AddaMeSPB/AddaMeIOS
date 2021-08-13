@@ -56,7 +56,6 @@ public struct ContactsView: View {
             : self.store
           )
           .redacted(reason: viewStore.isLoading ? .placeholder : [])
-
         }
         .onAppear {
           viewStore.send(.onAppear)

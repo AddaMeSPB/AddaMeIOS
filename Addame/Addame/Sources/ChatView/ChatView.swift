@@ -33,8 +33,9 @@ extension ChatView {
     case alertDismissed
     case conversation(ConversationResponse.Item?)
     case messages(Result<ChatMessageResponse, HTTPError>)
-    case fetchMoreMessagIfNeeded(currentItem: ChatMessageResponse.Item?)
-    case message(index: String?, action: MessageAction)
+    case fetchMoreMessageIfNeeded(currentItem: ChatMessageResponse.Item?)
+    case fetchMoreMessage(currentItem: ChatMessageResponse.Item)
+    case message(index: ChatMessageResponse.Item.ID, action: MessageAction)
     case sendResponse(NSError?)
     case webSocket(WebSocketClient.Action)
     case pingResponse(NSError?)

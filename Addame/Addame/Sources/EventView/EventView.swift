@@ -19,11 +19,11 @@ extension EventView {
     public var waitingForUpdateLocation = true
     public var isLoadingPage = false
     public var isMovingChatRoom: Bool = false
-    public var fetchAddress = ""
     public var location: Location?
-    public var events: [EventResponse.Item] = []
-    public var myEvents: [EventResponse.Item] = []
+    public var events: IdentifiedArrayOf<EventResponse.Item> = []
+    public var myEvents: IdentifiedArrayOf<EventResponse.Item> = []
     public var event: EventResponse.Item?
+    public var placeMark: CLPlacemark?
 
     public var eventFormState: EventFormState?
     public var eventDetailsState: EventDetailsState?
@@ -36,7 +36,7 @@ extension EventView {
     case alertDismissed
     case dismissEventDetails
 
-    case event(index: Int, action: EventAction)
+    case event(index: EventResponse.Item.ID, action: EventAction)
 
     case eventFormView(isNavigate: Bool)
     case eventForm(EventFormAction)
@@ -47,17 +47,8 @@ extension EventView {
     case chatView(isNavigate: Bool)
     case chat(ChatAction)
 
-    case fetchMoreEventIfNeeded(item: EventResponse.Item?)
-    case fetchMyEvents
-    case fetachAddressFromCLLocation(_ cllocation: CLLocation? = nil)
-    case addressResponse(Result<String, Never>)
-
     case currentLocationButtonTapped
-    case locationManager(LocationManager.Action)
-    case eventsResponse(Result<EventResponse, HTTPError>)
-    case myEventsResponse(Result<EventResponse, HTTPError>)
     case eventTapped(EventResponse.Item)
-
     case popupSettings
     case dismissEvent
     case onAppear
@@ -66,6 +57,8 @@ extension EventView {
 
 public struct EventView: View {
 
+  @Environment(\.colorScheme) var colorScheme
+
   public init(store: Store<EventsState, EventsAction>) {
     self.store = store
   }
@@ -73,9 +66,13 @@ public struct EventView: View {
   public let store: Store<EventsState, EventsAction>
 
   public var body: some View {
-    WithViewStore(self.store.scope(state: { $0.view }, action: EventsAction.view)) { viewStore in
+    WithViewStore(
+      self.store.scope(
+        state: { $0.view },
+        action: EventsAction.view)
+    ) { viewStore in
 
-      ZStack(alignment: .center) {
+      ZStack(alignment: .bottomTrailing) {
 
         VStack {
           if viewStore.isEventDetailsSheetPresented && viewStore.isMovingChatRoom {
@@ -85,96 +82,75 @@ public struct EventView: View {
           }
         }
 
-        ZStack(alignment: .bottom) {
+        ScrollView {
+          LazyVStack {
+            if viewStore.waitingForUpdateLocation {
+              VStack {
+                ActivityIndicator()
+                  .frame(maxWidth: .infinity)
+                  .padding()
+                  .padding(.top, 20)
 
-          ScrollView {
-            LazyVStack {
-              if viewStore.waitingForUpdateLocation {
-                VStack {
-                  ActivityIndicator()
+                if viewStore.isLoadingPage {
+                  Text("Now fetching near by Hanghouts!")
                     .frame(maxWidth: .infinity)
                     .padding()
-                    .padding(.top, 20)
+                    .animation(.easeOut)
 
-                  if viewStore.isLoadingPage {
-                    Text("Now fetching near by Hanghouts!")
-                      .frame(maxWidth: .infinity)
-                      .padding()
-                      .animation(.easeOut)
+                } else if viewStore.waitingForUpdateLocation {
 
-                  } else if viewStore.waitingForUpdateLocation {
-
-                    Text("Please wait we are updating your current location!")
-                      .font(.body)
-                      .frame(maxWidth: .infinity)
-                      .padding()
-                      .padding(.bottom, 10)
-                      .animation(.easeIn)
-                  }
+                  Text("Please wait we are updating your current location!")
+                    .font(.body)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .padding(.bottom, 10)
+                    .animation(.easeIn)
                 }
-                .background(Color.red)
-                .cornerRadius(25)
-                .padding()
-
               }
+              .background(Color.red)
+              .cornerRadius(25)
+              .padding()
 
-              EventsListView(
-                store: viewStore.isLoadingPage
-                ? Store(
-                  initialState: EventsState.placeholderEvents,
-                  reducer: .empty,
-                  environment: ()
-                )
-                : self.store
+            }
+
+            EventsListView(
+              store: viewStore.isLoadingPage
+              ? Store(
+                initialState: EventsState.placeholderEvents,
+                reducer: .empty,
+                environment: ()
               )
-              .redacted(reason: viewStore.isLoadingPage ? .placeholder : [])
+              : self.store
+            )
+            .redacted(reason: viewStore.isLoadingPage ? .placeholder : [])
 
-            }
-          }
-
-          HStack {
-            Spacer()
-            Button(action: { viewStore.send(.currentLocationButtonTapped) }) {
-              Image(systemName: viewStore.state.isLocationAuthorized ? "circle" : "location")
-                .foregroundColor(Color.white)
-                .frame(
-                  width: viewStore.state.isLocationAuthorized ? 20 : 60,
-                  height: viewStore.state.isLocationAuthorized ? 20 : 60
-                )
-                .background(viewStore.state.isLocationAuthorized ? Color.green : Color.red)
-                .clipShape(Circle())
-                .padding([.trailing], 26)
-                .padding([.bottom], 26)
-            }
-            .animation(.easeIn)
-            .shadow(color: viewStore.state.isLocationAuthorized ? Color.green : Color.red, radius: 20, y: 5)
           }
         }
+        .background(colorScheme == .dark ? Color.gray.edgesIgnoringSafeArea(.all) : nil )
+
+        HStack {
+          Spacer()
+          Button(action: { viewStore.send(.currentLocationButtonTapped) }) {
+            Image(systemName: viewStore.state.isLocationAuthorized ? "circle" : "location")
+              .foregroundColor(Color.white)
+              .frame(
+                width: viewStore.state.isLocationAuthorized ? 20 : 60,
+                height: viewStore.state.isLocationAuthorized ? 20 : 60
+              )
+              .background(viewStore.state.isLocationAuthorized ? Color.green : Color.red)
+              .clipShape(Circle())
+              .padding([.trailing], 26)
+              .padding([.bottom], 26)
+          }
+          .animation(.easeIn)
+          .shadow(color: viewStore.state.isLocationAuthorized ? Color.green : Color.red, radius: 20, y: 5)
+        }
+
       }
       .navigationBarTitleDisplayMode(.automatic)
       .toolbar {
         ToolbarItem(placement: ToolbarItemPlacement.navigationBarTrailing) {
-          Button(action: {
-            viewStore.send(.eventFormView(isNavigate: true))
-          }) {
-            if #available(iOS 15.0, *) {
-              Image(systemName: "plus.circle")
-                .font(.title)
-                .foregroundColor(viewStore.state.isLocationAuthorized ? Color.black : Color.gray)
-                .opacity(viewStore.isEventDetailsSheetPresented ? 0 : 1)
-                .overlay {
-                  if viewStore.isEventDetailsSheetPresented {
-                    ProgressView()
-                      .frame(width: 150.0, height: 150.0)
-                      .padding(50.0)
-                  }
-                }
-            } else {
-              Image(systemName: "plus.circle")
-                .font(.title)
-                .foregroundColor(viewStore.state.isLocationAuthorized ? Color.black : Color.gray)
-            }
-          }
+          toolbarItemTrailingButton(viewStore)
         }
       }
       .navigationTitle("Events")
@@ -216,6 +192,36 @@ public struct EventView: View {
     )
   }
 
+  private func toolbarItemTrailingButton(
+    _ viewStore: ViewStore<EventView.ViewState, EventView.ViewAction>
+  ) -> some View {
+      Button(action: {
+        viewStore.send(.eventFormView(isNavigate: true))
+      }) {
+        if #available(iOS 15.0, *) {
+          Image(systemName: "plus.circle")
+            .font(.title)
+//            .foregroundColor(
+//              viewStore.state.isLocationAuthorized ? Color.black : Color.gray
+//            )
+            .foregroundColor(colorScheme == .dark ? .white : .blue )
+            .opacity(viewStore.isEventDetailsSheetPresented ? 0 : 1)
+            .overlay {
+              if viewStore.isEventDetailsSheetPresented {
+                ProgressView()
+                  .frame(width: 150.0, height: 150.0)
+                  .padding(50.0)
+              }
+            }
+        } else {
+          Image(systemName: "plus.circle")
+            .font(.title)
+            .foregroundColor(viewStore.state.isLocationAuthorized ? Color.black : Color.gray)
+        }
+      }
+      .disabled(viewStore.state.placeMark == nil)
+      .opacity(viewStore.state.placeMark == nil ? 0 : 1)
+  }
 }
 
 struct EventView_Previews: PreviewProvider {
@@ -235,31 +241,31 @@ struct EventView_Previews: PreviewProvider {
   )
 
   static var previews: some View {
-    TabView {
-      NavigationView {
+//    TabView {
+//      NavigationView {
 
-        EventView(store: store)
+//        EventView(store: store)
 //          .redacted(reason: .placeholder)
 //          .redacted(reason: EventsState.events.isLoadingPage ? .placeholder : [])
-          .environment(\.colorScheme, .dark)
-      }
-    }
-//
-//    Group {
-//      TabView {
-//        NavigationView {
-//          EventView(store: store)
-//  //          .redacted(reason: .placeholder)
-//        }
-//      }
-//      TabView {
-//        NavigationView {
-//          EventView(store: store)
-//  //          .redacted(reason: .placeholder)
-//            .environment(\.colorScheme, .dark)
-//        }
+          // .environment(\.colorScheme, .dark)
 //      }
 //    }
+//
+    Group {
+      TabView {
+        NavigationView {
+          EventView(store: store)
+        }
+      }
+
+      TabView {
+        NavigationView {
+          EventView(store: store)
+            .environment(\.colorScheme, .dark)
+        }
+      }
+      .environment(\.colorScheme, .dark)
+    }
   }
 }
 

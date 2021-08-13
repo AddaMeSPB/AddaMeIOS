@@ -20,9 +20,9 @@ public struct EventsState: Equatable {
     waitingForUpdateLocation: Bool = true,
     isMovingChatRoom: Bool = false, isLoadingPage: Bool = false,
     canLoadMorePages: Bool = true, currentPage: Int = 1,
-    fetchAddress: String = "", currentEventPlace: EventResponse.Item = EventResponse.Item.draff,
-    location: Location? = nil, events: [EventResponse.Item] = [],
-    myEvents: [EventResponse.Item] = [], event: EventResponse.Item? = nil,
+    currentAddress: String = "", placeMark: CLPlacemark? = nil,
+    location: Location? = nil, events: IdentifiedArrayOf<EventResponse.Item> = [],
+    myEvents: IdentifiedArrayOf<EventResponse.Item> = [], event: EventResponse.Item? = nil,
     eventFormState: EventFormState? = nil, eventDetailsState: EventDetailsState? = nil,
     chatState: ChatState? = nil
   ) {
@@ -35,8 +35,8 @@ public struct EventsState: Equatable {
     self.canLoadMorePages = canLoadMorePages
     self.isMovingChatRoom = isMovingChatRoom
     self.currentPage = currentPage
-    self.fetchAddress = fetchAddress
-    self.currentEventPlace = currentEventPlace
+    self.currentAddress = currentAddress
+    self.placeMark = placeMark
     self.location = location
     self.events = events
     self.myEvents = myEvents
@@ -56,11 +56,11 @@ public struct EventsState: Equatable {
   public var isMovingChatRoom: Bool = false
 
   public var currentPage = 1
-  public var fetchAddress = ""
-  public var currentEventPlace = EventResponse.Item.draff
+  public var currentAddress = ""
+  public var placeMark: CLPlacemark?
   public var location: Location?
-  public var events: [EventResponse.Item] = []
-  public var myEvents: [EventResponse.Item] = []
+  public var events: IdentifiedArrayOf<EventResponse.Item> = []
+  public var myEvents: IdentifiedArrayOf<EventResponse.Item> = []
   public var event: EventResponse.Item?
   public var conversation: ConversationResponse.Item?
 
@@ -79,9 +79,10 @@ extension EventsState {
       isLocationAuthorized: self.isLocationAuthorized,
       waitingForUpdateLocation: self.waitingForUpdateLocation,
       isLoadingPage: self.isLoadingPage, isMovingChatRoom: self.isMovingChatRoom,
-      fetchAddress: self.fetchAddress, location: self.location,
+      location: self.location,
       events: self.events, myEvents: self.myEvents,
       event: self.event,
+      placeMark: self.placeMark,
       eventFormState: self.eventFormState, eventDetailsState: self.eventDetailsState,
       chatState: self.chatState,
       conversation: self.conversation

@@ -9,7 +9,7 @@ import SwiftUI
 import CoreLocation
 import MapKit
 
-public struct Event: Codable, Identifiable {
+public struct Event: Codable, Identifiable, Equatable {
   public init(
     id: String? = nil, name: String, details: String? = nil,
     imageUrl: String? = nil, duration: Int,
@@ -81,14 +81,20 @@ public struct EventResponse: Codable, Equatable {
     metadata: .init(per: 0, total: 0, page: 0)
   )
 
-  public init(items: [EventResponse.Item], metadata: Metadata = .init(per: 10, total: 10, page: 1)) {
+  public init(
+    items: [EventResponse.Item],
+    metadata: Metadata = .init(per: 10, total: 10, page: 1)
+  ) {
     self.items = items
     self.metadata = metadata
   }
 
   // MARK: - Item
 
-  public class Item: NSObject, Codable, Identifiable {
+  public class Item: NSObject, Codable, Identifiable, Comparable {
+    public static func < (lhs: EventResponse.Item, rhs: EventResponse.Item) -> Bool {
+      return lhs.coordinate < rhs.coordinate && lhs.id < rhs.id
+    }
 
     public init(
       id: String, name: String, categories: String,
@@ -211,3 +217,13 @@ public enum GeoType: String {
 
 extension GeoType: Encodable {}
 extension GeoType: Decodable {}
+
+extension CLLocationCoordinate2D: Equatable, Comparable {
+  public static func < (lhs: CLLocationCoordinate2D, rhs: CLLocationCoordinate2D) -> Bool {
+    return lhs.latitude < rhs.latitude && lhs.longitude < rhs.longitude
+  }
+
+  public static func ==(lhs: Self, rhs: Self) -> Bool {
+    return lhs.latitude == rhs.latitude && lhs.longitude == rhs.longitude
+  }
+}

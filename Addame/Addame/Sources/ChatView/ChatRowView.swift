@@ -15,12 +15,12 @@ import SwiftUIExtension
 
 struct AvatarView: View {
   @Environment(\.colorScheme) var colorScheme
-  let viewStore: ViewStore<ChatMessageResponse.Item, MessageAction>
+  let avatarUrl: String?
 
   var body: some View {
-    if viewStore.sender.avatarUrl != nil {
+    if avatarUrl != nil {
       AsyncImage(
-        urlString: viewStore.sender.avatarUrl,
+        urlString: avatarUrl,
         placeholder: { Text("Loading...").frame(width: 40, height: 40, alignment: .center) },
         image: {
         Image(uiImage: $0).resizable()
@@ -50,7 +50,7 @@ struct ChatRowView: View {
     HStack {
       Group {
 
-        AvatarView(viewStore: viewStore)
+        AvatarView(avatarUrl: viewStore.sender.avatarUrl)
 
         Text(viewStore.messageBody)
           .bold()
@@ -79,7 +79,7 @@ struct ChatRowView: View {
           .background(Color.red)
           .cornerRadius(10)
 
-        AvatarView(viewStore: viewStore)
+        AvatarView(avatarUrl: viewStore.recipient?.avatarUrl)
 
       }
     }

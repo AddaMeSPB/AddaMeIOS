@@ -19,8 +19,8 @@ public enum ConversationsAction: Equatable {
   case conversationTapped(ConversationResponse.Item)
   case chatView(isPresented: Bool)
   case contactsView(isPresented: Bool)
-  case chat(ChatAction?)
-  case contacts(ContactsAction?)
+  case chat(ChatAction)
+  case contacts(ContactsAction)
 
   case conversationsResponse(Result<ConversationResponse, HTTPError>)
   case conversationResponse(Result<ConversationResponse.Item, HTTPError>)

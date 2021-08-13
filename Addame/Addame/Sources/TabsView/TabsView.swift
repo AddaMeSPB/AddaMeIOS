@@ -15,6 +15,7 @@ public struct TabsView: View {
 
   @AppStorage("isUserFirstNameEmpty")
   public var isUserFirstNameEmpty: Bool = true
+  @Environment(\.colorScheme) var colorScheme
 
   struct ViewState: Equatable {
     public init(state: TabsState) {
@@ -30,11 +31,11 @@ public struct TabsView: View {
     public var profile: ProfileState
   }
 
+  let store: Store<TabsState, TabsAction>
+
   public init(store: Store<TabsState, TabsAction>) {
     self.store = store
   }
-
-  let store: Store<TabsState, TabsAction>
 
   public var body: some View {
     WithViewStore(self.store.scope(state: ViewState.init)) { viewStore in
@@ -42,7 +43,9 @@ public struct TabsView: View {
         get: \.selectedTab,
         send: TabsAction.didSelectTab
       )) {
-        ForEach(Tabs.allCases, content: tabView(_:))
+        ForEach(
+          Tabs.allCases, content: tabView(_:)
+        )
       }
       .onAppear {
         ViewStore(store.stateless).send(.onAppear)
@@ -84,7 +87,6 @@ public struct TabsView: View {
           state: \.event,
           action: TabsAction.event
         ))
-
       }
       .onAppear {
         ViewStore(store.stateless).send(.event(.onAppear))
@@ -129,8 +131,8 @@ struct TabsView_Previews: PreviewProvider {
 
   static let tabsState = TabsState(
     selectedTab: .event,
-    event: EventsState(),
-    conversations: ConversationsState(chatState: .init()),
+    event: EventsState.placeholderEvents,
+    conversations: ConversationsState.placholderConversations,
     profile: ProfileState()
   )
 

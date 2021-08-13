@@ -24,9 +24,9 @@ public let chatReducer = Reducer<ChatState, ChatAction, ChatEnvironment> { state
 
     return environment.chatClient
       .messages(query, conversationsID, "/by/conversations/\(conversationsID)")
-      .subscribe(on: environment.backgroundQueue)
       .retry(3)
-      .receive(on: environment.mainQueue.animation(.default))
+      .subscribe(on: environment.backgroundQueue)
+      .receive(on: environment.mainQueue)
       .catchToEffect()
       .map(ChatAction.messages)
   }
@@ -71,10 +71,13 @@ public let chatReducer = Reducer<ChatState, ChatAction, ChatEnvironment> { state
     state.isLoadingPage = false
     state.currentPage += 1
 
-   print(#line, "currentPage: \(state.currentPage) response: \(response.items.map { $0.messageBody })")
     let combineMessageResults = (response.items + state.messages).uniqElemets().sorted()
-    state.messages = .init(combineMessageResults)
-//    self.messageSubject.send(combineMessageResults)
+    state.messages = .init(uniqueElements: combineMessageResults)
+
+// wrong not working here
+//    if !state.messages.elementsEqual(response.items) {
+//      state.messages = .init(uniqueElements: response.items)
+//    }
 
     return .none
 
@@ -82,17 +85,23 @@ public let chatReducer = Reducer<ChatState, ChatAction, ChatEnvironment> { state
     state.alert = .init(title: TextState("\(error.description)") )
     return .none
 
-  case let .fetchMoreMessagIfNeeded(currentItem: currentItem):
-
-    guard let item = currentItem, state.messages.count > 7 else {
+  case let .fetchMoreMessageIfNeeded(currentItem: currentItem):
+    guard let item = currentItem, state.messages.count > 5 else {
       return fetchMoreMessages
     }
+
+    let threshouldIndex = state.messages.index(state.messages.endIndex, offsetBy: -5) - 3
+    if state.messages.firstIndex(where: { $0.id == item.id }) == threshouldIndex {
+      return fetchMoreMessages
+    }
+    return .none
+
+  case let .fetchMoreMessage(currentItem: item):
 
     let threshouldIndex = state.messages.index(state.messages.endIndex, offsetBy: -7)
     if state.messages.firstIndex(where: { $0.id == item.id }) == threshouldIndex {
       return fetchMoreMessages
     }
-
     return .none
 
   case let .sendResponse(error):

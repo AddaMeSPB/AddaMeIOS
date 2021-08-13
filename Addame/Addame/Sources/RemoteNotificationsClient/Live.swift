@@ -7,7 +7,7 @@
 
 #if canImport(UIKit)
   import UIKit
-
+  @available(iOSApplicationExtension, unavailable)
   extension RemoteNotificationsClient {
     public static let live = Self(
       isRegistered: { UIApplication.shared.isRegisteredForRemoteNotifications },
@@ -25,7 +25,7 @@
   }
 #elseif canImport(AppKit)
   import AppKit
-
+  @available(iOSApplicationExtension, unavailable)
   extension RemoteNotificationsClient {
     public static let live = Self(
       isRegistered: { NSApplication.shared.isRegisteredForRemoteNotifications },

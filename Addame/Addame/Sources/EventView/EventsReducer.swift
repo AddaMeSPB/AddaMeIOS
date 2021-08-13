@@ -10,6 +10,7 @@ import MapKit
 import Combine
 
 import ComposableArchitecture
+import ComposableCoreLocation
 
 import SharedModels
 import HttpRequest
@@ -27,13 +28,18 @@ import WebSocketClientLive
 import ConversationClient
 import ConversationClientLive
 
+import EventClient
+import EventClientLive
+
+// swiftlint:disable file_length
 struct Foo {
   @AppStorage("isAuthorized")
   public static var isAuthorized: Bool = false
 }
 
+struct LocationManagerId: Hashable {}
+
 public let eventReducer = Reducer<EventsState, EventsAction, EventsEnvironment> { state, action, environment in
-  struct LocationManagerId: Hashable {}
 
   func fetchMoreEventIfNeeded() -> Effect<EventsAction, Never> {
     guard state.isConnected, let location = state.location else { return .none }
@@ -62,20 +68,11 @@ public let eventReducer = Reducer<EventsState, EventsAction, EventsEnvironment> 
       .map(EventsAction.eventsResponse)
   }
 
-  func fetchMoreMyEvents() -> Effect<EventsAction, Never> {
-
-    guard !state.isLoadingPage && state.canLoadMorePages else { return .none }
-
-    state.isLoadingPage = true
-
-    let query = QueryItem(page: "\(state.currentPage)", per: "10")
-
-    return environment.eventClient.events(query, "my")
-      .retry(3)
-      .receive(on: environment.mainQueue.animation(.default))
-      .removeDuplicates()
+  func getLocation(_ location: Location) -> Effect<EventsAction, Never> {
+    return environment.getCoordinate(location)
+      .receive(on: environment.mainQueue)
       .catchToEffect()
-      .map(EventsAction.myEventsResponse)
+      .map(EventsAction.eventCoordinate)
   }
 
   func presentChatView() -> Effect<EventsAction, Never> {
@@ -89,7 +86,23 @@ public let eventReducer = Reducer<EventsState, EventsAction, EventsEnvironment> 
   switch action {
 
   case let .eventFormView(isNavigate: active):
-    state.eventFormState = active ? EventFormState() : nil
+
+    guard
+      let placeMark = state.placeMark,
+      let location = placeMark.location
+    else {
+      // pop alert let user know about issue
+      return .none
+    }
+
+    state.eventFormState = active
+    ? EventFormState(
+      placeMark: state.placeMark,
+      eventAddress: state.currentAddress,
+      eventCoordinate: location.coordinate
+    )
+    : nil
+
     return .none
 
   case .dismissEvent:
@@ -114,20 +127,16 @@ public let eventReducer = Reducer<EventsState, EventsAction, EventsEnvironment> 
 
   case .fetchMoreEventIfNeeded(let item):
 
-    guard let item = item else {
+    guard let item = item, state.events.count > 5 else {
       return fetchMoreEventIfNeeded()
     }
 
-    let threshouldIndex = state.events.index(state.events.endIndex, offsetBy: -7)
+    let threshouldIndex = state.events.index(state.events.endIndex, offsetBy: -5)
     if state.events.firstIndex(where: { $0.id == item.id }) == threshouldIndex {
       return fetchMoreEventIfNeeded()
     }
 
     return .none
-
-  case .fetchMyEvents:
-    // move inside .locationManager(.didUpdateLocations(locations)):
-    return fetchMoreMyEvents()
 
   case .event(index: let index):
 
@@ -139,31 +148,14 @@ public let eventReducer = Reducer<EventsState, EventsAction, EventsEnvironment> 
     state.isLoadingPage = false
     state.currentPage += 1
 
-    state.events = (state.events + eventArray.items)
+    if !state.events.elementsEqual(eventArray.items) {
+      state.events = .init(uniqueElements: eventArray.items)
+    }
     return .none
 
   case .eventsResponse(.failure(let error)):
     state.isLoadingPage = false
     state.alert = .init(title: TextState(error.description))
-
-    return .none
-
-  case .myEventsResponse(.success(let events)):
-
-    state.waitingForUpdateLocation = false
-    state.canLoadMorePages = state.events.count < events.metadata.total
-    state.isLoadingPage = false
-    state.currentPage += 1
-
-    state.myEvents = (state.myEvents + events.items)
-
-    return.none
-
-  case .myEventsResponse(.failure(let error)):
-
-    state.alert = .init(
-      title: TextState("fetch my event error")
-    )
 
     return .none
 
@@ -173,79 +165,30 @@ public let eventReducer = Reducer<EventsState, EventsAction, EventsEnvironment> 
       .receive(on: environment.mainQueue)
       .eraseToEffect()
 
-  case let .fetachAddressFromCLLocation(cllocation):
-    return .none
-
   case .addressResponse(.success(let address)):
     return .none
 
-  case .locationManager(.didChangeAuthorization(.authorizedAlways)),
-       .locationManager(.didChangeAuthorization(.authorizedWhenInUse)):
-
-    state.isLocationAuthorized = true
-    state.isConnected = true
-
-    return environment.locationManager
-      .requestLocation(id: LocationManagerId())
-      .fireAndForget()
-
-  case .locationManager(.didChangeAuthorization(.denied)),
-       .locationManager(.didChangeAuthorization(.restricted)):
-
-    state.isLocationAuthorized = false
-    state.isConnected = false
-
-    state.alert = .init(
-      title: TextState("Please give us access to your location so you can use our full features"),
-      message: TextState("Please go to Settings and turn on the permissions"),
-      primaryButton: .cancel(TextState("Cancel"), send: .alertDismissed),
-      secondaryButton: .default(TextState("Go Settings"), send: .popupSettings)
-    )
+  case let .eventCoordinate(.success(placemark)):
+    let formatter = CNPostalAddressFormatter()
+    let addressString = formatter.string(from: placemark.postalAddress!)
+    state.currentAddress = addressString
+    state.placeMark = placemark
 
     return .none
 
   case let .locationManager(.didUpdateLocations(locations)):
-    print(#line, locations)
+
     guard state.isConnected, let location = locations.first else { return .none }
     state.location = location
-    //      self.fetchMoreEventIfNeeded()
-    //      self.fetchAddress(location)
 
-    return fetchMoreEventIfNeeded()
+    return .merge(
+      fetchMoreEventIfNeeded(),
+      getLocation(location)
+    )
 
-  case .locationManager(.didChangeAuthorization(.notDetermined)):
+  case .locationManager:
     return .none
-  case .locationManager(.didChangeAuthorization( let status)):
-    print(#line, status)
-    return .none
-  case .locationManager(.didDetermineState(_, region: let region)):
-    return .none
-  case .locationManager(.didEnterRegion(_)):
-    return .none
-  case .locationManager(.didExitRegion(_)):
-    return .none
-  case let .locationManager(.didFailRanging(beaconConstraint: beaconConstraint, error: error)):
-    return .none
-  case .locationManager(.didFailWithError(_)):
-    return .none
-  case .locationManager(.didFinishDeferredUpdatesWithError(_)):
-    return .none
-  case .locationManager(.didPauseLocationUpdates):
-    return .none
-  case .locationManager(.didResumeLocationUpdates):
-    return .none
-  case .locationManager(.didStartMonitoring(region: let region)):
-    return .none
-  case .locationManager(.didUpdateHeading(newHeading: let newHeading)):
-    return .none
-  case let .locationManager(.didUpdateTo(newLocation: newLocation, oldLocation: oldLocation)):
-    return .none
-  case .locationManager(.didVisit(_)):
-    return .none
-  case let .locationManager(.monitoringDidFail(region: region, error: error)):
-    return .none
-  case .locationManager(.didRangeBeacons(_, satisfyingConstraint: let satisfyingConstraint)):
-    return .none
+
   case .currentLocationButtonTapped:
 
     guard environment.locationManager.locationServicesEnabled() else {
@@ -275,7 +218,6 @@ public let eventReducer = Reducer<EventsState, EventsAction, EventsEnvironment> 
         primaryButton: .cancel(TextState("Cancel"), send: .alertDismissed),
         secondaryButton: .default(TextState(""), send: .popupSettings)
       )
-
       state.waitingForUpdateLocation = false
       return .none
 
@@ -303,15 +245,20 @@ public let eventReducer = Reducer<EventsState, EventsAction, EventsEnvironment> 
     }
 
   case .popupSettings:
-    if let url = URL(string: UIApplication.openSettingsURLString), UIApplication.shared.canOpenURL(url) {
-      UIApplication.shared.open(url, options: [:], completionHandler: nil)
-    }
+//    @available(iOSApplicationExtension, unavailable)
+//    if let url = URL(string: UIApplication.openSettingsURLString), UIApplication.shared.canOpenURL(url) {
+//      UIApplication.shared.open(url, options: [:], completionHandler: nil)
+//    }
 
     return .none
 
   case .dismissEventDetails:
     state.event = nil
     state.eventDetailsState = nil
+    return .none
+
+  case .eventForm(.backToPVAfterCreatedEventSuccessfully):
+     state.eventFormState = nil
     return .none
 
   case .eventForm(_):
@@ -370,9 +317,27 @@ public let eventReducer = Reducer<EventsState, EventsAction, EventsEnvironment> 
   case .chatView(isNavigate: let isNavigate):
     state.chatState = isNavigate ? ChatState(conversation: state.conversation) : nil
     return .none
-
   }
 }
+.combined(
+  with:
+    locationManagerReducer
+    .pullback(state: \.self, action: /EventsAction.locationManager, environment: { $0 })
+)
+// .signpost()
+// .debug()
+
+.presents(
+  eventFormReducer,
+  state: \.eventFormState,
+  action: /EventsAction.eventForm,
+  environment: {
+    EventFormEnvironment(
+      eventClient: EventClient.live(api: .build),
+      mainQueue: $0.mainQueue
+    )
+  }
+)
 .presents(
   chatReducer,
   state: \.chatState,
@@ -397,3 +362,84 @@ public let eventReducer = Reducer<EventsState, EventsAction, EventsEnvironment> 
     )
   }
 )
+
+public let locationManagerReducer = Reducer<
+  EventsState, LocationManager.Action, EventsEnvironment
+> { state, action, environment in
+
+  switch action {
+  case .didChangeAuthorization(.authorizedAlways),
+       .didChangeAuthorization(.authorizedWhenInUse):
+
+    state.isLocationAuthorized = true
+    state.isConnected = true
+
+    return environment.locationManager
+      .requestLocation(id: LocationManagerId())
+      .fireAndForget()
+
+  case .didChangeAuthorization(.denied),
+       .didChangeAuthorization(.restricted):
+
+    state.isLocationAuthorized = false
+    state.isConnected = false
+
+    state.alert = .init(
+      title: TextState("Please give us access to your location so you can use our full features"),
+      message: TextState("Please go to Settings and turn on the permissions"),
+      primaryButton: .cancel(TextState("Cancel"), send: .alertDismissed),
+      secondaryButton: .default(TextState("Go Settings"), send: .popupSettings)
+    )
+    return .none
+
+  case let .didUpdateLocations(locations):
+    return .none
+
+  case .didChangeAuthorization(.notDetermined):
+    return .none
+  case .didChangeAuthorization(let status):
+    print(#line, status)
+    return .none
+  case .didDetermineState(_, region: let region):
+    print(#line, region)
+    return .none
+  case .didEnterRegion(_):
+    return .none
+  case .didExitRegion(_):
+    return .none
+  case let .didFailRanging(beaconConstraint: beaconConstraint, error: error):
+    return .none
+  case .didFailWithError(_):
+    return .none
+  case .didFinishDeferredUpdatesWithError(_):
+    return .none
+  case .didPauseLocationUpdates:
+    return .none
+  case .didResumeLocationUpdates:
+    return .none
+  case .didStartMonitoring(region: let region):
+    return .none
+  case .didUpdateHeading(newHeading: let newHeading):
+    return .none
+  case let .didUpdateTo(newLocation: newLocation, oldLocation: oldLocation):
+    return .none
+  case .didVisit(_):
+    return .none
+  case let .monitoringDidFail(region: region, error: error):
+    return .none
+  case .didRangeBeacons(_, satisfyingConstraint: let satisfyingConstraint):
+    return .none
+  }
+}
+
+import Contacts
+
+extension MKPlacemark {
+  var formattedAddress: String? {
+    guard let postalAddress = postalAddress else { return nil }
+    return CNPostalAddressFormatter.string(
+      from: postalAddress, style: .mailingAddress)
+      .replacingOccurrences(of: "\n", with: " "
+      )
+  }
+}

@@ -71,7 +71,7 @@ let package = Package(
   dependencies: [
     .package(name: "AWSSDKSwift", url: "https://github.com/swift-aws/aws-sdk-swift.git", from: "4.9.0"),
     .package(url: "https://github.com/marmelroy/PhoneNumberKit", .upToNextMajor(from: "3.3.3")),
-    .package(url: "https://github.com/pointfreeco/swift-composable-architecture.git", from: "0.20.0"),
+    .package(url: "https://github.com/pointfreeco/swift-composable-architecture.git", from: "0.21.0"),
     .package(url: "https://github.com/pointfreeco/composable-core-location", from: "0.1.0"),
     .package(url: "https://github.com/pointfreeco/xctest-dynamic-overlay", from: "0.1.0"),
     .package(url: "https://github.com/AddaMeSPB/CombineContacts.git", from: "1.0.0"),
@@ -306,10 +306,10 @@ let package = Package(
         .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
         .product(name: "ComposableCoreLocation", package: "composable-core-location"),
         "SharedModels", "EventClient", "InfoPlist",
-        "PathMonitorClient", "ConversationClient",
+        "PathMonitorClient", "ConversationClient", "ComposableArchitectureHelpers",
         "SwiftUIExtension", "FoundationExtension", "AsyncImageLoder",
-        "HttpRequest", "KeychainService", "ChatClient",
-        "PathMonitorClientLive", "ComposableArchitectureHelpers"
+        "HttpRequest", "KeychainService", "ChatClient", "EventClient", "EventClientLive",
+        "PathMonitorClientLive", "ComposableArchitectureHelpers", "MapView", "HttpRequest"
       ]
     ),
 
@@ -345,11 +345,20 @@ let package = Package(
       dependencies: [
         "UIApplicationClient", "UserDefaultsClient",
         .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
-        .product(name: "XCTestDynamicOverlay", package: "xctest-dynamic-overlay")
+        .product(name: "XCTestDynamicOverlay", package: "xctest-dynamic-overlay"),
+        "UserNotificationClient"
       ]
     ),
 
-    .target(name: "MapView"),
+    .target(
+      name: "MapView",
+      dependencies: [
+        .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
+        .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
+        .product(name: "XCTestDynamicOverlay", package: "xctest-dynamic-overlay"),
+        "SwiftUIExtension", "SharedModels", "ComposableArchitectureHelpers"
+      ]
+    ),
 
     // Helpers
     .target(

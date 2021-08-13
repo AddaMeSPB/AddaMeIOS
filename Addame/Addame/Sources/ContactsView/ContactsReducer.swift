@@ -51,7 +51,7 @@ public let contactsReducer: Reducer<ContactsState, ContactsAction, ContactsEnvir
       state.isLoading = false
 
       let contactRowStates = contacts.map { ContactRowState(contact: $0) }
-      state.contacts = .init(contactRowStates)
+      state.contacts = .init(uniqueElements: contactRowStates)
       return .none
 
     case .contactsResponse(.failure(let error)):

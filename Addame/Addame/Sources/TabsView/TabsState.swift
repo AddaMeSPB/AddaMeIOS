@@ -31,9 +31,15 @@ public struct TabsState: Equatable {
 }
 
 struct TabsViewState: Equatable {
-  init(state: TabsState) {
-    selectedTab = state.selectedTab
+  public init(selectedTab: Tabs, event: EventsState, conversations: ConversationsState, profile: ProfileState) {
+    self.selectedTab = selectedTab
+    self.event = event
+    self.conversations = conversations
+    self.profile = profile
   }
 
-  var selectedTab: Tabs
+  public var selectedTab: Tabs
+  public var event: EventsState
+  public var conversations: ConversationsState
+  public var profile: ProfileState
 }

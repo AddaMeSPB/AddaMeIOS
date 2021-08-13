@@ -56,7 +56,6 @@ extension ConversationsView {
     case chat(ChatAction)
     case contacts(ContactsAction)
   }
-
 }
 
 public struct ConversationsView: View {
@@ -69,9 +68,14 @@ public struct ConversationsView: View {
   }
 
   public var body: some View {
-    WithViewStore(self.store.scope(state: { $0.view }, action: ConversationsAction.view)) { viewStore in
+    WithViewStore(
+      self.store.scope(
+        state: { $0.view },
+        action: ConversationsAction.view
+      )
+    ) { viewStore in
 
-      ZStack {
+      ZStack(alignment: .center) {
         List {
           ConversationListView(
             store: viewStore.isLoadingPage
@@ -84,6 +88,7 @@ public struct ConversationsView: View {
           )
           .redacted(reason: viewStore.isLoadingPage ? .placeholder : [])
         }
+
       }
       .navigationTitle("Chats")
       .toolbar {
@@ -125,6 +130,7 @@ public struct ConversationsView: View {
       }
 
     }
+    .debug("ConversationView")
     .navigate(
       using: store.scope(
         state: \.chatState,
@@ -179,8 +185,7 @@ public struct ConversationListView: View {
         WithViewStore(conversationStore) { conversationViewStore in
 
           Button(action: {
-            viewStore.send(.conversationTapped(conversationViewStore.state) )
-            viewStore.send(.chatView(isPresented: true) )
+            viewStore.send(.conversationTapped(conversationViewStore.state))
           }) {
             ConversationRow(store: conversationStore)
 //              .onAppear {

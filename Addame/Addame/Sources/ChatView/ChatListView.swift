@@ -25,7 +25,7 @@ struct ChatListView: View {
         WithViewStore(chatStore) { messageViewStore in
           ChatRowView(store: chatStore)
             .onAppear {
-              viewStore.send(.fetchMoreMessagIfNeeded(currentItem: messageViewStore.state) )
+              viewStore.send(.fetchMoreMessageIfNeeded(currentItem: messageViewStore.state) )
             }
             .scaleEffect(x: 1, y: -1, anchor: .center)
         }

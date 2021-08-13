@@ -89,6 +89,7 @@ public struct ContactRow: View {
     }
   }
 
+  @available(iOSApplicationExtension, unavailable)
   func invite() {
     let url = URL(string: "https://testflight.apple.com/join/gXWnCqLB")
     let viewControllerToPresent = UIActivityViewController(activityItems: [url!], applicationActivities: nil)

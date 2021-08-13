@@ -85,7 +85,7 @@ extension ContactClient {
         .eraseToAnyPublisher()
     },
     buidContacts: {
-      Just([])
+      Just(contacts)
         .setFailureType(to: ContactError.self)
         .eraseToAnyPublisher()
     },

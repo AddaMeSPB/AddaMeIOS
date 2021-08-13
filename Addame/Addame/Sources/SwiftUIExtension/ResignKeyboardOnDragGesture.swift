@@ -16,6 +16,7 @@ public extension UIApplication {
   }
 }
 
+@available(iOSApplicationExtension, unavailable)
 public struct ResignKeyboardOnDragGesture: ViewModifier {
   public var gesture = DragGesture().onChanged {_ in
     UIApplication.shared.endEditing(true)
@@ -26,6 +27,7 @@ public struct ResignKeyboardOnDragGesture: ViewModifier {
   }
 }
 
+@available(iOSApplicationExtension, unavailable)
 public extension View {
   func resignKeyboardOnDragGesture() -> some View {
     return modifier(ResignKeyboardOnDragGesture())

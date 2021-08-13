@@ -8,6 +8,7 @@
 import Foundation
 import SwiftUI
 
+@available(iOSApplicationExtension, unavailable)
 public struct KeyboardDismissModifier: ViewModifier {
 
     public func body(content: Content) -> some View {
@@ -17,6 +18,7 @@ public struct KeyboardDismissModifier: ViewModifier {
     }
 }
 
+@available(iOSApplicationExtension, unavailable)
 extension TextField {
     /// Dismiss the keyboard when pressing on something different then a form field
     /// - Returns: KeyboardDismissModifier

@@ -110,8 +110,6 @@ public let tabsReducer = Reducer<TabsState, TabsAction, TabsEnvironment>.combine
 
     case .profile:
 
-      state.profile.myEvents = state.event.myEvents
-
       return .none
 
     case .getAccessToketFromKeyChain(.success(let accessToken)):
@@ -158,35 +156,48 @@ public let tabsReducer = Reducer<TabsState, TabsAction, TabsEnvironment>.combine
     case let .receivedSocketMessage(.success(.string(str))):
 
       guard let data = str.data(using: .utf8) else {
-        return .none
+        return receiveSocketMessageEffect
       }
 
       let chatOutGoingEvent = ChatOutGoingEvent.decode(data: data)
 
       switch chatOutGoingEvent {
       case .connect(_):
-        break
+        return receiveSocketMessageEffect
       case .disconnect(_):
-        break
+        return receiveSocketMessageEffect
       case .conversation(let message):
 
-        if let row = state.conversations.conversations.firstIndex(where: { $0.id == message.conversationId }) {
-          state.conversations.conversations[row].lastMessage = message
-        }
+        state.conversations.conversations[id: message.conversationId]?
+          .lastMessage = message
+
+        state.conversations.conversations.sort()
+
+        return receiveSocketMessageEffect
 
       case .message(let message):
-        state.conversations.chatState?.messages.insert(message, at: 0)
+        guard
+          let chatState = state.conversations.chatState,
+          let conversation = chatState.conversation
+        else {
+          return receiveSocketMessageEffect
+        } // wrong
+
+        if conversation.id == message.conversationId {
+          state.conversations.chatState?.messages.insert(message, at: 0)
+        }
+
+        return receiveSocketMessageEffect
 
       case .notice(let msg):
-        break
+        return receiveSocketMessageEffect
       case .error(let error):
         print(#line, error)
+        return receiveSocketMessageEffect
       case .none:
         print(#line, "decode error")
         return receiveSocketMessageEffect
       }
-
-      return receiveSocketMessageEffect
     }
   }
 )

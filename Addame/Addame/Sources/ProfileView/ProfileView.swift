@@ -18,9 +18,14 @@ extension ProfileView {
     public var moveToAuthView: Bool = false
     public var user: User = User.draff
     public var isUserHaveAvatarLink: Bool = false
+    public var myEvents: IdentifiedArrayOf<EventResponse.Item> = []
+    public var isLoadingPage = false
+    public var canLoadMorePages = true
+    public var currentPage = 1
   }
 
   public enum ViewAction: Equatable {
+    case onAppear
     case alertDismissed
     case isUploadingImage
     case showingImagePicker
@@ -34,7 +39,7 @@ extension ProfileView {
 
     case userResponse(Result<User, HTTPError>)
     case attacmentResponse(Result<Attachment, HTTPError>)
-    case event(index: Int, action: MyEventAction)
+    case event(index: EventResponse.Item.ID, action: MyEventAction)
 
     case resetAuthData
   }
@@ -134,6 +139,7 @@ public struct ProfileView: View {
         }
         .padding(.bottom, 45)
       }
+      .onAppear { viewStore.send(.onAppear) }
       .navigationBarTitle("Profile", displayMode: .inline)
       //      .sheet(isPresented: self.$uvm.showingImagePicker, onDismiss: self.uvm.loadImage) {
       //        ImagePicker(image: self.$uvm.inputImage)
@@ -147,6 +153,7 @@ public struct ProfileView: View {
       .background(Color(UIColor.systemBackground).edgesIgnoringSafeArea(.all))
       .alert(self.store.scope(state: { $0.alert }), dismiss: .alertDismissed)
     }
+
   }
 
   private var settings: some View {

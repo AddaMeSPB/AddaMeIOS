@@ -7,6 +7,7 @@
 
 import Combine
 import ComposableArchitecture
+import ComposableArchitectureHelpers
 import SwiftUI
 import SharedModels
 import HttpRequest
@@ -49,6 +50,7 @@ public let conversationsReducer = Reducer<ConversationsState, ConversationsActio
   }
 
   func presentChatView() -> Effect<ConversationsAction, Never> {
+    state.chatState = nil
     return Effect(value: ConversationsAction.chatView(isPresented: true))
       .receive(on: environment.mainQueue)
       .eraseToEffect()
@@ -58,9 +60,14 @@ public let conversationsReducer = Reducer<ConversationsState, ConversationsActio
 
   case .onAppear:
 
+    state.isLoadingPage = true
     return fetchMoreConversations
 
   case .fetchMoreConversationIfNeeded(let currentItem):
+
+    guard !state.isLoadingPage && state.canLoadMorePages else {
+      return .none
+    }
 
     guard let item = currentItem, state.conversations.count > 7 else {
       return fetchMoreConversations
@@ -86,10 +93,6 @@ public let conversationsReducer = Reducer<ConversationsState, ConversationsActio
 
   case .conversationsResponse(.success(let response)):
 
-    guard !state.isLoadingPage && state.canLoadMorePages else { return .none }
-
-    state.isLoadingPage = true
-
     state.canLoadMorePages = state.conversations.count < response.metadata.total
     state.isLoadingPage = false
     state.currentPage += 1
@@ -99,11 +102,12 @@ public let conversationsReducer = Reducer<ConversationsState, ConversationsActio
       .uniqElemets()
       .sorted()
 
-    state.conversations = .init(combineConversationResults)
+    state.conversations = .init(uniqueElements: combineConversationResults)
 
     return .none
 
   case .conversationsResponse(.failure(let error)):
+    state.isLoadingPage = false
     state.alert = .init(title: TextState("Error happens \(error.description)"))
     return .none
 
@@ -114,13 +118,12 @@ public let conversationsReducer = Reducer<ConversationsState, ConversationsActio
   case .conversationTapped(let conversationItem):
     state.conversation = conversationItem
 
-    return .none
+    return presentChatView()
   case let .chatRoom(index: index, action: chatRoomAction):
 
     return .none
 
   case .chat(let chatAction):
-
     return .none
 
   case .conversationResponse(.success(let response)):
@@ -131,12 +134,7 @@ public let conversationsReducer = Reducer<ConversationsState, ConversationsActio
 
   case .conversationResponse(.failure(let error)):
     return .none
-  case .contacts(.none):
-    return .none
-  case .contacts(.some(.onAppear)):
-    return .none
-  case .contacts(.some(.alertDismissed)):
-    return .none
+
   case let .contacts(.contact(id: id, action: action)):
     switch action {
 
@@ -161,6 +159,10 @@ public let conversationsReducer = Reducer<ConversationsState, ConversationsActio
   case .contacts(.moveToChatRoom(_)):
     return .none
   case let .contacts(.chatWith(name: name, phoneNumber: phoneNumber)):
+    return .none
+  case .contacts(.onAppear):
+    return .none
+  case .contacts(.alertDismissed):
     return .none
   }
 }

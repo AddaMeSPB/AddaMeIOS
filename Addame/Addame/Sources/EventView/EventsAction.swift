@@ -20,7 +20,7 @@ public enum EventsAction: Equatable {
   case alertDismissed
   case dismissEventDetails
 
-  case event(index: Int, action: EventAction)
+  case event(index: EventResponse.Item.ID, action: EventAction)
 
   case eventFormView(isNavigate: Bool)
   case eventForm(EventFormAction)
@@ -32,14 +32,12 @@ public enum EventsAction: Equatable {
   case chat(ChatAction)
 
   case fetchMoreEventIfNeeded(item: EventResponse.Item?)
-  case fetchMyEvents
-  case fetachAddressFromCLLocation(_ cllocation: CLLocation? = nil)
   case addressResponse(Result<String, Never>)
 
   case currentLocationButtonTapped
   case locationManager(LocationManager.Action)
   case eventsResponse(Result<EventResponse, HTTPError>)
-  case myEventsResponse(Result<EventResponse, HTTPError>)
+  case eventCoordinate(Result<CLPlacemark, Never>)
   case eventTapped(EventResponse.Item)
 
   case popupSettings
@@ -52,7 +50,7 @@ public enum EventAction: Equatable {}
 
 // swiftlint:disable:next superfluous_disable_command
 extension EventsAction {
-  // swiftlint:disable:next cyclomatic_complexity function_body_length
+  // swiftlint:disable:next cyclomatic_complexity function_body_length superfluous_disable_command
   static func view(_ localAction: EventView.ViewAction) -> Self {
     switch localAction {
     case .alertDismissed:
@@ -71,20 +69,6 @@ extension EventsAction {
       return .event(index: index, action: action)
     case .currentLocationButtonTapped:
       return .currentLocationButtonTapped
-    case .locationManager(let loc):
-      return .locationManager(loc)
-    case .fetachAddressFromCLLocation(let cllocation):
-      return .fetachAddressFromCLLocation(cllocation)
-    case .addressResponse(let address):
-      return.addressResponse(address)
-    case .fetchMoreEventIfNeeded(let item):
-    return .fetchMoreEventIfNeeded(item: item)
-    case .fetchMyEvents:
-      return fetchMyEvents
-    case .eventsResponse(let results):
-      return .eventsResponse(results)
-    case .myEventsResponse(let results):
-    return .myEventsResponse(results)
     case .eventTapped(let event):
       return eventTapped(event)
     case .popupSettings:

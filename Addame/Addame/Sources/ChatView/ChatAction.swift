@@ -17,8 +17,9 @@ public enum ChatAction: Equatable {
   case alertDismissed
   case conversation(ConversationResponse.Item?)
   case messages(Result<ChatMessageResponse, HTTPError>)
-  case fetchMoreMessagIfNeeded(currentItem: ChatMessageResponse.Item?)
-  case message(index: String?, action: MessageAction)
+  case fetchMoreMessageIfNeeded(currentItem: ChatMessageResponse.Item?)
+  case fetchMoreMessage(currentItem: ChatMessageResponse.Item)
+  case message(index: ChatMessageResponse.Item.ID, action: MessageAction)
   case sendResponse(NSError?)
   case webSocket(WebSocketClient.Action)
   case pingResponse(NSError?)
@@ -39,8 +40,10 @@ public extension ChatAction {
       return .conversation(conversation)
     case .messages(let messages):
       return .messages(messages)
-    case .fetchMoreMessagIfNeeded(currentItem: let currentItem):
-      return .fetchMoreMessagIfNeeded(currentItem: currentItem)
+    case let .fetchMoreMessageIfNeeded(currentItem: currentItem):
+      return .fetchMoreMessageIfNeeded(currentItem: currentItem)
+    case let .fetchMoreMessage(currentItem: item):
+      return .fetchMoreMessage(currentItem: item)
     case let .message(index, action):
       return .message(index: index, action: action)
     case .sendResponse(let error):

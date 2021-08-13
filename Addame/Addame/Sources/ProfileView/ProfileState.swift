@@ -27,7 +27,11 @@ public struct ProfileState: Equatable {
   public var moveToAuthView: Bool = false
   public var user: User = .draff
   public var isUserHaveAvatarLink: Bool = false
-  public var myEvents: [EventResponse.Item] = []
+  public var myEvents: IdentifiedArrayOf<EventResponse.Item> = []
+
+  public var isLoadingPage = false
+  public var canLoadMorePages = true
+  public var currentPage = 1
 
   public init(
     alert: AlertState<ProfileAction>? = nil,
@@ -38,7 +42,10 @@ public struct ProfileState: Equatable {
     moveToAuthView: Bool = false,
     user: User = .draff,
     isUserHaveAvatarLink: Bool = false,
-    myEvents: [EventResponse.Item] = []
+    myEvents: IdentifiedArrayOf<EventResponse.Item> = [],
+    isLoadingPage: Bool = false,
+    canLoadMorePages: Bool = true,
+    currentPage: Int = 1
   ) {
     self.alert = alert
     self.isUploadingImage = isUploadingImage
@@ -49,6 +56,9 @@ public struct ProfileState: Equatable {
     self.user = user
     self.isUserHaveAvatarLink = isUserHaveAvatarLink
     self.myEvents = myEvents
+    self.isLoadingPage = isLoadingPage
+    self.canLoadMorePages = canLoadMorePages
+    self.currentPage = currentPage
   }
 
 }
@@ -63,7 +73,10 @@ public extension ProfileState {
       moveToSettingsView: self.moveToSettingsView,
       moveToAuthView: self.moveToAuthView,
       user: self.user,
-      isUserHaveAvatarLink: self.isUserHaveAvatarLink
+      isUserHaveAvatarLink: self.isUserHaveAvatarLink,
+      isLoadingPage: self.isLoadingPage,
+      canLoadMorePages: self.canLoadMorePages,
+      currentPage: self.currentPage
     )
   }
 }
