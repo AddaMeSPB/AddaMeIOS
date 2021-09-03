@@ -63,6 +63,7 @@ extension EventFormView {
       && !self.durationRawValue.isEmpty
       && !self.categoryRawValue.isEmpty
     }
+    public var currentUser: User = .draff
 
   }
 

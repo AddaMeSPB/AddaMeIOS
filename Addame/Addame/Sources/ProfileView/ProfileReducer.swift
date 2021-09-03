@@ -6,16 +6,18 @@
 //
 
 import ComposableArchitecture
+import ComposableArchitectureHelpers
 import Foundation
 import Combine
 import SwiftUI
-
+import UIKit
 import HttpRequest
 import UserClient
 import EventClient
 import KeychainService
 import AttachmentClient
 import SharedModels
+import SettingsView
 
 public func getUserFromKeychain() -> Effect<User, HTTPError> {
 
@@ -73,8 +75,8 @@ public let profileReducer = Reducer<ProfileState, ProfileAction, ProfileEnvironm
 
     return .none
 
-  case .moveToSettingsView:
-
+  case let .settingsView(isNavigation: present):
+    state.settingsState = present ? SettingsState() : nil
     return .none
 
   case .moveToAuthView:
@@ -181,5 +183,23 @@ public let profileReducer = Reducer<ProfileState, ProfileAction, ProfileEnvironm
     )
 
     return .none
+
+  case let .settings(action):
+    return .none
+
   }
 }
+.presents(
+  settingsReducer,
+  state: \.settingsState,
+  action: /ProfileAction.settings,
+  environment: { _ in
+    SettingsEnvironment(
+      applicationClient: .noop,
+      backgroundQueue: .main,
+      mainQueue: .main,
+      userDefaults: .live(),
+      userNotifications: .live
+    )
+  }
+)

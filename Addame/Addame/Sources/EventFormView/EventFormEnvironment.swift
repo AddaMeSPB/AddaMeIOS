@@ -24,13 +24,4 @@ public struct EventFormEnvironment {
     self.mainQueue = mainQueue
   }
 
-  public var currentUser: User {
-    guard let currentUSER: User = KeychainService.loadCodable(for: .user) else {
-      assertionFailure("current user is missing")
-      return User.draff
-    }
-
-    return currentUSER
-  }
-
 }

@@ -42,12 +42,16 @@ public struct AppView: View {
   )
 
   static let environment = AuthenticationEnvironment(
-    authClient: AuthClient.live(api: .build) ,
+    authClient: AuthClient.live(api: .build),
     mainQueue: DispatchQueue.main.eraseToAnyScheduler()
   )
 
   static let authState = LoginState.build
-  let authStore = Store(initialState: authState, reducer: loginReducer, environment: environment)
+  let authStore = Store(
+    initialState: authState,
+    reducer: loginReducer,
+    environment: environment
+  )
 
   @ViewBuilder
   public var body: some View {

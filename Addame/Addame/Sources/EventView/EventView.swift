@@ -47,6 +47,8 @@ extension EventView {
     case chatView(isNavigate: Bool)
     case chat(ChatAction)
 
+    case fetchMoreEventsIfNeeded(item: EventResponse.Item?)
+
     case currentLocationButtonTapped
     case eventTapped(EventResponse.Item)
     case popupSettings
@@ -231,7 +233,8 @@ struct EventView_Previews: PreviewProvider {
     locationManager: .live,
     eventClient: .happyPath,
     backgroundQueue: .immediate,
-    mainQueue: .immediate
+    mainQueue: .immediate,
+    userDefaults: .noop
   )
 
   static let store = Store(
@@ -273,7 +276,12 @@ struct EventsListView: View {
   let store: Store<EventsState, EventsAction>
 
   var body: some View {
-    WithViewStore(self.store) { viewStore in
+    WithViewStore(
+      self.store.scope(
+        state: { $0.view },
+        action: EventsAction.view
+      )
+    ) { viewStore in
       ForEachStore(
         self.store.scope(state: \.events, action: EventsAction.event)
       ) { eventStore in
@@ -283,10 +291,8 @@ struct EventsListView: View {
           }) {
             EventRowView(store: eventStore, currentLocation: viewStore.state.location)
               .onAppear {
-                viewStore.send(.fetchMoreEventIfNeeded(item: eventViewStore.state) )
-//                viewStore.send(.fetchMyEvents)
+                viewStore.send(.fetchMoreEventsIfNeeded(item: eventViewStore.state) )
               }
-
           }
           .buttonStyle(PlainButtonStyle())
         }
@@ -350,7 +356,7 @@ public struct EventRowView: View {
           Spacer()
           HStack {
             Spacer()
-            Text("\(distance(location: viewStore.location)) away")
+            Text(" \(viewStore.distance?.meterTOmiles ?? "0.0")")
               .lineLimit(2)
               .alignmentGuide(.leading) { viewDimensions in viewDimensions[.leading] }
               .font(.system(size: 15, weight: .light, design: .rounded))
@@ -371,13 +377,15 @@ public struct EventRowView: View {
     }
   }
 
-  func distance(location: CLLocation) -> String {
-    guard let currentCoordinate = currentLocation?.rawValue else {
-      print(#line, "Missing currentCoordinate")
-      return "Loading Coordinate"
-    }
+}
 
-    let distance = currentCoordinate.distance(from: location) / 1000
-    return String(format: "%.02f km", distance)
+extension Double {
+
+  var meterTOkilometers: String {
+    return String(format: "%.02f km away", self / 1000)
+  }
+
+  var meterTOmiles: String {
+    return String(format: "%.02f miles away", self / 1609)
   }
 }

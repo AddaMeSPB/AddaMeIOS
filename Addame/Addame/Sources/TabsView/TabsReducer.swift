@@ -44,7 +44,8 @@ public let tabsReducer = Reducer<TabsState, TabsAction, TabsEnvironment>.combine
         locationManager: LocationManager.live,
         eventClient: EventClient.live(api: .build),
         backgroundQueue: $0.backgroundQueue,
-        mainQueue: $0.mainQueue
+        mainQueue: $0.mainQueue,
+        userDefaults: .live()
       )
     }
   ),

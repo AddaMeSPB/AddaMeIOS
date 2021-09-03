@@ -7,6 +7,7 @@ import SwiftUIExtension
 import SharedModels
 import AuthenticationView
 import HttpRequest
+import SettingsView
 
 extension ProfileView {
   public struct ViewState: Equatable {
@@ -22,6 +23,7 @@ extension ProfileView {
     public var isLoadingPage = false
     public var canLoadMorePages = true
     public var currentPage = 1
+    public var settingsState: SettingsState?
   }
 
   public enum ViewAction: Equatable {
@@ -30,7 +32,7 @@ extension ProfileView {
     case isUploadingImage
     case showingImagePicker
     case moveToSettingsView
-    case moveToAuthView
+    case settingsView(isNavigation: Bool)
 
     case fetchMyData
     case uploadAvatar(_ image: UIImage)
@@ -40,6 +42,7 @@ extension ProfileView {
     case userResponse(Result<User, HTTPError>)
     case attacmentResponse(Result<Attachment, HTTPError>)
     case event(index: EventResponse.Item.ID, action: MyEventAction)
+    case settings(SettingsAction)
 
     case resetAuthData
   }
@@ -145,7 +148,28 @@ public struct ProfileView: View {
       //        ImagePicker(image: self.$uvm.inputImage)
       //      }
       .toolbar {
-        ToolbarItem(placement: .navigationBarTrailing ) { settings }
+        ToolbarItem(placement: .navigationBarTrailing ) {
+//          settings
+
+          Button(action: {
+            viewStore.send(.settingsView(isNavigation: true))
+          }) {
+            Image(systemName: "gear")
+              .font(.title)
+            //        .foregroundColor(Color("bg"))
+          }
+          .navigate(
+            using: store.scope(
+              state: \.settingsState,
+              action: ProfileAction.settings
+            ),
+            destination: SettingsView.init(store:),
+            onDismiss: {
+              viewStore.send(.settingsView(isNavigation: false))
+            }
+          )
+
+        }
       }
       .onAppear {
         viewStore.send(.fetchMyData)
@@ -154,32 +178,6 @@ public struct ProfileView: View {
       .alert(self.store.scope(state: { $0.alert }), dismiss: .alertDismissed)
     }
 
-  }
-
-  private var settings: some View {
-    Button(action: {
-      // self.uvm.moveToSettingsView = true
-    }) {
-      Image(systemName: "gear")
-        .font(.title)
-      //        .foregroundColor(Color("bg"))
-    }
-    //    .background(
-    //      NavigationLink(
-    //        destination: SettingsView()
-    //          .edgesIgnoringSafeArea(.bottom)
-    //          .onAppear(perform: {
-    //            self.uvm.tabBarHideAction(true)
-    //            self.uvm.moveToSettingsView = false
-    //          })
-    //          .onDisappear(perform: {
-    //            self.uvm.tabBarHideAction(false)
-    //          }),
-    //        isActive: self.$uvm.moveToSettingsView
-    //      ) {
-    //        EmptyView()
-    //      }
-    //    )
   }
 }
 

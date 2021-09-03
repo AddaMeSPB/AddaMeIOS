@@ -11,6 +11,7 @@ import ComposableCoreLocation
 import PathMonitorClient
 import EventClient
 import Contacts
+import UserDefaultsClient
 
 public struct EventsEnvironment {
 
@@ -19,19 +20,22 @@ public struct EventsEnvironment {
   let eventClient: EventClient
   public var backgroundQueue: AnySchedulerOf<DispatchQueue>
   public var mainQueue: AnySchedulerOf<DispatchQueue>
+  public var userDefaults: UserDefaultsClient
 
   public init(
     pathMonitorClient: PathMonitorClient,
     locationManager: LocationManager,
     eventClient: EventClient,
     backgroundQueue: AnySchedulerOf<DispatchQueue>,
-    mainQueue: AnySchedulerOf<DispatchQueue>
+    mainQueue: AnySchedulerOf<DispatchQueue>,
+    userDefaults: UserDefaultsClient
   ) {
     self.pathMonitorClient = pathMonitorClient
     self.locationManager = locationManager
     self.eventClient = eventClient
     self.backgroundQueue = backgroundQueue
     self.mainQueue = mainQueue
+    self.userDefaults = userDefaults
   }
 
   func getCoordinate(_ location: Location) -> Effect<CLPlacemark, Never> {
@@ -45,7 +49,6 @@ public struct EventsEnvironment {
         )
       ) { placemarks, error in
         if error != nil {
-          print(#line, error)
           // callback(.failure( kCLLocationCoordinate2DInvalid, error as CoordinateError?))
         }
 

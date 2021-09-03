@@ -9,6 +9,7 @@ import SwiftUI
 import SharedModels
 import KeychainService
 import ComposableArchitecture
+import SettingsView
 
 public struct ProfileState: Equatable {
 
@@ -28,6 +29,7 @@ public struct ProfileState: Equatable {
   public var user: User = .draff
   public var isUserHaveAvatarLink: Bool = false
   public var myEvents: IdentifiedArrayOf<EventResponse.Item> = []
+  public var settingsState: SettingsState?
 
   public var isLoadingPage = false
   public var canLoadMorePages = true
@@ -43,6 +45,7 @@ public struct ProfileState: Equatable {
     user: User = .draff,
     isUserHaveAvatarLink: Bool = false,
     myEvents: IdentifiedArrayOf<EventResponse.Item> = [],
+    settingsState: SettingsState? = nil,
     isLoadingPage: Bool = false,
     canLoadMorePages: Bool = true,
     currentPage: Int = 1
@@ -56,6 +59,7 @@ public struct ProfileState: Equatable {
     self.user = user
     self.isUserHaveAvatarLink = isUserHaveAvatarLink
     self.myEvents = myEvents
+    self.settingsState = settingsState
     self.isLoadingPage = isLoadingPage
     self.canLoadMorePages = canLoadMorePages
     self.currentPage = currentPage
@@ -74,9 +78,11 @@ public extension ProfileState {
       moveToAuthView: self.moveToAuthView,
       user: self.user,
       isUserHaveAvatarLink: self.isUserHaveAvatarLink,
+      myEvents: self.myEvents,
       isLoadingPage: self.isLoadingPage,
       canLoadMorePages: self.canLoadMorePages,
-      currentPage: self.currentPage
+      currentPage: self.currentPage,
+      settingsState: self.settingsState
     )
   }
 }

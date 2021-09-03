@@ -31,18 +31,39 @@ public struct EventAPI {
 
   private var baseURL: URL { EnvironmentKeys.rootURL.appendingPathComponent("/events") }
 
+  fileprivate func handleDataType<Input: Encodable>(
+    input: Input? = nil,
+    params: [String: Any] = [:],
+    queryItems: [URLQueryItem] = []
+  ) -> DataType {
+
+    if !params.isEmpty {
+      return .query(with: params)
+    } else if !queryItems.isEmpty {
+      return .query(with: queryItems)
+    } else {
+      return .encodable(input: input, encoder: .init() )
+    }
+
+  }
+
   private func tokenHandle<Input: Encodable, Output: Decodable>(
-    input: Input, path: String, method: HTTPMethod
+    input: Input? = nil,
+    path: String,
+    method: HTTPMethod,
+    params: [String: Any] = [:],
+    queryItems: [URLQueryItem] = []
   ) -> AnyPublisher<Output, HTTPError> {
 
     return token().flatMap { token -> AnyPublisher<Output, HTTPError> in
+
       let builder: HttpRequest = .build(
         baseURL: baseURL,
         method: method,
         authType: .bearer(token: token),
         path: path,
         contentType: .json,
-        dataType: .encodable(input: input, encoder: .init() )
+        dataType: handleDataType(input: input, params: params, queryItems: queryItems)
       )
 
       return builder.send(scheduler: RunLoop.main)
@@ -83,7 +104,7 @@ public struct EventAPI {
 
   public func fetch(query: QueryItem, path: String) -> AnyPublisher<EventResponse, HTTPError> {
 
-    return tokenHandle(input: query, path: path, method: .get)
+    return tokenHandle(input: query, path: path, method: .get, params: query.parameters)
       .catch { (error: HTTPError) -> AnyPublisher<EventResponse, HTTPError> in
         return Fail(error: error).eraseToAnyPublisher()
       }

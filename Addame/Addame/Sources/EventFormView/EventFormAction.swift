@@ -26,7 +26,6 @@ public enum EventFormAction: Equatable {
   case isSearchSheet(isPresented: Bool)
   case locationSearch(LocationSearchAction)
   case eventsResponse(Result<Event, HTTPError>)
-  case successFullMsg
   case backToPVAfterCreatedEventSuccessfully
 
   case submitButtonTapped

@@ -31,7 +31,7 @@ public enum EventsAction: Equatable {
   case chatView(isNavigate: Bool)
   case chat(ChatAction)
 
-  case fetchMoreEventIfNeeded(item: EventResponse.Item?)
+  case fetchMoreEventsIfNeeded(item: EventResponse.Item?)
   case addressResponse(Result<String, Never>)
 
   case currentLocationButtonTapped
@@ -81,6 +81,8 @@ extension EventsAction {
       return .eventDetailsView(isPresented: isPresented)
     case let .eventDetails(action):
       return .eventDetails(action)
+    case let .fetchMoreEventsIfNeeded(item: item):
+      return .fetchMoreEventsIfNeeded(item: item)
     }
   }
 }

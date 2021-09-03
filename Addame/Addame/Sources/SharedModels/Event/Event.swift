@@ -12,7 +12,7 @@ import MapKit
 public struct Event: Codable, Identifiable, Equatable {
   public init(
     id: String? = nil, name: String, details: String? = nil,
-    imageUrl: String? = nil, duration: Int,
+    imageUrl: String? = nil, duration: Int, distance: Double? = nil,
     categories: String, isActive: Bool, addressName: String,
     type: GeoType = .Point, sponsored: Bool? = false,
     overlay: Bool? = false, coordinates: [Double],
@@ -24,6 +24,7 @@ public struct Event: Codable, Identifiable, Equatable {
     self.details = details
     self.imageUrl = imageUrl
     self.duration = duration
+    self.distance = distance
     self.categories = categories
     self.isActive = isActive
     self.addressName = addressName
@@ -49,6 +50,7 @@ public struct Event: Codable, Identifiable, Equatable {
   public var details: String?
   public var imageUrl: String?
   public var duration: Int
+  public var distance: Double?
   public var categories: String
   public var isActive: Bool
 
@@ -98,8 +100,8 @@ public struct EventResponse: Codable, Equatable {
 
     public init(
       id: String, name: String, categories: String,
-      imageUrl: String? = nil, duration: Int, isActive: Bool,
-      conversationsId: String, addressName: String,
+      imageUrl: String? = nil, duration: Int, distance: Double? = nil,
+      isActive: Bool, conversationsId: String, addressName: String,
       details: String? = nil, type: String, sponsored: Bool,
       overlay: Bool, coordinates: [Double], regionRadius: CLLocationDistance? = 1000,
       createdAt: Date, updatedAt: Date
@@ -109,6 +111,7 @@ public struct EventResponse: Codable, Equatable {
       self.categories = categories
       self.imageUrl = imageUrl
       self.duration = duration
+      self.distance = distance
       self.isActive = isActive
       self.conversationsId = conversationsId
       self.addressName = addressName
@@ -135,6 +138,7 @@ public struct EventResponse: Codable, Equatable {
     public var _id, name, categories: String
     public var imageUrl: String?
     public var duration: Int
+    public var distance: Double?
     public var isActive: Bool
     public var conversationsId: String
     public var addressName: String

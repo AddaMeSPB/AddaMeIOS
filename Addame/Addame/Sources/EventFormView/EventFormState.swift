@@ -42,7 +42,8 @@ public struct EventFormState: Equatable {
     alert: AlertState<EventFormAction>? = nil,
     locationSearchState: LocationSearchState? = nil,
     isPostRequestOnFly: Bool = false,
-    isEventCreatedSuccessfully: Bool = false
+    isEventCreatedSuccessfully: Bool = false,
+    currentUser: User = .draff
   ) {
     self.title = title
     self.textFieldHeight = textFieldHeight
@@ -69,6 +70,7 @@ public struct EventFormState: Equatable {
     self.alert = alert
     self.isPostRequestOnFly = isPostRequestOnFly
     self.isEventCreatedSuccessfully = isEventCreatedSuccessfully
+    self.currentUser = currentUser
   }
 
   public var title: String = String.empty
@@ -105,6 +107,7 @@ public struct EventFormState: Equatable {
 
   public var isPostRequestOnFly: Bool = false
   public var isEventCreatedSuccessfully: Bool = false
+  public var currentUser: User = .draff
 
 }
 
@@ -134,7 +137,8 @@ extension EventFormState {
       alert: self.alert,
       locationSearchState: self.locationSearchState,
       isPostRequestOnFly: self.isPostRequestOnFly,
-      isEventCreatedSuccessfully: self.isEventCreatedSuccessfully
+      isEventCreatedSuccessfully: self.isEventCreatedSuccessfully,
+      currentUser: self.currentUser
     )
   }
 }

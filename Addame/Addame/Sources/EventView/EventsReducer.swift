@@ -11,6 +11,7 @@ import Combine
 
 import ComposableArchitecture
 import ComposableCoreLocation
+import ComposableArchitectureHelpers
 
 import SharedModels
 import HttpRequest
@@ -41,24 +42,42 @@ struct LocationManagerId: Hashable {}
 
 public let eventReducer = Reducer<EventsState, EventsAction, EventsEnvironment> { state, action, environment in
 
-  func fetchMoreEventIfNeeded() -> Effect<EventsAction, Never> {
+  var fetchEvents: Effect<EventsAction, Never> {
     guard state.isConnected, let location = state.location else { return .none }
     state.location = location
-    //      self.fetchMoreEventIfNeeded()
-    //      self.fetchAddress(location)
-
-    let distance = UserDefaults.standard.double(forKey: "distance") == 0.0
-      ? 250.0
-      : UserDefaults.standard.double(forKey: "distance")
-
-    let lat = "\(location.coordinate.latitude)"
-    let long = "\(location.coordinate.longitude)"
 
     guard !state.isLoadingPage && state.canLoadMorePages else { return .none }
 
-    state.isLoadingPage = true
+    // state.isLoadingPage = true
 
-    let query = QueryItem(page: "\(state.currentPage)", per: "10", lat: lat, long: long, distance: "\(Int(distance))" )
+    let getDistanceType = environment.userDefaults.integerForKey("typee")
+    let maxDistance = getDistanceType == 0 ? (250 * 1000) : (250 / 1.609) * 1609
+    let distanceType: String = getDistanceType == 0 ? "kilometers" : "miles"
+    let getDistance = environment.userDefaults.doubleForKey(distanceType)
+    var distanceInMeters: Double = 0.0
+
+    if getDistance != 0.0 {
+      if getDistanceType == 0 {
+        distanceInMeters = getDistance * 1000
+      } else {
+        distanceInMeters = getDistance * 1609
+      }
+    } else {
+      if distanceType == "kilometers" {
+        distanceInMeters = maxDistance
+      } else {
+        distanceInMeters = maxDistance
+      }
+    }
+
+    let lat = "\(location.coordinate.latitude)"
+    let long = "\(location.coordinate.longitude)"
+    print(#line, distanceInMeters)
+    let query = QueryItem(
+      page: "\(state.currentPage)",
+      per: "10", lat: lat, long: long,
+      distance: "\(Int(distanceInMeters))"
+    )
 
     return environment.eventClient.events(query, "")
       .retry(3)
@@ -125,15 +144,15 @@ public let eventReducer = Reducer<EventsState, EventsAction, EventsEnvironment> 
     state.alert = nil
     return .none
 
-  case .fetchMoreEventIfNeeded(let item):
+  case let .fetchMoreEventsIfNeeded(item):
 
     guard let item = item, state.events.count > 5 else {
-      return fetchMoreEventIfNeeded()
+      return fetchEvents
     }
 
     let threshouldIndex = state.events.index(state.events.endIndex, offsetBy: -5)
     if state.events.firstIndex(where: { $0.id == item.id }) == threshouldIndex {
-      return fetchMoreEventIfNeeded()
+      return fetchEvents
     }
 
     return .none
@@ -148,9 +167,13 @@ public let eventReducer = Reducer<EventsState, EventsAction, EventsEnvironment> 
     state.isLoadingPage = false
     state.currentPage += 1
 
-    if !state.events.elementsEqual(eventArray.items) {
-      state.events = .init(uniqueElements: eventArray.items)
-    }
+    let events = (state.events + eventArray.items)
+//      .uniqElemets()
+//      .sorted()
+
+    state.events
+    = .init(uniqueElements: events)
+
     return .none
 
   case .eventsResponse(.failure(let error)):
@@ -182,7 +205,7 @@ public let eventReducer = Reducer<EventsState, EventsAction, EventsEnvironment> 
     state.location = location
 
     return .merge(
-      fetchMoreEventIfNeeded(),
+      fetchEvents,
       getLocation(location)
     )
 
@@ -325,7 +348,7 @@ public let eventReducer = Reducer<EventsState, EventsAction, EventsEnvironment> 
     .pullback(state: \.self, action: /EventsAction.locationManager, environment: { $0 })
 )
 // .signpost()
-// .debug()
+.debug()
 
 .presents(
   eventFormReducer,

@@ -8,13 +8,14 @@
 import SwiftUI
 import SharedModels
 import HttpRequest
+import SettingsView
 
 public enum ProfileAction: Equatable {
   case onAppear
   case alertDismissed
   case isUploadingImage
   case showingImagePicker
-  case moveToSettingsView
+  case settingsView(isNavigation: Bool)
   case moveToAuthView
 
   case fetchMyData
@@ -26,6 +27,7 @@ public enum ProfileAction: Equatable {
   case attacmentResponse(Result<Attachment, HTTPError>)
   case myEventsResponse(Result<EventResponse, HTTPError>)
   case event(index: EventResponse.Item.ID, action: MyEventAction)
+  case settings(SettingsAction)
 
   case resetAuthData
 }
@@ -47,8 +49,8 @@ public extension ProfileAction {
       return .showingImagePicker
     case .moveToSettingsView:
       return .moveToAuthView
-    case .moveToAuthView:
-      return .moveToAuthView
+    case let .settingsView(isNavigation: present):
+      return .settingsView(isNavigation: present)
     case .fetchMyData:
       return .fetchMyData
     case .uploadAvatar(let image):
@@ -65,6 +67,8 @@ public extension ProfileAction {
       return .event(index: index, action: action)
     case .resetAuthData:
       return .resetAuthData
+    case let .settings(action):
+      return .settings(action)
     }
   }
 }

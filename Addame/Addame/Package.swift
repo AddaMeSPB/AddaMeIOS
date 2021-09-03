@@ -71,7 +71,7 @@ let package = Package(
   dependencies: [
     .package(name: "AWSSDKSwift", url: "https://github.com/swift-aws/aws-sdk-swift.git", from: "4.9.0"),
     .package(url: "https://github.com/marmelroy/PhoneNumberKit", .upToNextMajor(from: "3.3.3")),
-    .package(url: "https://github.com/pointfreeco/swift-composable-architecture.git", from: "0.21.0"),
+    .package(url: "https://github.com/pointfreeco/swift-composable-architecture.git", from: "0.25.1"),
     .package(url: "https://github.com/pointfreeco/composable-core-location", from: "0.1.0"),
     .package(url: "https://github.com/pointfreeco/xctest-dynamic-overlay", from: "0.1.0"),
     .package(url: "https://github.com/AddaMeSPB/CombineContacts.git", from: "1.0.0"),
@@ -296,7 +296,8 @@ let package = Package(
         "SwiftUIExtension", "FoundationExtension", "AsyncImageLoder",
         "HttpRequest", "KeychainService", "ChatClient", "ChatView",
         "PathMonitorClientLive", "EventClientLive", "ComposableArchitectureHelpers",
-        "EventDetailsView", "ConversationClient", "ConversationClientLive"
+        "EventDetailsView", "ConversationClient", "ConversationClientLive",
+        "UserDefaultsClient"
       ]
     ),
 
@@ -308,9 +309,13 @@ let package = Package(
         "SharedModels", "EventClient", "InfoPlist",
         "PathMonitorClient", "ConversationClient", "ComposableArchitectureHelpers",
         "SwiftUIExtension", "FoundationExtension", "AsyncImageLoder",
-        "HttpRequest", "KeychainService", "ChatClient", "EventClient", "EventClientLive",
-        "PathMonitorClientLive", "ComposableArchitectureHelpers", "MapView", "HttpRequest"
+        "HttpRequest", "KeychainService", "ChatClient", "EventClientLive",
+        "PathMonitorClientLive", "MapView"
       ]
+    ),
+    .testTarget(
+        name: "EventFormViewTests",
+        dependencies: ["EventFormView"]
     ),
 
     .target(
@@ -336,17 +341,17 @@ let package = Package(
           "SwiftUIExtension", "FoundationExtension", "AsyncImageLoder",
           "HttpRequest", "KeychainService", "AuthenticationView",
           "AttachmentClientLive", "AuthClientLive", "UserClientLive",
-          "EventClientLive"
+          "EventClientLive", "SettingsView", "ComposableArchitectureHelpers"
         ]
     ),
 
     .target(
       name: "SettingsView",
       dependencies: [
-        "UIApplicationClient", "UserDefaultsClient",
         .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
         .product(name: "XCTestDynamicOverlay", package: "xctest-dynamic-overlay"),
-        "UserNotificationClient"
+        "UserNotificationClient", "UIApplicationClient", "UserDefaultsClient",
+        "KeychainService"
       ]
     ),
 
@@ -354,10 +359,13 @@ let package = Package(
       name: "MapView",
       dependencies: [
         .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
-        .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
         .product(name: "XCTestDynamicOverlay", package: "xctest-dynamic-overlay"),
         "SwiftUIExtension", "SharedModels", "ComposableArchitectureHelpers"
       ]
+    ),
+    .testTarget(
+        name: "MapViewTests",
+        dependencies: ["MapView"]
     ),
 
     // Helpers

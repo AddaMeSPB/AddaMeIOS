@@ -74,11 +74,6 @@ public let chatReducer = Reducer<ChatState, ChatAction, ChatEnvironment> { state
     let combineMessageResults = (response.items + state.messages).uniqElemets().sorted()
     state.messages = .init(uniqueElements: combineMessageResults)
 
-// wrong not working here
-//    if !state.messages.elementsEqual(response.items) {
-//      state.messages = .init(uniqueElements: response.items)
-//    }
-
     return .none
 
   case .messages(.failure(let error)):
