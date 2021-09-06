@@ -1,6 +1,6 @@
 //
 //  Mocks.swift
-//  
+//
 //
 //  Created by Saroar Khandoker on 05.05.2021.
 //
@@ -50,19 +50,19 @@ extension UserDefaultsClient {
     )
 
     public mutating func override(bool: Bool, forKey key: String) {
-      self.boolForKey = { [self] in $0 == key ? bool : self.boolForKey(key) }
+      boolForKey = { [self] in $0 == key ? bool : self.boolForKey(key) }
     }
 
     public mutating func override(data: Data, forKey key: String) {
-      self.dataForKey = { [self] in $0 == key ? data : self.dataForKey(key) }
+      dataForKey = { [self] in $0 == key ? data : self.dataForKey(key) }
     }
 
     public mutating func override(double: Double, forKey key: String) {
-      self.doubleForKey = { [self] in $0 == key ? double : self.doubleForKey(key) }
+      doubleForKey = { [self] in $0 == key ? double : self.doubleForKey(key) }
     }
 
     public mutating func override(integer: Int, forKey key: String) {
-      self.integerForKey = { [self] in $0 == key ? integer : self.integerForKey(key) }
+      integerForKey = { [self] in $0 == key ? integer : self.integerForKey(key) }
     }
   }
 #endif

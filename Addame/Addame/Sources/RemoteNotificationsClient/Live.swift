@@ -1,6 +1,6 @@
 //
 //  Live.swift
-//  
+//
 //
 //  Created by Saroar Khandoker on 05.05.2021.
 //
@@ -23,6 +23,7 @@
       }
     )
   }
+
 #elseif canImport(AppKit)
   import AppKit
   @available(iOSApplicationExtension, unavailable)

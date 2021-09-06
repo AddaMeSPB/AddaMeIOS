@@ -1,16 +1,16 @@
 //
 //  UserSettings.swift
-//  
+//
 //
 //  Created by Saroar Khandoker on 05.05.2021.
 //
 
-import UIKit
 import ComposableArchitecture
-import UserNotificationClient
 import UIApplicationClient
+import UIKit
 // import RemoteNotificationsClient
 import UserDefaultsClient
+import UserNotificationClient
 
 public struct UserSettings: Codable, Equatable {
   public var colorScheme: ColorScheme
@@ -38,9 +38,8 @@ public struct UserSettings: Codable, Equatable {
 
   public init(from decoder: Decoder) throws {
     let container = try decoder.container(keyedBy: CodingKeys.self)
-    self.colorScheme = (try? container.decode(ColorScheme.self, forKey: .colorScheme)) ?? .system
+    colorScheme = (try? container.decode(ColorScheme.self, forKey: .colorScheme)) ?? .system
   }
-
 }
 
 public enum SettingsAction: Equatable {
@@ -54,27 +53,28 @@ public enum SettingsAction: Equatable {
   case distanceView(DistanceAction)
 }
 
-public extension SettingsAction {
-  static func view(_ localAction: SettingsView.ViewAction) -> Self {
+extension SettingsAction {
+  public static func view(_ localAction: SettingsView.ViewAction) -> Self {
     switch localAction {
     case .leaveUsAReviewButtonTapped:
-      return self.leaveUsAReviewButtonTapped
+      return leaveUsAReviewButtonTapped
     case .onAppear:
-      return self.onAppear
+      return onAppear
     case .onDismiss:
-      return self.onDismiss
+      return onDismiss
     case let .distanceView(action):
-      return self.distanceView(action)    }
+      return distanceView(action)
+    }
   }
 }
 
-public extension SettingsState {
-  var view: SettingsView.ViewState {
+extension SettingsState {
+  public var view: SettingsView.ViewState {
     SettingsView.ViewState(
-      alert: self.alert,
-      userNotificationSettings: self.userNotificationSettings,
-      userSettings: self.userSettings,
-      distance: self.distance
+      alert: alert,
+      userNotificationSettings: userNotificationSettings,
+      userSettings: userSettings,
+      distance: distance
     )
   }
 }
@@ -96,7 +96,6 @@ public struct SettingsState: Equatable {
   public var userNotificationSettings: UserNotificationClient.Notification.Settings?
   public var userSettings: UserSettings
   public var distance: DistanceState
-
 }
 
 extension SettingsState {

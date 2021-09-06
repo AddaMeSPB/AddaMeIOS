@@ -6,13 +6,13 @@
 //
 
 import ComposableArchitecture
-import MapKit
-import CoreLocation
 import Contacts
-import Intents
-import SharedModels
-import KeychainService
+import CoreLocation
 import HttpRequest
+import Intents
+import KeychainService
+import MapKit
+import SharedModels
 import XCTest
 
 @testable import EventFormView
@@ -22,14 +22,14 @@ class EventFormViewTests: XCTestCase {
 
   // swiftlint:disable function_body_length line_length
   func testCreatEvent() {
-
     let now = Date()
     let attachments = [
       Attachment(
         id: "5fb6736c1432f950f8ea2d33",
         type: .image,
         userId: "5fabb05d2470c17919b3c0e2",
-        imageUrlString: "https://adda.nyc3.digitaloceanspaces.com/uploads/images/5fabb05d2470c17919b3c0e2/1605796266916.jpeg",
+        imageUrlString:
+          "https://adda.nyc3.digitaloceanspaces.com/uploads/images/5fabb05d2470c17919b3c0e2/1605796266916.jpeg",
         createdAt: now,
         updatedAt: now
       ),
@@ -37,7 +37,8 @@ class EventFormViewTests: XCTestCase {
         id: "5fb6736c1432f950f8ea2d36",
         type: .image,
         userId: "5fabb05d2470c17919b3c0e2",
-        imageUrlString: "https://adda.nyc3.digitaloceanspaces.com/uploads/images/5fabb05d2470c17919b3c0e2/5fabb05d2470c17919b3c0e2_1605792619988.jpeg",
+        imageUrlString:
+          "https://adda.nyc3.digitaloceanspaces.com/uploads/images/5fabb05d2470c17919b3c0e2/5fabb05d2470c17919b3c0e2_1605792619988.jpeg",
         createdAt: now,
         updatedAt: now
       ),
@@ -45,10 +46,11 @@ class EventFormViewTests: XCTestCase {
         id: "5fb6bc48d63734254b0eb777",
         type: .image,
         userId: "5fabb05d2470c17919b3c0e2",
-        imageUrlString: "https://adda.nyc3.digitaloceanspaces.com/uploads/images/5fabb05d2470c17919b3c0e2/1605811270871.jpeg",
+        imageUrlString:
+          "https://adda.nyc3.digitaloceanspaces.com/uploads/images/5fabb05d2470c17919b3c0e2/1605811270871.jpeg",
         createdAt: now,
         updatedAt: now
-      )
+      ),
     ]
 
     let cuser = User(
@@ -86,7 +88,7 @@ class EventFormViewTests: XCTestCase {
 
     let environment = EventFormEnvironment(
       eventClient: .happyPath,
-      mainQueue: self.scheduler.eraseToAnyScheduler()
+      mainQueue: scheduler.eraseToAnyScheduler()
     )
 
     let store = TestStore(
@@ -129,7 +131,8 @@ class EventFormViewTests: XCTestCase {
             id: "5fb1510012de9980bd0c2efc",
             name: "Testing data",
             details: "Waitting for details",
-            imageUrl: "https://avatars.mds.yandex.net/get-pdb/2776508/af73774d-7409-4e73-81c8-c8ab127c2f8b/s1200?webp=false",
+            imageUrl:
+              "https://avatars.mds.yandex.net/get-pdb/2776508/af73774d-7409-4e73-81c8-c8ab127c2f8b/s1200?webp=false",
             duration: 14400, categories: "General",
             isActive: true, addressName: "8к1литД улица Вавиловых , Saint Petersburg",
             type: .Point, sponsored: false, overlay: false,
@@ -141,5 +144,4 @@ class EventFormViewTests: XCTestCase {
     scheduler.advance(by: 4)
     store.receive(.backToPVAfterCreatedEventSuccessfully)
   }
-
 }

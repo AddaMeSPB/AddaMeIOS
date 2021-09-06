@@ -1,17 +1,16 @@
 //
 //  EventDetailsOverlayAction.swift
-//  
+//
 //
 //  Created by Saroar Khandoker on 12.07.2021.
 //
 
 import ComposableArchitecture
-
+import ConversationClient
+import HttpRequest
+import KeychainService
 import MapView
 import SharedModels
-import HttpRequest
-import ConversationClient
-import KeychainService
 
 public enum EventDetailsOverlayAction: Equatable {
   case onAppear

@@ -1,20 +1,19 @@
 //
 //  LocationSearchManager.swift
-//  
+//
 //
 //  Created by Saroar Khandoker on 31.07.2021.
 //
 
-import Foundation
-import CoreLocation
-import MapKit
-import SwiftUI
 import Combine
 import ComposableArchitecture
+import CoreLocation
+import Foundation
+import MapKit
+import SwiftUI
 import SwiftUIExtension
 
 public struct LocalSearchManager {
-
   public enum Action: Equatable, Hashable {
     case completerDidUpdateResults(completer: MKLocalSearchCompleter)
     case completer(MKLocalSearchCompleter, didFailWithError: Error)
@@ -28,15 +27,18 @@ public struct LocalSearchManager {
     }
   }
 
-  var create: (
-    AnyHashable, MKLocalSearchCompleter.ResultType
-  ) -> Effect<Action, Never> = { _, _ in _unimplemented("create") }
+  var create:
+    (
+      AnyHashable, MKLocalSearchCompleter.ResultType
+    ) -> Effect<Action, Never> = { _, _ in _unimplemented("create") }
 
   var destroy: (AnyHashable) -> Effect<Never, Never> = { _ in _unimplemented("destroy") }
 
   var query: (AnyHashable, String) -> Effect<Never, Never> = { _, _ in _unimplemented("query") }
 
-  public func create(id: AnyHashable, resultTypes: MKLocalSearchCompleter.ResultType) -> Effect<Action, Never> {
+  public func create(id: AnyHashable, resultTypes: MKLocalSearchCompleter.ResultType) -> Effect<
+    Action, Never
+  > {
     create(id, resultTypes)
   }
 
@@ -49,8 +51,8 @@ public struct LocalSearchManager {
   }
 }
 
-public extension LocalSearchManager {
-  static let live: LocalSearchManager = { () -> LocalSearchManager in
+extension LocalSearchManager {
+  public static let live: LocalSearchManager = { () -> LocalSearchManager in
 
     var manager = LocalSearchManager()
 
@@ -98,6 +100,7 @@ private struct Dependencies {
 private var dependencies: [AnyHashable: Dependencies] = [:]
 
 // MARK: - Delegate
+
 private class LocalSearchManagerDelegate: NSObject, MKLocalSearchCompleterDelegate {
   let subscriber: Effect<LocalSearchManager.Action, Never>.Subscriber
 
@@ -112,31 +115,31 @@ private class LocalSearchManagerDelegate: NSObject, MKLocalSearchCompleterDelega
   func completer(_ completer: MKLocalSearchCompleter, didFailWithError error: Error) {
     subscriber.send(.completer(completer, didFailWithError: LocalSearchManager.Error(error)))
   }
-
 }
 
 #if DEBUG
-import Foundation
+  import Foundation
 
-public extension LocalSearchManager {
-  static func unimplemented() -> Self {
-    Self()
+  extension LocalSearchManager {
+    public static func unimplemented() -> Self {
+      Self()
+    }
   }
-}
 
 #endif
 
 // MARK: - Unimplemented
+
 // swiftlint:disable identifier_name
 public func _unimplemented(
   _ function: StaticString, file: StaticString = #file, line: UInt = #line
 ) -> Never {
   fatalError(
-        """
-        `\(function)` was called but is not implemented. Be sure to provide an implementation for
-        this endpoint when creating the mock.
-        """,
-        file: file,
-        line: line
+    """
+    `\(function)` was called but is not implemented. Be sure to provide an implementation for
+    this endpoint when creating the mock.
+    """,
+    file: file,
+    line: line
   )
 }

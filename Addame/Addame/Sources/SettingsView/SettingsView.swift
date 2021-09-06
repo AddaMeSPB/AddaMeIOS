@@ -1,14 +1,14 @@
 //
 //  SwiftUIView.swift
-//  
+//
 //
 //  Created by Saroar Khandoker on 09.04.2021.
 //
 
-import SwiftUI
-import KeychainService
-import UserNotificationClient
 import ComposableArchitecture
+import KeychainService
+import SwiftUI
+import UserNotificationClient
 
 extension SettingsView {
   public struct ViewState: Equatable {
@@ -27,7 +27,6 @@ extension SettingsView {
 }
 
 public struct SettingsView: View {
-
   let store: Store<SettingsState, SettingsAction>
 
   public init(store: Store<SettingsState, SettingsAction>) {
@@ -35,7 +34,6 @@ public struct SettingsView: View {
   }
 
   public var body: some View {
-
     WithViewStore(
       self.store.scope(
         state: { $0.view },
@@ -43,24 +41,23 @@ public struct SettingsView: View {
       )
     ) { _ in
       VStack(alignment: .leading, spacing: 20) {
-
         Text("Settings")
           .font(.title)
           .bold()
           .padding()
 
-//        Toggle(isOn:
-//          viewStore.binding(
-//            get: \.distanceTypeToggleisOn,
-//            send: ViewAction.distanceTypeToggleChanged
-//          )
-//        ) {
-//          Text("Remote Notifications")
-//            .font(.system(.title2, design: .rounded))
-//            .bold()
-//            .foregroundColor(viewStore.distanceTypeToggleisOn == true ? .green : .gray)
-//        }
-//        .padding()
+        //        Toggle(isOn:
+        //          viewStore.binding(
+        //            get: \.distanceTypeToggleisOn,
+        //            send: ViewAction.distanceTypeToggleChanged
+        //          )
+        //        ) {
+        //          Text("Remote Notifications")
+        //            .font(.system(.title2, design: .rounded))
+        //            .bold()
+        //            .foregroundColor(viewStore.distanceTypeToggleisOn == true ? .green : .gray)
+        //        }
+        //        .padding()
 
         DistanceFilterView(
           store: self.store.scope(
@@ -73,15 +70,17 @@ public struct SettingsView: View {
 
         HStack {
           Spacer()
-          Button(action: {
-            // showingTermsSheet = true
-          }, label: {
-            Text("Terms")
-              .font(.title)
-              .bold()
-              .foregroundColor(.blue)
-              .padding()
-          })
+          Button(
+            action: {
+              // showingTermsSheet = true
+            },
+            label: {
+              Text("Terms")
+                .font(.title)
+                .bold()
+                .foregroundColor(.blue)
+                .padding()
+            })
           // .sheet(isPresented: $showingTermsSheet) {
           //  TermsAndPrivacyWebView(urlString: "" + "/terms")
           //  EnvironmentKeys.rootURL.absoluteString
@@ -93,15 +92,17 @@ public struct SettingsView: View {
             .padding([.leading, .trailing], 10)
             .foregroundColor(Color(UIColor.systemBackground))
 
-          Button(action: {
-            // showingPrivacySheet = true
-          }, label: {
-            Text("Privacy")
-              .font(.title)
-              .bold()
-              .foregroundColor(.blue)
-              .padding()
-          })
+          Button(
+            action: {
+              // showingPrivacySheet = true
+            },
+            label: {
+              Text("Privacy")
+                .font(.title)
+                .bold()
+                .foregroundColor(.blue)
+                .padding()
+            })
           // .sheet(isPresented: $showingPrivacySheet) {
           //  TermsAndPrivacyWebView(urlString: "" + "/privacy") //EnvironmentKeys.rootURL.absoluteString
           // }
@@ -114,7 +115,6 @@ public struct SettingsView: View {
         .padding()
 
         Spacer()
-
       }
     }
     .background(Color(UIColor.systemBackground).edgesIgnoringSafeArea(.all))
@@ -122,7 +122,6 @@ public struct SettingsView: View {
 }
 
 struct SettingsView_Previews: PreviewProvider {
-
   static let env = SettingsEnvironment(
     applicationClient: .noop,
     backgroundQueue: .immediate,

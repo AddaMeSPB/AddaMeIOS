@@ -1,15 +1,15 @@
 //
 //  ContactsAction.swift
-//  
+//
 //
 //  Created by Saroar Khandoker on 12.05.2021.
 //
 
-import Contacts
-import ComposableArchitecture
-import SharedModels
-import HttpRequest
 import ChatView
+import ComposableArchitecture
+import Contacts
+import HttpRequest
+import SharedModels
 
 public struct ContactsState: Equatable {
   public init(
@@ -55,15 +55,43 @@ public struct ContactsState: Equatable {
 extension ContactsState {
   public static let contactsPlaceholder = Self(
     contacts: [
-      .init(id: UUID().uuidString, isMoving: false, contact: .init(identifier: "5fd75df879983965ad5cd621", phoneNumber: "+79211111111", fullName: "Saroar")),
-      .init(id: UUID().uuidString, isMoving: false, contact: .init(identifier: "5fd75df879983965ad5cd622", phoneNumber: "+79211111112", fullName: "Anastasia")),
-      .init(id: UUID().uuidString, isMoving: false, contact: .init(identifier: "5fd75df879983965ad5cd623", phoneNumber: "+79211111113", fullName: "Rafael")),
-      .init(id: UUID().uuidString, isMoving: false, contact: .init(identifier: "5fd75df879983965ad5cd624", phoneNumber: "+79211111114", fullName: "Masum")),
-      .init(id: UUID().uuidString, isMoving: false, contact: .init(identifier: "5fd75df879983965ad5cd625", phoneNumber: "+79211111115", fullName: "Olga")),
-      .init(id: UUID().uuidString, isMoving: false, contact: .init(identifier: "5fd75df879983965ad5cd626", phoneNumber: "+79211111116", fullName: "Alla")),
-      .init(id: UUID().uuidString, isMoving: false, contact: .init(identifier: "5fd75df879983965ad5cd627", phoneNumber: "+79211111117", fullName: "Denis")),
-      .init(id: UUID().uuidString, isMoving: false, contact: .init(identifier: "5fd75df879983965ad5cd628", phoneNumber: "+79211111118", fullName: "Nikita")),
-      .init(id: UUID().uuidString, isMoving: false, contact: .init(identifier: "5fd75df879983965ad5cd629", phoneNumber: "+79211111119", fullName: "Krill"))
+      .init(
+        id: UUID().uuidString, isMoving: false,
+        contact: .init(
+          identifier: "5fd75df879983965ad5cd621", phoneNumber: "+79211111111", fullName: "Saroar")),
+      .init(
+        id: UUID().uuidString, isMoving: false,
+        contact: .init(
+          identifier: "5fd75df879983965ad5cd622", phoneNumber: "+79211111112", fullName: "Anastasia"
+        )),
+      .init(
+        id: UUID().uuidString, isMoving: false,
+        contact: .init(
+          identifier: "5fd75df879983965ad5cd623", phoneNumber: "+79211111113", fullName: "Rafael")),
+      .init(
+        id: UUID().uuidString, isMoving: false,
+        contact: .init(
+          identifier: "5fd75df879983965ad5cd624", phoneNumber: "+79211111114", fullName: "Masum")),
+      .init(
+        id: UUID().uuidString, isMoving: false,
+        contact: .init(
+          identifier: "5fd75df879983965ad5cd625", phoneNumber: "+79211111115", fullName: "Olga")),
+      .init(
+        id: UUID().uuidString, isMoving: false,
+        contact: .init(
+          identifier: "5fd75df879983965ad5cd626", phoneNumber: "+79211111116", fullName: "Alla")),
+      .init(
+        id: UUID().uuidString, isMoving: false,
+        contact: .init(
+          identifier: "5fd75df879983965ad5cd627", phoneNumber: "+79211111117", fullName: "Denis")),
+      .init(
+        id: UUID().uuidString, isMoving: false,
+        contact: .init(
+          identifier: "5fd75df879983965ad5cd628", phoneNumber: "+79211111118", fullName: "Nikita")),
+      .init(
+        id: UUID().uuidString, isMoving: false,
+        contact: .init(
+          identifier: "5fd75df879983965ad5cd629", phoneNumber: "+79211111119", fullName: "Krill")),
     ]
   )
 }

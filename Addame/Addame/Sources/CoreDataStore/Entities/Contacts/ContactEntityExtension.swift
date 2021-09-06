@@ -5,10 +5,10 @@
 //  Created by Saroar Khandoker on 01.12.2020.
 //
 
-import Foundation
 import CoreData
-import SharedModels
+import Foundation
 import FoundationExtension
+import SharedModels
 
 extension ContactEntity {
   static func allContactsFetchRequest() -> NSFetchRequest<ContactEntity> {
@@ -32,8 +32,9 @@ extension ContactEntity {
 extension ContactEntity: ManagedModel {
   public static var defaultPredicate: NSPredicate { return NSPredicate(value: true) }
 
-  public static func findOrCreate(withData data: APIData, in context: NSManagedObjectContext) -> ContactEntity {
-
+  public static func findOrCreate(withData data: APIData, in context: NSManagedObjectContext)
+    -> ContactEntity
+  {
     guard let content = data as? Contact else {
       fatalError("Incorrent API response")
     }
@@ -63,16 +64,15 @@ extension ContactEntity: ManagedModel {
   public static var defaultSortDescriptors: [NSSortDescriptor] {
     return [NSSortDescriptor(key: #keyPath(isRegister), ascending: true)]
   }
-
 }
 
 extension ContactEntity {
   public func contact() -> Contact {
     return Contact(
-      id: self.id, identifier: self.identifier,
-      userId: self.userId, phoneNumber: self.phoneNumber,
-      fullName: self.fullName, avatar: self.avatar,
-      isRegister: self.isRegister
+      id: id, identifier: identifier,
+      userId: userId, phoneNumber: phoneNumber,
+      fullName: fullName, avatar: avatar,
+      isRegister: isRegister
     )
   }
 }

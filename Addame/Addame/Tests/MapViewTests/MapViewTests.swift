@@ -12,5 +12,4 @@ import XCTest
 
 class MapViewTests: XCTestCase {
   let scheduler = DispatchQueue.test
-
 }

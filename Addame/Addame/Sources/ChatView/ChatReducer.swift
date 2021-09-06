@@ -1,20 +1,20 @@
 //
 //  ChatReducer.swift
-//  
+//
 //
 //  Created by Saroar Khandoker on 06.04.2021.
 //
 
 import ComposableArchitecture
-import SharedModels
-import KeychainService
-import InfoPlist
 import FoundationExtension
+import InfoPlist
+import KeychainService
+import SharedModels
 
-public let chatReducer = Reducer<ChatState, ChatAction, ChatEnvironment> { state, action, environment in
+public let chatReducer = Reducer<ChatState, ChatAction, ChatEnvironment> {
+  state, action, environment in
 
   var fetchMoreMessages: Effect<ChatAction, Never> {
-
     guard let conversationsID = state.conversation?.id else {
       print(#line, "Conversation id missing")
       return .none
@@ -32,7 +32,6 @@ public let chatReducer = Reducer<ChatState, ChatAction, ChatEnvironment> { state
   }
 
   var receiveSocketMessageEffect: Effect<ChatAction, Never> {
-
     return environment.websocketClient.receive(environment.currentUser.id)
       .subscribe(on: environment.backgroundQueue)
       .receive(on: environment.mainQueue)
@@ -42,7 +41,6 @@ public let chatReducer = Reducer<ChatState, ChatAction, ChatEnvironment> { state
   }
 
   var sendPingEffect: Effect<ChatAction, Never> {
-
     return environment.websocketClient.sendPing(environment.currentUser.id)
       .subscribe(on: environment.backgroundQueue)
       .receive(on: environment.mainQueue)
@@ -53,7 +51,6 @@ public let chatReducer = Reducer<ChatState, ChatAction, ChatEnvironment> { state
   }
 
   switch action {
-
   case .onAppear:
 
     return fetchMoreMessages
@@ -62,11 +59,11 @@ public let chatReducer = Reducer<ChatState, ChatAction, ChatEnvironment> { state
     state.alert = nil
     return .none
 
-  case .conversation(let converstion):
+  case let .conversation(converstion):
     state.conversation = converstion
     return fetchMoreMessages
 
-  case .messages(.success(let response)):
+  case let .messages(.success(response)):
     state.canLoadMorePages = state.messages.count < response.metadata.total
     state.isLoadingPage = false
     state.currentPage += 1
@@ -76,8 +73,8 @@ public let chatReducer = Reducer<ChatState, ChatAction, ChatEnvironment> { state
 
     return .none
 
-  case .messages(.failure(let error)):
-    state.alert = .init(title: TextState("\(error.description)") )
+  case let .messages(.failure(error)):
+    state.alert = .init(title: TextState("\(error.description)"))
     return .none
 
   case let .fetchMoreMessageIfNeeded(currentItem: currentItem):
@@ -130,7 +127,7 @@ public let chatReducer = Reducer<ChatState, ChatAction, ChatEnvironment> { state
     // Ping the socket again in 10 seconds
     return sendPingEffect
 
-  case .receivedSocketMessage(_):
+  case .receivedSocketMessage:
     return .none
 
   case let .messageToSendChanged(message):
@@ -161,10 +158,11 @@ public let chatReducer = Reducer<ChatState, ChatAction, ChatEnvironment> { state
 
     state.messages.insert(localMessage, at: 0)
 
-    return environment.websocketClient.send(environment.currentUser.id, .string(sendServerMsgJsonString))
+    return environment.websocketClient.send(
+      environment.currentUser.id, .string(sendServerMsgJsonString)
+    )
     .receive(on: environment.mainQueue)
     .eraseToEffect()
     .map(ChatAction.sendResponse)
-
   }
 }

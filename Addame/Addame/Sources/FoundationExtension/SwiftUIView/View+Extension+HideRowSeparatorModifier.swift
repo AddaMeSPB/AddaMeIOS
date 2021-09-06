@@ -8,15 +8,15 @@
 import SwiftUI
 
 // public struct HideRowSeparatorModifier: ViewModifier {
-//  
+//
 //  public static let defaultListRowHeight: CGFloat = 44
 //  public var insets: EdgeInsets
 //  public var background: Color
-//  
+//
 //  public init(insets: EdgeInsets, background: Color) {
 //    self.insets = insets
 //    var alpha: CGFloat = 0
-//        
+//
 //    if #available(iOS 14.0, *) {
 //      Color(background).getWhite(nil, alpha: &alpha)
 //    } else {
@@ -25,7 +25,7 @@ import SwiftUI
 //    assert(alpha == 1, "Setting background to a non-opaque color will result in separators remaining visible.")
 //    self.background = background
 //  }
-//  
+//
 //  public func body(content: Content) -> some View {
 //    content
 //      .padding(insets)

@@ -1,10 +1,9 @@
-import Foundation
 import Combine
+import Foundation
 import HttpRequest
 import SharedModels
 
 public struct UserClient {
-
   public typealias UserMeHandler = (String, String) -> AnyPublisher<User, HTTPError>
   public typealias UserUpdateHandler = (User, String) -> AnyPublisher<User, HTTPError>
 
@@ -13,10 +12,9 @@ public struct UserClient {
 
   public init(
     userMeHandler: @escaping UserMeHandler,
-    update:  @escaping UserUpdateHandler
+    update: @escaping UserUpdateHandler
   ) {
     self.userMeHandler = userMeHandler
     self.update = update
   }
-
 }

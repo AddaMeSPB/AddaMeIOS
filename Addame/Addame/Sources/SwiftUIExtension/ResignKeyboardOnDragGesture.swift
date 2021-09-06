@@ -1,16 +1,16 @@
 //
 // ResignKeyboardOnDragGesture.swift
-//  
+//
 //
 //  Created by Saroar Khandoker on 28.01.2021.
 //
 
-import SwiftUI
 import Foundation
+import SwiftUI
 
-public extension UIApplication {
-  func endEditing(_ force: Bool) {
-    self.windows
+extension UIApplication {
+  public func endEditing(_ force: Bool) {
+    windows
       .first(where: { $0.isKeyWindow == true })?
       .endEditing(force)
   }
@@ -18,7 +18,7 @@ public extension UIApplication {
 
 @available(iOSApplicationExtension, unavailable)
 public struct ResignKeyboardOnDragGesture: ViewModifier {
-  public var gesture = DragGesture().onChanged {_ in
+  public var gesture = DragGesture().onChanged { _ in
     UIApplication.shared.endEditing(true)
   }
 
@@ -28,8 +28,8 @@ public struct ResignKeyboardOnDragGesture: ViewModifier {
 }
 
 @available(iOSApplicationExtension, unavailable)
-public extension View {
-  func resignKeyboardOnDragGesture() -> some View {
+extension View {
+  public func resignKeyboardOnDragGesture() -> some View {
     return modifier(ResignKeyboardOnDragGesture())
   }
 }

@@ -1,38 +1,30 @@
 //
 //  TabsReducer.swift
-//  
+//
 //
 //  Created by Saroar Khandoker on 06.04.2021.
 //
 
-import ComposableArchitecture
-import ComposableCoreLocation
-
-import EventView
-import ConversationsView
-import ProfileView
-
-import UserClient
-import UserClientLive
-
-import AuthClient
-import AuthClientLive
-
-import EventClient
-import EventClientLive
-
 import AttachmentClient
 import AttachmentClientLive
-
-import PathMonitorClient
-import PathMonitorClientLive
-
+import AuthClient
+import AuthClientLive
+import ComposableArchitecture
+import ComposableCoreLocation
 import ConversationClient
 import ConversationClientLive
-
+import ConversationsView
+import EventClient
+import EventClientLive
+import EventView
 import InfoPlist
-import SharedModels
 import KeychainService
+import PathMonitorClient
+import PathMonitorClientLive
+import ProfileView
+import SharedModels
+import UserClient
+import UserClientLive
 
 public let tabsReducer = Reducer<TabsState, TabsAction, TabsEnvironment>.combine(
   eventReducer.pullback(
@@ -95,7 +87,6 @@ public let tabsReducer = Reducer<TabsState, TabsAction, TabsEnvironment>.combine
     }
 
     switch action {
-
     case .onAppear:
       return getAcceccToken
 
@@ -113,9 +104,12 @@ public let tabsReducer = Reducer<TabsState, TabsAction, TabsEnvironment>.combine
 
       return .none
 
-    case .getAccessToketFromKeyChain(.success(let accessToken)):
+    case let .getAccessToketFromKeyChain(.success(accessToken)):
 
-      let onconnect = ChatOutGoingEvent.connect(environment.currentUser).jsonString
+      guard let onconnect = ChatOutGoingEvent.connect(environment.currentUser).jsonString else {
+        // alert :)
+        return .none
+      }
 
       var baseURL: URL { EnvironmentKeys.webSocketURL }
 
@@ -127,24 +121,24 @@ public let tabsReducer = Reducer<TabsState, TabsAction, TabsEnvironment>.combine
           .eraseToEffect()
           .cancellable(id: environment.currentUser.id),
 
-        environment.webSocketClient.send(environment.currentUser.id, .string(onconnect!))
+        environment.webSocketClient.send(environment.currentUser.id, .string(onconnect))
           .subscribe(on: environment.backgroundQueue)
-         .receive(on: environment.mainQueue)
-         .eraseToEffect()
-         .map(TabsAction.sendResponse)
+          .receive(on: environment.mainQueue)
+          .eraseToEffect()
+          .map(TabsAction.sendResponse)
       )
 
-    case .getAccessToketFromKeyChain(.failure(let error)):
+    case let .getAccessToketFromKeyChain(.failure(error)):
       return .none
 
-    case .sendResponse(let error):
+    case let .sendResponse(error):
       print(#line, error as Any)
       return .none
 
     case .webSocket(.didOpenWithProtocol):
       return receiveSocketMessageEffect
 
-    case .receivedSocketMessage(.success(.data(let data))):
+    case let .receivedSocketMessage(.success(.data(data))):
       return receiveSocketMessageEffect
     case .webSocket(.didBecomeInvalidWithError(_)):
       return .none
@@ -163,11 +157,11 @@ public let tabsReducer = Reducer<TabsState, TabsAction, TabsEnvironment>.combine
       let chatOutGoingEvent = ChatOutGoingEvent.decode(data: data)
 
       switch chatOutGoingEvent {
-      case .connect(_):
+      case .connect:
         return receiveSocketMessageEffect
-      case .disconnect(_):
+      case .disconnect:
         return receiveSocketMessageEffect
-      case .conversation(let message):
+      case let .conversation(message):
 
         state.conversations.conversations[id: message.conversationId]?
           .lastMessage = message
@@ -176,13 +170,13 @@ public let tabsReducer = Reducer<TabsState, TabsAction, TabsEnvironment>.combine
 
         return receiveSocketMessageEffect
 
-      case .message(let message):
+      case let .message(message):
         guard
           let chatState = state.conversations.chatState,
           let conversation = chatState.conversation
         else {
           return receiveSocketMessageEffect
-        } // wrong
+        }  // wrong
 
         if conversation.id == message.conversationId {
           state.conversations.chatState?.messages.insert(message, at: 0)
@@ -190,9 +184,9 @@ public let tabsReducer = Reducer<TabsState, TabsAction, TabsEnvironment>.combine
 
         return receiveSocketMessageEffect
 
-      case .notice(let msg):
+      case let .notice(msg):
         return receiveSocketMessageEffect
-      case .error(let error):
+      case let .error(error):
         print(#line, error)
         return receiveSocketMessageEffect
       case .none:

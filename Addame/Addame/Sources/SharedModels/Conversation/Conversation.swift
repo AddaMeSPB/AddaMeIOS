@@ -1,16 +1,15 @@
 //
 //  Conversation.swift
-//  
+//
 //
 //  Created by Saroar Khandoker on 22.02.2021.
 //
 
 import Foundation
-import KeychainService
 import FoundationExtension
+import KeychainService
 
 public struct AddUser: Codable {
-
   public let conversationsId: String
   public let usersId: String
 
@@ -18,7 +17,6 @@ public struct AddUser: Codable {
     self.conversationsId = conversationsId
     self.usersId = usersId
   }
-
 }
 
 public struct CreateConversation: Codable, Equatable {
@@ -38,7 +36,6 @@ public enum ConversationType: String, Codable, Equatable {
 }
 
 public struct Conversation: Codable, Hashable, Identifiable {
-
   public let id, title: String
   public var type: ConversationType
   public let members: [User]?
@@ -71,11 +68,9 @@ public struct Conversation: Codable, Hashable, Identifiable {
   public static func == (lhs: Conversation, rhs: Conversation) -> Bool {
     lhs.id == rhs.id
   }
-
 }
 
 public struct ConversationResponse: Codable, Equatable {
-
   public let items: [Item]
   public let metadata: Metadata
 
@@ -85,12 +80,12 @@ public struct ConversationResponse: Codable, Equatable {
   }
 
   public struct Item: Codable, Hashable, Identifiable, Comparable, Equatable {
-     init(
+    init(
       id: String, title: String, type: ConversationType,
       members: [User], admins: [User],
       lastMessage: ChatMessageResponse.Item?,
       createdAt: Date, updatedAt: Date
-     ) {
+    ) {
       self.id = id
       self.title = title
       self.type = type
@@ -111,15 +106,15 @@ public struct ConversationResponse: Codable, Equatable {
     }
 
     public init(_ conversation: Conversation) {
-      self.id = conversation.id
-      self.title = conversation.title
-      self.type = conversation.type
-      self.members = conversation.members
-      self.admins = conversation.admins
+      id = conversation.id
+      title = conversation.title
+      type = conversation.type
+      members = conversation.members
+      admins = conversation.admins
 
-      self.lastMessage = conversation.lastMessage
-      self.createdAt = conversation.createdAt
-      self.updatedAt = conversation.updatedAt
+      lastMessage = conversation.lastMessage
+      createdAt = conversation.createdAt
+      updatedAt = conversation.updatedAt
     }
 
     public var wSconversation: Conversation {
@@ -148,24 +143,21 @@ public struct ConversationResponse: Codable, Equatable {
 
     public static func < (lhs: Item, rhs: Item) -> Bool {
       guard let lhsLstMsg = lhs.lastMessage, let rhsLstMsg = rhs.lastMessage,
-            let lhsDate = lhsLstMsg.updatedAt, let rhsDate = rhsLstMsg.updatedAt
+        let lhsDate = lhsLstMsg.updatedAt, let rhsDate = rhsLstMsg.updatedAt
       else { return false }
       return lhsDate > rhsDate
     }
-
   }
-
 }
 
 extension ConversationResponse {
   public struct UserAdd: Codable, Hashable, Identifiable, Comparable, Equatable {
-
     public let id, title: String
     public let type: ConversationType
     public let createdAt, updatedAt: Date
     public let deletedAt: Date?
 
-    static public var diff: Self {
+    public static var diff: Self {
       .init(
         id: "", title: "", type: .group,
         createdAt: Date(), updatedAt: Date()
@@ -184,12 +176,13 @@ extension ConversationResponse {
       self.deletedAt = deletedAt
     }
 
-    public static func < (lhs: ConversationResponse.UserAdd, rhs: ConversationResponse.UserAdd) -> Bool {
+    public static func < (lhs: ConversationResponse.UserAdd, rhs: ConversationResponse.UserAdd)
+      -> Bool
+    {
       return lhs.id == rhs.id
-      && lhs.createdAt == rhs.createdAt
-      && lhs.updatedAt == rhs.updatedAt
+        && lhs.createdAt == rhs.createdAt
+        && lhs.updatedAt == rhs.updatedAt
     }
-
   }
 }
 

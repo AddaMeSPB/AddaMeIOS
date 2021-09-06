@@ -1,36 +1,30 @@
 //
 //  EventReducer.swift
-//  
+//
 //
 //  Created by Saroar Khandoker on 06.04.2021.
 //
 
-import SwiftUI
-import MapKit
-import Combine
-
-import ComposableArchitecture
-import ComposableCoreLocation
-import ComposableArchitectureHelpers
-
-import SharedModels
-import HttpRequest
-
-import EventFormView
-import EventDetailsView
-
-import ChatView
 import ChatClient
 import ChatClientLive
-
-import WebSocketClient
-import WebSocketClientLive
-
+import ChatView
+import Combine
+import ComposableArchitecture
+import ComposableArchitectureHelpers
+import ComposableCoreLocation
+import Contacts
 import ConversationClient
 import ConversationClientLive
-
 import EventClient
 import EventClientLive
+import EventDetailsView
+import EventFormView
+import HttpRequest
+import MapKit
+import SharedModels
+import SwiftUI
+import WebSocketClient
+import WebSocketClientLive
 
 // swiftlint:disable file_length
 struct Foo {
@@ -40,13 +34,14 @@ struct Foo {
 
 struct LocationManagerId: Hashable {}
 
-public let eventReducer = Reducer<EventsState, EventsAction, EventsEnvironment> { state, action, environment in
+public let eventReducer = Reducer<EventsState, EventsAction, EventsEnvironment> {
+  state, action, environment in
 
   var fetchEvents: Effect<EventsAction, Never> {
     guard state.isConnected, let location = state.location else { return .none }
     state.location = location
 
-    guard !state.isLoadingPage && state.canLoadMorePages else { return .none }
+    guard !state.isLoadingPage, state.canLoadMorePages else { return .none }
 
     // state.isLoadingPage = true
 
@@ -103,7 +98,6 @@ public let eventReducer = Reducer<EventsState, EventsAction, EventsEnvironment> 
   }
 
   switch action {
-
   case let .eventFormView(isNavigate: active):
 
     guard
@@ -114,13 +108,14 @@ public let eventReducer = Reducer<EventsState, EventsAction, EventsEnvironment> 
       return .none
     }
 
-    state.eventFormState = active
-    ? EventFormState(
-      placeMark: state.placeMark,
-      eventAddress: state.currentAddress,
-      eventCoordinate: location.coordinate
-    )
-    : nil
+    state.eventFormState =
+      active
+      ? EventFormState(
+        placeMark: state.placeMark,
+        eventAddress: state.currentAddress,
+        eventCoordinate: location.coordinate
+      )
+      : nil
 
     return .none
 
@@ -157,10 +152,10 @@ public let eventReducer = Reducer<EventsState, EventsAction, EventsEnvironment> 
 
     return .none
 
-  case .event(index: let index):
+  case let .event(index: index):
 
     return .none
-  case .eventsResponse(.success(let eventArray)):
+  case let .eventsResponse(.success(eventArray)):
 
     state.waitingForUpdateLocation = false
     state.canLoadMorePages = state.events.count < eventArray.metadata.total
@@ -168,32 +163,35 @@ public let eventReducer = Reducer<EventsState, EventsAction, EventsEnvironment> 
     state.currentPage += 1
 
     let events = (state.events + eventArray.items)
-//      .uniqElemets()
-//      .sorted()
+    //      .uniqElemets()
+    //      .sorted()
 
-    state.events
-    = .init(uniqueElements: events)
+    state.events = .init(uniqueElements: events)
 
     return .none
 
-  case .eventsResponse(.failure(let error)):
+  case let .eventsResponse(.failure(error)):
     state.isLoadingPage = false
     state.alert = .init(title: TextState(error.description))
 
     return .none
 
-  case .eventTapped(let event):
+  case let .eventTapped(event):
     state.event = event
     return Effect(value: EventsAction.eventDetailsView(isPresented: true))
       .receive(on: environment.mainQueue)
       .eraseToEffect()
 
-  case .addressResponse(.success(let address)):
+  case let .addressResponse(.success(address)):
     return .none
 
   case let .eventCoordinate(.success(placemark)):
     let formatter = CNPostalAddressFormatter()
-    let addressString = formatter.string(from: placemark.postalAddress!)
+    guard let postalAddress = placemark.postalAddress else {
+      // handle error here
+      return .none
+    }
+    let addressString = formatter.string(from: postalAddress)
     state.currentAddress = addressString
     state.placeMark = placemark
 
@@ -225,31 +223,31 @@ public let eventReducer = Reducer<EventsState, EventsAction, EventsEnvironment> 
       state.isRequestingCurrentLocation = true
       state.waitingForUpdateLocation = false
       #if os(macOS)
-      return environment.locationManager
-        .requestAlwaysAuthorization(id: LocationManagerId())
-        .fireAndForget()
+        return environment.locationManager
+          .requestAlwaysAuthorization(id: LocationManagerId())
+          .fireAndForget()
       #else
-      return environment.locationManager
-        .requestWhenInUseAuthorization(id: LocationManagerId())
-        .fireAndForget()
+        return environment.locationManager
+          .requestWhenInUseAuthorization(id: LocationManagerId())
+          .fireAndForget()
       #endif
 
     case .restricted:
       state.alert = .init(
-        title: TextState("Please give us access to your location in settings"),
-        message: TextState("Please go to Settings and turn on the permissions"),
-        primaryButton: .cancel(TextState("Cancel"), send: .alertDismissed),
-        secondaryButton: .default(TextState(""), send: .popupSettings)
+        title: .init("Please give us access to your location in settings"),
+        message: .init("Please go to Settings and turn on the permissions"),
+        primaryButton: .cancel(.init("Cancel"), action: .send(.alertDismissed)),
+        secondaryButton: .default(.init(""), action: .send(.popupSettings))
       )
       state.waitingForUpdateLocation = false
       return .none
 
     case .denied:
       state.alert = .init(
-        title: TextState("Please give us access to your location in settings"),
-        message: TextState("Please go to Settings and turn on the permissions"),
-        primaryButton: .cancel( TextState("Cancel"), send: .alertDismissed),
-        secondaryButton: .default(TextState(""), send: .popupSettings)
+        title: .init("Please give us access to your location in settings"),
+        message: .init("Please go to Settings and turn on the permissions"),
+        primaryButton: .cancel(.init("Cancel"), action: .send(.alertDismissed)),
+        secondaryButton: .default(TextState(""), action: .send(.popupSettings))
       )
       state.waitingForUpdateLocation = false
       return .none
@@ -268,10 +266,10 @@ public let eventReducer = Reducer<EventsState, EventsAction, EventsEnvironment> 
     }
 
   case .popupSettings:
-//    @available(iOSApplicationExtension, unavailable)
-//    if let url = URL(string: UIApplication.openSettingsURLString), UIApplication.shared.canOpenURL(url) {
-//      UIApplication.shared.open(url, options: [:], completionHandler: nil)
-//    }
+    //    @available(iOSApplicationExtension, unavailable)
+    //    if let url = URL(string: UIApplication.openSettingsURLString), UIApplication.shared.canOpenURL(url) {
+    //      UIApplication.shared.open(url, options: [:], completionHandler: nil)
+    //    }
 
     return .none
 
@@ -281,10 +279,10 @@ public let eventReducer = Reducer<EventsState, EventsAction, EventsEnvironment> 
     return .none
 
   case .eventForm(.backToPVAfterCreatedEventSuccessfully):
-     state.eventFormState = nil
+    state.eventFormState = nil
     return .none
 
-  case .eventForm(_):
+  case .eventForm:
     return .none
 
   case let .chat(isNavigate):
@@ -309,8 +307,7 @@ public let eventReducer = Reducer<EventsState, EventsAction, EventsEnvironment> 
 
   case let .eventDetails(action):
     switch action {
-
-    case .onAppear, .alertDismissed, .moveToChatRoom(_), .updateRegion(_):
+    case .onAppear, .alertDismissed, .moveToChatRoom(_), .updateRegion:
       return .none
 
     case let .eventDetailsOverlay(eventDetailsAction):
@@ -324,10 +321,10 @@ public let eventReducer = Reducer<EventsState, EventsAction, EventsEnvironment> 
         state.isMovingChatRoom = bool
         return .none
 
-      case let .joinToEvent(.success(string)): // joinToEventRequest
+      case let .joinToEvent(.success(string)):  // joinToEventRequest
         return presentChatView()
 
-      case let .joinToEvent(.failure(error)): // joinToEventRequest
+      case let .joinToEvent(.failure(error)):  // joinToEventRequest
         return .none
       case let .conversationResponse(.success(conversationItem)):
         state.conversation = conversationItem
@@ -337,7 +334,7 @@ public let eventReducer = Reducer<EventsState, EventsAction, EventsEnvironment> 
       }
     }
 
-  case .chatView(isNavigate: let isNavigate):
+  case let .chatView(isNavigate: isNavigate):
     state.chatState = isNavigate ? ChatState(conversation: state.conversation) : nil
     return .none
   }
@@ -392,7 +389,7 @@ public let locationManagerReducer = Reducer<
 
   switch action {
   case .didChangeAuthorization(.authorizedAlways),
-       .didChangeAuthorization(.authorizedWhenInUse):
+    .didChangeAuthorization(.authorizedWhenInUse):
 
     state.isLocationAuthorized = true
     state.isConnected = true
@@ -402,7 +399,7 @@ public let locationManagerReducer = Reducer<
       .fireAndForget()
 
   case .didChangeAuthorization(.denied),
-       .didChangeAuthorization(.restricted):
+    .didChangeAuthorization(.restricted):
 
     state.isLocationAuthorized = false
     state.isConnected = false
@@ -410,8 +407,8 @@ public let locationManagerReducer = Reducer<
     state.alert = .init(
       title: TextState("Please give us access to your location so you can use our full features"),
       message: TextState("Please go to Settings and turn on the permissions"),
-      primaryButton: .cancel(TextState("Cancel"), send: .alertDismissed),
-      secondaryButton: .default(TextState("Go Settings"), send: .popupSettings)
+      primaryButton: .cancel(.init("Cancel"), action: .send(.alertDismissed)),
+      secondaryButton: .default(.init("Go Settings"), action: .send(.popupSettings))
     )
     return .none
 
@@ -420,49 +417,47 @@ public let locationManagerReducer = Reducer<
 
   case .didChangeAuthorization(.notDetermined):
     return .none
-  case .didChangeAuthorization(let status):
+  case let .didChangeAuthorization(status):
     print(#line, status)
     return .none
-  case .didDetermineState(_, region: let region):
+  case let .didDetermineState(_, region: region):
     print(#line, region)
     return .none
-  case .didEnterRegion(_):
+  case .didEnterRegion:
     return .none
-  case .didExitRegion(_):
+  case .didExitRegion:
     return .none
   case let .didFailRanging(beaconConstraint: beaconConstraint, error: error):
     return .none
-  case .didFailWithError(_):
+  case .didFailWithError:
     return .none
-  case .didFinishDeferredUpdatesWithError(_):
+  case .didFinishDeferredUpdatesWithError:
     return .none
   case .didPauseLocationUpdates:
     return .none
   case .didResumeLocationUpdates:
     return .none
-  case .didStartMonitoring(region: let region):
+  case let .didStartMonitoring(region: region):
     return .none
-  case .didUpdateHeading(newHeading: let newHeading):
+  case let .didUpdateHeading(newHeading: newHeading):
     return .none
   case let .didUpdateTo(newLocation: newLocation, oldLocation: oldLocation):
     return .none
-  case .didVisit(_):
+  case .didVisit:
     return .none
   case let .monitoringDidFail(region: region, error: error):
     return .none
-  case .didRangeBeacons(_, satisfyingConstraint: let satisfyingConstraint):
+  case let .didRangeBeacons(_, satisfyingConstraint: satisfyingConstraint):
     return .none
   }
 }
-
-import Contacts
 
 extension MKPlacemark {
   var formattedAddress: String? {
     guard let postalAddress = postalAddress else { return nil }
     return CNPostalAddressFormatter.string(
-      from: postalAddress, style: .mailingAddress)
-      .replacingOccurrences(of: "\n", with: " "
-      )
+      from: postalAddress, style: .mailingAddress
+    )
+    .replacingOccurrences(of: "\n", with: " ")
   }
 }

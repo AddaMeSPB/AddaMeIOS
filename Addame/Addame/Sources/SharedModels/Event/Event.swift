@@ -5,9 +5,9 @@
 //  Created by Saroar Khandoker on 26.08.2020.
 //
 
-import SwiftUI
 import CoreLocation
 import MapKit
+import SwiftUI
 
 public struct Event: Codable, Identifiable, Equatable {
   public init(
@@ -70,6 +70,7 @@ public struct Event: Codable, Identifiable, Equatable {
 }
 
 // MARK: - EventResponse
+
 public struct EventResponse: Codable, Equatable {
   public static func == (lhs: EventResponse, rhs: EventResponse) -> Bool {
     return lhs.items == rhs.items && lhs.metadata == rhs.metadata
@@ -106,7 +107,7 @@ public struct EventResponse: Codable, Equatable {
       overlay: Bool, coordinates: [Double], regionRadius: CLLocationDistance? = 1000,
       createdAt: Date, updatedAt: Date
     ) {
-      self._id = id
+      _id = id
       self.name = name
       self.categories = categories
       self.imageUrl = imageUrl
@@ -152,10 +153,10 @@ public struct EventResponse: Codable, Equatable {
     public var createdAt: Date
     public var updatedAt: Date
   }
-
 }
 
 // MARK: - Metadata
+
 public struct Metadata: Codable, Equatable {
   public let per, total, page: Int
 
@@ -182,7 +183,7 @@ extension EventResponse.Item: MKAnnotation {
   }
 
   public var coordinateMongo: CLLocationCoordinate2D {
-    return CLLocationCoordinate2D(latitude: self.coordinate.longitude, longitude: self.coordinate.latitude)
+    return CLLocationCoordinate2D(latitude: coordinate.longitude, longitude: coordinate.latitude)
   }
 
   public var coordinatesMongoDouble: [Double] {
@@ -199,16 +200,14 @@ extension EventResponse.Item: MKAnnotation {
       currentCLLocation.distance(from: self.location)
     }
   }
-
 }
 
 extension CLLocation {
   var double: [Double] {
-    return [self.coordinate.latitude, self.coordinate.longitude]
+    return [coordinate.latitude, coordinate.longitude]
   }
 }
 
-// swiftlint:disable all
 public enum GeoType: String {
   case Point
   case LineString
@@ -227,7 +226,7 @@ extension CLLocationCoordinate2D: Equatable, Comparable {
     return lhs.latitude < rhs.latitude && lhs.longitude < rhs.longitude
   }
 
-  public static func ==(lhs: Self, rhs: Self) -> Bool {
+  public static func == (lhs: Self, rhs: Self) -> Bool {
     return lhs.latitude == rhs.latitude && lhs.longitude == rhs.longitude
   }
 }

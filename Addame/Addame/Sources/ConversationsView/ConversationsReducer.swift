@@ -1,35 +1,32 @@
 //
 //  ConversationReducer.swift
-//  
+//
 //
 //  Created by Saroar Khandoker on 20.04.2021.
 //
 
+import ChatClient
+import ChatClientLive
+import ChatView
 import Combine
 import ComposableArchitecture
 import ComposableArchitectureHelpers
-import SwiftUI
-import SharedModels
-import HttpRequest
-
-import ChatView
-import ContactsView
-
-import ChatClient
-import ChatClientLive
-
 import ContactClient
 import ContactClientLive
+import ContactsView
 import CoreDataClient
-
+import HttpRequest
+import SharedModels
+import SwiftUI
 import WebSocketClient
 import WebSocketClientLive
 
 // swiftlint:disable:next line_length
-public let conversationsReducer = Reducer<ConversationsState, ConversationsAction, ConversationEnvironment> { state, action, environment in
+public let conversationsReducer = Reducer<
+  ConversationsState, ConversationsAction, ConversationEnvironment
+> { state, action, environment in
 
   var fetchMoreConversations: Effect<ConversationsAction, Never> {
-
     let query = QueryItem(page: "\(state.currentPage)", per: "10")
 
     return environment.conversationClient.list(query, "")
@@ -41,7 +38,13 @@ public let conversationsReducer = Reducer<ConversationsState, ConversationsActio
   }
 
   func createOrFine() -> Effect<ConversationsAction, Never> {
-    return environment.conversationClient.create(state.createConversation!, "")
+
+    guard let createConversation = state.createConversation else {
+      // fire alert
+      return .none
+    }
+
+    return environment.conversationClient.create(createConversation, "")
       .retry(3)
       .subscribe(on: environment.backgroundQueue)
       .receive(on: environment.mainQueue)
@@ -57,15 +60,14 @@ public let conversationsReducer = Reducer<ConversationsState, ConversationsActio
   }
 
   switch action {
-
   case .onAppear:
 
     state.isLoadingPage = true
     return fetchMoreConversations
 
-  case .fetchMoreConversationIfNeeded(let currentItem):
+  case let .fetchMoreConversationIfNeeded(currentItem):
 
-    guard !state.isLoadingPage && state.canLoadMorePages else {
+    guard !state.isLoadingPage, state.canLoadMorePages else {
       return .none
     }
 
@@ -81,24 +83,24 @@ public let conversationsReducer = Reducer<ConversationsState, ConversationsActio
 
     return .none
 
-  case .chatView(isPresented: let present):
+  case let .chatView(isPresented: present):
 
     state.chatState = present ? ChatState(conversation: state.conversation) : nil
     return .none
 
-  case .contactsView(isPresented: let present):
+  case let .contactsView(isPresented: present):
 
     state.contactsState = present ? ContactsState() : nil
     return .none
 
-  case .conversationsResponse(.success(let response)):
+  case let .conversationsResponse(.success(response)):
 
     state.canLoadMorePages = state.conversations.count < response.metadata.total
     state.isLoadingPage = false
     state.currentPage += 1
 
     let combineConversationResults = (response.items + state.conversations)
-      .filter({ $0.lastMessage != nil })
+      .filter { $0.lastMessage != nil }
       .uniqElemets()
       .sorted()
 
@@ -106,7 +108,7 @@ public let conversationsReducer = Reducer<ConversationsState, ConversationsActio
 
     return .none
 
-  case .conversationsResponse(.failure(let error)):
+  case let .conversationsResponse(.failure(error)):
     state.isLoadingPage = false
     state.alert = .init(title: TextState("Error happens \(error.description)"))
     return .none
@@ -115,7 +117,7 @@ public let conversationsReducer = Reducer<ConversationsState, ConversationsActio
     state.alert = nil
     return .none
 
-  case .conversationTapped(let conversationItem):
+  case let .conversationTapped(conversationItem):
     state.conversation = conversationItem
 
     return presentChatView()
@@ -123,21 +125,20 @@ public let conversationsReducer = Reducer<ConversationsState, ConversationsActio
 
     return .none
 
-  case .chat(let chatAction):
+  case let .chat(chatAction):
     return .none
 
-  case .conversationResponse(.success(let response)):
+  case let .conversationResponse(.success(response)):
     state.contactsState = nil
     state.conversation = response
 
     return presentChatView()
 
-  case .conversationResponse(.failure(let error)):
+  case let .conversationResponse(.failure(error)):
     return .none
 
   case let .contacts(.contact(id: id, action: action)):
     switch action {
-
     case let .moveToChatRoom(bool):
       print(#line, bool)
       return .none

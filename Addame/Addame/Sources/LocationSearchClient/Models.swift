@@ -1,6 +1,6 @@
 //
 //  LocalSearchResponse.swift
-//  
+//
 //
 //  Created by Saroar Khandoker on 06.07.2021.
 //
@@ -14,8 +14,8 @@ public struct LocalSearchResponse: Equatable {
   public init(
     response: MKLocalSearch.Response
   ) {
-    self.boundingRegion = response.boundingRegion
-    self.mapItems = response.mapItems.map(MapItem.init(rawValue:))
+    boundingRegion = response.boundingRegion
+    mapItems = response.mapItems.map(MapItem.init(rawValue:))
   }
 
   public init(
@@ -45,13 +45,13 @@ public struct MapItem: Equatable {
   public var url: URL?
 
   public init(rawValue: MKMapItem) {
-    self.isCurrentLocation = rawValue.isCurrentLocation
-    self.name = rawValue.name
-    self.placemark = Placemark(rawValue: rawValue.placemark)
-    self.phoneNumber = rawValue.phoneNumber
-    self.pointOfInterestCategory = rawValue.pointOfInterestCategory
-    self.timeZone = rawValue.timeZone
-    self.url = rawValue.url
+    isCurrentLocation = rawValue.isCurrentLocation
+    name = rawValue.name
+    placemark = Placemark(rawValue: rawValue.placemark)
+    phoneNumber = rawValue.phoneNumber
+    pointOfInterestCategory = rawValue.pointOfInterestCategory
+    timeZone = rawValue.timeZone
+    url = rawValue.url
   }
 
   public init(
@@ -124,25 +124,25 @@ public struct Placemark: Equatable {
   public var title: String?
 
   public init(rawValue: MKPlacemark) {
-    self.administrativeArea = rawValue.administrativeArea
-    self.areasOfInterest = rawValue.areasOfInterest
-    self.coordinate = rawValue.coordinate
-    self.country = rawValue.country
-    self.countryCode = rawValue.countryCode
-    self.inlandWater = rawValue.inlandWater
-    self.isoCountryCode = rawValue.isoCountryCode
-    self.locality = rawValue.locality
-    self.name = rawValue.name
-    self.ocean = rawValue.ocean
-    self.postalCode = rawValue.postalCode
-    self.region = rawValue.region
-    self.subAdministrativeArea = rawValue.subAdministrativeArea
-    self.subLocality = rawValue.subLocality
-    self.subThoroughfare = rawValue.subThoroughfare
-    self.subtitle =
+    administrativeArea = rawValue.administrativeArea
+    areasOfInterest = rawValue.areasOfInterest
+    coordinate = rawValue.coordinate
+    country = rawValue.country
+    countryCode = rawValue.countryCode
+    inlandWater = rawValue.inlandWater
+    isoCountryCode = rawValue.isoCountryCode
+    locality = rawValue.locality
+    name = rawValue.name
+    ocean = rawValue.ocean
+    postalCode = rawValue.postalCode
+    region = rawValue.region
+    subAdministrativeArea = rawValue.subAdministrativeArea
+    subLocality = rawValue.subLocality
+    subThoroughfare = rawValue.subThoroughfare
+    subtitle =
       rawValue.responds(to: #selector(getter:MKPlacemark.subtitle)) ? rawValue.subtitle : nil
-    self.thoroughfare = rawValue.thoroughfare
-    self.title = rawValue.responds(to: #selector(getter:MKPlacemark.title)) ? rawValue.title : nil
+    thoroughfare = rawValue.thoroughfare
+    title = rawValue.responds(to: #selector(getter:MKPlacemark.title)) ? rawValue.title : nil
   }
 
   public init(
@@ -221,12 +221,12 @@ public struct CoordinateRegion: Equatable {
   }
 
   public init(coordinateRegion: MKCoordinateRegion) {
-    self.center = coordinateRegion.center
-    self.span = coordinateRegion.span
+    center = coordinateRegion.center
+    span = coordinateRegion.span
   }
 
   public var asMKCoordinateRegion: MKCoordinateRegion {
-    .init(center: self.center, span: self.span)
+    .init(center: center, span: span)
   }
 
   public static func == (lhs: Self, rhs: Self) -> Bool {

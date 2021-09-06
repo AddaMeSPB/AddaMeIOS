@@ -5,8 +5,8 @@
 //  Created by Saroar Khandoker on 23.08.2021.
 //
 
-import SwiftUI
 import ComposableArchitecture
+import SwiftUI
 import UserDefaultsClient
 
 public enum DistanceType: String, Equatable {
@@ -22,14 +22,14 @@ public enum DistanceType: String, Equatable {
   }
 }
 
-public extension DistanceState {
-  var view: DistanceFilterView.ViewState {
+extension DistanceState {
+  public var view: DistanceFilterView.ViewState {
     DistanceFilterView.ViewState(
-      distanceTypeToggleisOn: self.distanceTypeToggleisOn,
-      distanceType: self.distanceType,
-      distanceValue: self.distanceValue,
-      distance: self.distance,
-      maxDistance: self.maxDistance
+      distanceTypeToggleisOn: distanceTypeToggleisOn,
+      distanceType: distanceType,
+      distanceValue: distanceValue,
+      distance: distance,
+      maxDistance: maxDistance
     )
   }
 }
@@ -96,11 +96,11 @@ extension DistanceAction {
   static func view(_ localAction: DistanceFilterView.ViewAction) -> Self {
     switch localAction {
     case .onAppear:
-      return self.onAppear
+      return onAppear
     case let .distanceTypeToggleChanged(boolean):
-      return self.distanceTypeToggleChanged(boolean)
+      return distanceTypeToggleChanged(boolean)
     case let .distance(value):
-      return self.distance(value)
+      return distance(value)
     }
   }
 }
@@ -122,7 +122,6 @@ extension DistanceFilterView {
 }
 
 public struct DistanceFilterView: View {
-
   let store: Store<DistanceState, DistanceAction>
 
   public init(store: Store<DistanceState, DistanceAction>) {
@@ -135,17 +134,16 @@ public struct DistanceFilterView: View {
         state: { $0.view },
         action: DistanceAction.view
       )
-    ) { viewStore  in
+    ) { viewStore in
 
       VStack(alignment: .leading) {
-
-        Toggle(isOn:
-          viewStore.binding(
-            get: \.distanceTypeToggleisOn,
-            send: ViewAction.distanceTypeToggleChanged
-          )
+        Toggle(
+          isOn:
+            viewStore.binding(
+              get: \.distanceTypeToggleisOn,
+              send: ViewAction.distanceTypeToggleChanged
+            )
         ) {
-
           Text("\(viewStore.distanceType.rawValue.capitalized) :")
             .font(.system(.title2, design: .rounded))
             .bold()
@@ -173,7 +171,6 @@ public struct DistanceFilterView: View {
           )
           .accentColor(.green)
         }
-
       }
       .onAppear {
         //
@@ -184,9 +181,7 @@ public struct DistanceFilterView: View {
         viewStore.send(.onAppear)
       }
     }
-
   }
-
 }
 
 struct DistanceFilterView_Previews: PreviewProvider {
@@ -223,9 +218,9 @@ public let distanceReducer = Reducer<
   DistanceState, DistanceAction, DistanceEnvironment
 > { state, action, environment in
   switch action {
-
   case .onAppear:
-    let distanceTypeIntValue = environment.userDefaults.integerForKey(DistanceState.DistanceKey.typee.rawValue)
+    let distanceTypeIntValue = environment.userDefaults.integerForKey(
+      DistanceState.DistanceKey.typee.rawValue)
     state.distanceTypeToggleisOn = distanceTypeIntValue == 0 ? true : false
     state.distanceType = distanceTypeIntValue == 0 ? .kilometers : .miles
     state.maxDistance = distanceTypeIntValue == 0 ? 250 : (250 * 1.609)
@@ -251,7 +246,8 @@ public let distanceReducer = Reducer<
 
   case let .distance(value):
     var distanceValue = 0.0
-    let distanceTypeIntValue = environment.userDefaults.integerForKey(DistanceState.DistanceKey.typee.rawValue)
+    let distanceTypeIntValue = environment.userDefaults.integerForKey(
+      DistanceState.DistanceKey.typee.rawValue)
 
     if distanceTypeIntValue == 0 {
       distanceValue = value * 1000
@@ -264,7 +260,6 @@ public let distanceReducer = Reducer<
     return environment.userDefaults
       .setDouble(distanceValue, state.distanceType.rawValue)
       .fireAndForget()
-
   }
 }
 

@@ -5,13 +5,13 @@
 //  Created by Saroar Khandoker on 06.08.2021.
 //
 
-import Foundation
-import SwiftUI
 import ComposableArchitecture
-import SharedModels
+import Foundation
 import HttpRequest
-import MapView
 import MapKit
+import MapView
+import SharedModels
+import SwiftUI
 
 public enum EventFormAction: Equatable {
   case didAppear
@@ -42,34 +42,33 @@ extension EventFormAction {
   static func view(_ localAction: EventFormView.ViewAction) -> Self {
     switch localAction {
     case .didAppear:
-      return self.didAppear
+      return didAppear
     case .didDisappear:
-      return self.didDisappear
+      return didDisappear
     case let .titleChanged(string):
-      return self.titleChanged(string)
+      return titleChanged(string)
     case let .textFieldHeightChanged(value):
-      return self.textFieldHeightChanged(value)
+      return textFieldHeightChanged(value)
     case let .selectedDurations(duration):
-      return self.selectedDurations(duration)
+      return selectedDurations(duration)
     case let .selectedCategories(categories):
-      return self.selectedCategories(categories)
+      return selectedCategories(categories)
     case let .selectedDurationIndex(int):
-      return self.selectedDurationIndex(int)
+      return selectedDurationIndex(int)
     case let .showCategorySheet(isPresent):
-      return self.showCategorySheet(isPresent)
+      return showCategorySheet(isPresent)
     case let .liveLocationToggleChanged(liveLocationEnabled):
-      return self.liveLocationToggleChanged(liveLocationEnabled)
+      return liveLocationToggleChanged(liveLocationEnabled)
     case let .isSearchSheet(isPresented: isPresented):
-      return self.isSearchSheet(isPresented: isPresented)
+      return isSearchSheet(isPresented: isPresented)
     case let .locationSearch(action):
-      return self.locationSearch(action)
+      return locationSearch(action)
     case .submitButtonTapped:
       return .submitButtonTapped
     case .actionSheetButtonTapped:
-      return self.actionSheetButtonTapped
+      return actionSheetButtonTapped
     case .actionSheetDismissed:
-      return self.actionSheetDismissed
-
+      return actionSheetDismissed
     }
   }
 }

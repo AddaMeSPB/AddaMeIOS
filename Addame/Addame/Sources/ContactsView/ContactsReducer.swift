@@ -1,29 +1,25 @@
 //
 //  ContactsReducer.swift
-//  
+//
 //
 //  Created by Saroar Khandoker on 12.05.2021.
 //
 
+import ChatClient
+import ChatClientLive
+import ChatView
 import Combine
 import ComposableArchitecture
 import ComposableArchitectureHelpers
-import SwiftUI
-import SharedModels
+import CoreData
+import CoreDataStore
 import HttpRequest
-import ChatView
-
-import ChatClient
-import ChatClientLive
-
+import SharedModels
+import SwiftUI
 import WebSocketClient
 import WebSocketClientLive
 
-import CoreDataStore
-import CoreData
-
 public let contactsReducer: Reducer<ContactsState, ContactsAction, ContactsEnvironment> = .combine(
-
   contactRowReducer
     .forEach(
       state: \ContactsState.contacts,
@@ -34,7 +30,6 @@ public let contactsReducer: Reducer<ContactsState, ContactsAction, ContactsEnvir
   .init { state, action, environment in
 
     switch action {
-
     case .onAppear:
       state.isLoading = true
 
@@ -46,7 +41,7 @@ public let contactsReducer: Reducer<ContactsState, ContactsAction, ContactsEnvir
       state.alert = nil
       return .none
 
-    case .contactsResponse(.success(let contacts)):
+    case let .contactsResponse(.success(contacts)):
       print(#line, contacts)
       state.isLoading = false
 
@@ -54,8 +49,9 @@ public let contactsReducer: Reducer<ContactsState, ContactsAction, ContactsEnvir
       state.contacts = .init(uniqueElements: contactRowStates)
       return .none
 
-    case .contactsResponse(.failure(let error)):
-      state.alert = .init(title: TextState("Something went worng please try again \(error.description)") )
+    case let .contactsResponse(.failure(error)):
+      state.alert = .init(
+        title: TextState("Something went worng please try again \(error.description)"))
       return .none
 
     case .contactsAuthorizationStatus(.notDetermined):
@@ -72,13 +68,13 @@ public let contactsReducer: Reducer<ContactsState, ContactsAction, ContactsEnvir
       return .none
 
     case .contactsAuthorizationStatus(.authorized):
-        return environment.coreDataClient.getContacts()
-            .subscribe(on: environment.backgroundQueue)
-            .receive(on: environment.mainQueue)
-            .catchToEffect()
-            .map(ContactsAction.contactsResponse)
+      return environment.coreDataClient.getContacts()
+        .subscribe(on: environment.backgroundQueue)
+        .receive(on: environment.mainQueue)
+        .catchToEffect()
+        .map(ContactsAction.contactsResponse)
 
-    case .contactsAuthorizationStatus(_):
+    case .contactsAuthorizationStatus:
       return .none
 
     case let .contact(id: id, action: action):
@@ -89,7 +85,6 @@ public let contactsReducer: Reducer<ContactsState, ContactsAction, ContactsEnvir
 
     case let .chatWith(name: name, phoneNumber: phoneNumber):
       return .none
-
     }
   }
 )

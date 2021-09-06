@@ -1,6 +1,6 @@
 //
 //  UserNotificationClient.swift
-//  
+//
 //
 //  Created by Saroar Khandoker on 05.05.2021.
 //
@@ -67,20 +67,20 @@ extension UserNotificationClient {
 
 extension UserNotificationClient.Notification {
   public init(rawValue: UNNotification) {
-    self.date = rawValue.date
-    self.request = rawValue.request
+    date = rawValue.date
+    request = rawValue.request
   }
 }
 
 extension UserNotificationClient.Notification.Response {
   public init(rawValue: UNNotificationResponse) {
-    self.notification = .init(rawValue: rawValue.notification)
+    notification = .init(rawValue: rawValue.notification)
   }
 }
 
 extension UserNotificationClient.Notification.Settings {
   public init(rawValue: UNNotificationSettings) {
-    self.authorizationStatus = rawValue.authorizationStatus
+    authorizationStatus = rawValue.authorizationStatus
   }
 }
 
@@ -93,31 +93,31 @@ extension UserNotificationClient {
     }
 
     func userNotificationCenter(
-      _ center: UNUserNotificationCenter,
+      _: UNUserNotificationCenter,
       didReceive response: UNNotificationResponse,
       withCompletionHandler completionHandler: @escaping () -> Void
     ) {
-      self.subscriber.send(
+      subscriber.send(
         .didReceiveResponse(.init(rawValue: response), completionHandler: completionHandler)
       )
     }
 
     func userNotificationCenter(
-      _ center: UNUserNotificationCenter,
+      _: UNUserNotificationCenter,
       openSettingsFor notification: UNNotification?
     ) {
-      self.subscriber.send(
+      subscriber.send(
         .openSettingsForNotification(notification.map(Notification.init(rawValue:)))
       )
     }
 
     func userNotificationCenter(
-      _ center: UNUserNotificationCenter,
+      _: UNUserNotificationCenter,
       willPresent notification: UNNotification,
       withCompletionHandler completionHandler:
         @escaping (UNNotificationPresentationOptions) -> Void
     ) {
-      self.subscriber.send(
+      subscriber.send(
         .willPresentNotification(
           .init(rawValue: notification),
           completionHandler: completionHandler

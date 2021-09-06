@@ -1,15 +1,14 @@
-import ComposableArchitecture
-import Combine
-import HttpRequest
-import SwiftUI
-import PhoneNumberKit
-import SharedModels
 import AuthClient
 import AuthClientLive
+import Combine
+import ComposableArchitecture
+import HttpRequest
 import KeychainService
+import PhoneNumberKit
+import SharedModels
+import SwiftUI
 
 public struct LoginState: Equatable {
-
   public static let build = Self()
 
   public static func == (lhs: LoginState, rhs: LoginState) -> Bool {
@@ -37,7 +36,6 @@ public enum LoginAction: Equatable {
 }
 
 public struct AuthenticationEnvironment {
-
   public var authClient = AuthClient.live(api: .build)
   public var mainQueue: AnySchedulerOf<DispatchQueue>
 
@@ -45,23 +43,26 @@ public struct AuthenticationEnvironment {
     self.authClient = authClient
     self.mainQueue = mainQueue
   }
-
 }
 
-public let loginReducer = Reducer<LoginState, LoginAction, AuthenticationEnvironment> { state, action, environment in
+public let loginReducer = Reducer<LoginState, LoginAction, AuthenticationEnvironment> {
+  state, action, environment in
   switch action {
-
   case .alertDismissed:
     state.alert = nil
     return .none
-  case .sendPhoneNumberButtonTapped(let phoneNumber):
+  case let .sendPhoneNumberButtonTapped(phoneNumber):
     state.isLoginRequestInFlight = true
 
-    let phoneNumberKit = PhoneNumberKit()
-    let parseNumber = try? phoneNumberKit.parse(phoneNumber)
-    let e164PhoneNumber = phoneNumberKit.format(parseNumber!, toType: .e164)
-
-    state.authResponse.phoneNumber = e164PhoneNumber
+    do {
+      let phoneNumberKit = PhoneNumberKit()
+      let parseNumber = try phoneNumberKit.parse(phoneNumber)
+      let e164PhoneNumber = phoneNumberKit.format(parseNumber, toType: .e164)
+      state.authResponse.phoneNumber = e164PhoneNumber
+    } catch {
+      print(#line, "")
+      return .none
+    }
 
     return environment.authClient
       .login(state.authResponse)
@@ -83,20 +84,20 @@ public let loginReducer = Reducer<LoginState, LoginAction, AuthenticationEnviron
 
     return .none
 
-  case .loninResponse(.success(let authResponse)):
+  case let .loninResponse(.success(authResponse)):
     state.isLoginRequestInFlight = false
     state.isValidationCodeIsSend = true
     state.authResponse = authResponse
     return .none
 
-  case .loninResponse(.failure(let error)):
+  case let .loninResponse(.failure(error)):
     state.isLoginRequestInFlight = false
     state.isValidationCodeIsSend = false
     state.alert = .init(title: TextState(error.description))
 
     return .none
 
-  case .verificationResponse(.success(let loginRes)):
+  case let .verificationResponse(.success(loginRes)):
 
     state.isLoginRequestInFlight = false
     state.isAuthorized = true
@@ -106,7 +107,7 @@ public let loginReducer = Reducer<LoginState, LoginAction, AuthenticationEnviron
     KeychainService.save(codable: loginRes.access, for: .token)
     return .none
 
-  case .verificationResponse(.failure(let error)):
+  case let .verificationResponse(.failure(error)):
     state.alert = .init(title: TextState(error.description))
     state.isLoginRequestInFlight = false
 
@@ -119,7 +120,5 @@ public let loginReducer = Reducer<LoginState, LoginAction, AuthenticationEnviron
   case .showPrivacySheet:
     state.showPrivacySheet = true
     return .none
-
   }
-
 }

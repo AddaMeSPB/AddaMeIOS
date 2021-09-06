@@ -5,13 +5,13 @@
 //  Created by Saroar Khandoker on 06.08.2021.
 //
 
-import Foundation
-import SwiftUI
 import ComposableArchitecture
-import SharedModels
+import Foundation
 import HttpRequest
-import MapView
 import KeychainService
+import MapView
+import SharedModels
+import SwiftUI
 
 public let eventFormReducer = Reducer<
   EventFormState, EventFormAction, EventFormEnvironment
@@ -20,7 +20,7 @@ public let eventFormReducer = Reducer<
   switch action {
   case .didAppear:
     guard let currentUSER: User = KeychainService.loadCodable(for: .user) else {
-      assertionFailure("current user is missing")
+      // assertionFailure("current user is missing")
       return .none
     }
     state.currentUser = currentUSER
@@ -98,12 +98,13 @@ public let eventFormReducer = Reducer<
   case .actionSheetButtonTapped:
     let cancel = ActionSheetState<EventFormAction>.Button.cancel()
 
-    var alertButtons: [ActionSheetState<EventFormAction>.Button] = Categories.allCases.enumerated().map { _, item in
-      return .default(
-        .init("\(item.rawValue)"),
-        send: .selectedCategories(item)
-      )
-    }
+    var alertButtons: [ActionSheetState<EventFormAction>.Button] = Categories.allCases.enumerated()
+      .map { _, item in
+        .default(
+          .init("\(item.rawValue)"),
+          action: .send(.selectedCategories(item))
+        )
+      }
     alertButtons.append(cancel)
 
     state.actionSheet = .init(
@@ -165,7 +166,6 @@ public let eventFormReducer = Reducer<
 
   case let .locationSearch(action):
     return .none
-
   }
 }
 .presents(

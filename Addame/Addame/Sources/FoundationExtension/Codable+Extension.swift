@@ -7,8 +7,8 @@
 
 import Foundation
 
-public extension Encodable {
-  var jsonData: Data? {
+extension Encodable {
+  public var jsonData: Data? {
     let encoder = JSONEncoder()
     encoder.dateEncodingStrategy = .iso8601
     do {
@@ -19,8 +19,8 @@ public extension Encodable {
     }
   }
 
-  var jsonString: String? {
-    guard let data = self.jsonData else { return nil }
+  public var jsonString: String? {
+    guard let data = jsonData else { return nil }
     return String(data: data, encoding: .utf8)
   }
 }
@@ -42,7 +42,9 @@ extension Decodable {
     }
   }
 
-  public static func decode(json: String, using usingForWebRtcingEncoding: String.Encoding = .utf8) -> Self? {
+  public static func decode(json: String, using usingForWebRtcingEncoding: String.Encoding = .utf8)
+    -> Self?
+  {
     guard let data = json.data(using: usingForWebRtcingEncoding) else { return nil }
     return Self.decode(data: data)
   }

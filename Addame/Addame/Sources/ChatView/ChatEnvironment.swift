@@ -1,20 +1,19 @@
 //
 //  ChatEnvironment.swift
-//  
+//
 //
 //  Created by Saroar Khandoker on 19.04.2021.
 //
 
+import ChatClient
 import Combine
 import ComposableArchitecture
-import ChatClient
 import ConversationClient
-import WebSocketClient
-import SharedModels
 import KeychainService
+import SharedModels
+import WebSocketClient
 
 public struct ChatEnvironment {
-
   let chatClient: ChatClient
   public let websocketClient: WebSocketClient
   public var mainQueue: AnySchedulerOf<DispatchQueue>

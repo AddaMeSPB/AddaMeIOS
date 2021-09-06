@@ -1,6 +1,6 @@
 //
 //  MapView.swift
-//  
+//
 //
 //  Created by Saroar Khandoker on 05.07.2021.
 //
@@ -25,27 +25,29 @@ public struct MapView: ViewRepresentable {
     isEventDetailsView: Bool = false
   ) {
     self.pointsOfInterest = pointsOfInterest
-    self._region = region
+    _region = region
     self.isEventDetailsView = isEventDetailsView
   }
 
   #if os(macOS)
     public func makeNSView(context: Context) -> MKMapView {
-      self.makeView(context: context)
+      makeView(context: context)
     }
+
   #elseif os(iOS)
     public func makeUIView(context: Context) -> MKMapView {
-      self.makeView(context: context)
+      makeView(context: context)
     }
   #endif
 
   #if os(macOS)
     public func updateNSView(_ mapView: MKMapView, context: NSViewRepresentableContext<MapView>) {
-      self.updateView(mapView: mapView, delegate: context.coordinator)
+      updateView(mapView: mapView, delegate: context.coordinator)
     }
+
   #elseif os(iOS)
     public func updateUIView(_ mapView: MKMapView, context: Context) {
-      self.updateView(mapView: mapView, delegate: context.coordinator)
+      updateView(mapView: mapView, delegate: context.coordinator)
     }
   #endif
 
@@ -53,12 +55,12 @@ public struct MapView: ViewRepresentable {
     MapViewCoordinator(self)
   }
 
-  private func makeView(context: Context) -> MKMapView {
+  private func makeView(context _: Context) -> MKMapView {
     let mapView = MKMapView(frame: .zero)
     mapView.showsUserLocation = true
 
     if isEventDetailsView {
-//      mapView.isZoomEnabled = false
+      //      mapView.isZoomEnabled = false
       mapView.isScrollEnabled = false
     }
 
@@ -84,7 +86,6 @@ public struct MapView: ViewRepresentable {
 
     mapView.removeAnnotations(removedAnnotations)
     mapView.addAnnotations(addedAnnotations)
-
   }
 }
 
@@ -95,19 +96,19 @@ private class PointOfInterestAnnotation: NSObject, MKAnnotation {
     self.pointOfInterest = pointOfInterest
   }
 
-  var coordinate: CLLocationCoordinate2D { self.pointOfInterest.coordinate }
-  var subtitle: String? { self.pointOfInterest.subtitle }
-  var title: String? { self.pointOfInterest.title }
+  var coordinate: CLLocationCoordinate2D { pointOfInterest.coordinate }
+  var subtitle: String? { pointOfInterest.subtitle }
+  var title: String? { pointOfInterest.title }
 }
 
 public class MapViewCoordinator: NSObject, MKMapViewDelegate {
   var mapView: MapView
 
   init(_ control: MapView) {
-    self.mapView = control
+    mapView = control
   }
 
-  public func mapView(_ mapView: MKMapView, regionDidChangeAnimated animated: Bool) {
+  public func mapView(_ mapView: MKMapView, regionDidChangeAnimated _: Bool) {
     self.mapView.region = CoordinateRegion(coordinateRegion: mapView.region)
   }
 }
@@ -141,12 +142,12 @@ public struct CoordinateRegion: Equatable {
   }
 
   public init(coordinateRegion: MKCoordinateRegion) {
-    self.center = coordinateRegion.center
-    self.span = coordinateRegion.span
+    center = coordinateRegion.center
+    span = coordinateRegion.span
   }
 
   public var asMKCoordinateRegion: MKCoordinateRegion {
-    .init(center: self.center, span: self.span)
+    .init(center: center, span: span)
   }
 
   public static func == (lhs: Self, rhs: Self) -> Bool {

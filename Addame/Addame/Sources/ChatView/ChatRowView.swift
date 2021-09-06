@@ -1,16 +1,16 @@
 //
 //  ChatRowView.swift
-//  
+//
 //
 //  Created by Saroar Khandoker on 17.06.2021.
 //
 
+import AsyncImageLoder
 import ComposableArchitecture
-import SwiftUI
-import SharedModels
 import HttpRequest
 import KeychainService
-import AsyncImageLoder
+import SharedModels
+import SwiftUI
 import SwiftUIExtension
 
 struct AvatarView: View {
@@ -23,12 +23,12 @@ struct AvatarView: View {
         urlString: avatarUrl,
         placeholder: { Text("Loading...").frame(width: 40, height: 40, alignment: .center) },
         image: {
-        Image(uiImage: $0).resizable()
+          Image(uiImage: $0).resizable()
         }
       )
-        .aspectRatio(contentMode: .fit)
-        .frame(width: 40, height: 40)
-        .clipShape(Circle())
+      .aspectRatio(contentMode: .fit)
+      .frame(width: 40, height: 40)
+      .clipShape(Circle())
     } else {
       Image(systemName: "person.fill")
         .font(.title2)
@@ -42,14 +42,14 @@ struct AvatarView: View {
 }
 
 struct ChatRowView: View {
-
   @Environment(\.colorScheme) var colorScheme
   let store: Store<ChatMessageResponse.Item, MessageAction>
 
-  @ViewBuilder func currentUserRow(viewStore: ViewStore<ChatMessageResponse.Item, MessageAction>) -> some View {
+  @ViewBuilder func currentUserRow(viewStore: ViewStore<ChatMessageResponse.Item, MessageAction>)
+    -> some View
+  {
     HStack {
       Group {
-
         AvatarView(avatarUrl: viewStore.sender.avatarUrl)
 
         Text(viewStore.messageBody)
@@ -63,7 +63,6 @@ struct ChatRowView: View {
       Spacer()
     }
     .background(Color(.systemBackground))
-
   }
 
   @ViewBuilder func opponentUsersRow(
@@ -80,7 +79,6 @@ struct ChatRowView: View {
           .cornerRadius(10)
 
         AvatarView(avatarUrl: viewStore.recipient?.avatarUrl)
-
       }
     }
     .background(Color(.systemBackground))
@@ -100,7 +98,7 @@ struct ChatRowView: View {
         } else {
           if #available(iOS 15.0, *) {
             opponentUsersRow(viewStore: viewStore)
-            .listRowSeparator(.hidden)
+              .listRowSeparator(.hidden)
           } else {
             opponentUsersRow(viewStore: viewStore)
           }
@@ -116,5 +114,4 @@ struct ChatRowView: View {
 
     return currentUSER.id == userId ? true : false
   }
-
 }

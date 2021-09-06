@@ -1,6 +1,6 @@
 //
 // CoreDataPublisher.swift
-//  
+//
 //
 //  Created by Saroar Khandoker on 30.03.2021.
 //
@@ -11,7 +11,6 @@ import Foundation
 
 public class CoreDataPublisher<Entity>: NSObject, NSFetchedResultsControllerDelegate, Publisher
 where Entity: NSManagedObject {
-
   public typealias Output = [Entity]
   public typealias Failure = Error
 
@@ -60,7 +59,9 @@ where Entity: NSManagedObject {
     CoreDataSubscription(fetchPublisher: self, subscriber: AnySubscriber(subscriber))
   }
 
-  public func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+  public func controllerDidChangeContent(
+    _ controller: NSFetchedResultsController<NSFetchRequestResult>
+  ) {
     let result = controller.fetchedObjects as? [Entity] ?? []
     subject.send(result)
   }
@@ -87,14 +88,16 @@ where Entity: NSManagedObject {
 
       subscriber.receive(subscription: self)
 
-      cancellable = fetchPublisher.subject.sink(receiveCompletion: { completion in
-        subscriber.receive(completion: completion)
-      }, receiveValue: { value in
-        _ = subscriber.receive(value)
-      })
+      cancellable = fetchPublisher.subject.sink(
+        receiveCompletion: { completion in
+          subscriber.receive(completion: completion)
+        },
+        receiveValue: { value in
+          _ = subscriber.receive(value)
+        })
     }
 
-    func request(_ demand: Subscribers.Demand) {}
+    func request(_: Subscribers.Demand) {}
 
     func cancel() {
       cancellable?.cancel()
@@ -102,7 +105,5 @@ where Entity: NSManagedObject {
       fetchPublisher?.dropSubscription()
       fetchPublisher = nil
     }
-
   }
-
 }

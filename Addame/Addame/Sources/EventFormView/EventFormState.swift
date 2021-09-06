@@ -5,11 +5,10 @@
 //  Created by Saroar Khandoker on 06.08.2021.
 //
 
-import Foundation
-import MapKit
-
 import ComposableArchitecture
 import ComposableArchitectureHelpers
+import Foundation
+import MapKit
 import MapView
 import SharedModels
 
@@ -17,7 +16,7 @@ extension EventFormState {
   public static let eventFormPlacholder = Self(
     title: "Walk around",
     isPostRequestOnFly: true,
-    isEventCreatedSuccessfully: false
+    isEventCreatedSuccessfully: true
   )
 }
 
@@ -40,7 +39,7 @@ public struct EventFormState: Equatable {
     catagories: [String] = Categories.allCases.map { $0.rawValue },
     actionSheet: ActionSheetState<EventFormAction>? = nil,
     alert: AlertState<EventFormAction>? = nil,
-    locationSearchState: LocationSearchState? = nil,
+    locationSearchState _: LocationSearchState? = nil,
     isPostRequestOnFly: Bool = false,
     isEventCreatedSuccessfully: Bool = false,
     currentUser: User = .draff
@@ -73,7 +72,7 @@ public struct EventFormState: Equatable {
     self.currentUser = currentUser
   }
 
-  public var title: String = String.empty
+  public var title = String.empty
   public var textFieldHeight: CGFloat = 30
   public var durationRawValue: String = DurationButtons.FourHours.rawValue
   public var durationIntValue: Int = 0
@@ -88,6 +87,7 @@ public struct EventFormState: Equatable {
       liveLocationToggleisOn = false
     }
   }
+
   public var selectedTag: String?
   public var showSuccessActionSheet = false
   public var placeMark: CLPlacemark?
@@ -108,37 +108,36 @@ public struct EventFormState: Equatable {
   public var isPostRequestOnFly: Bool = false
   public var isEventCreatedSuccessfully: Bool = false
   public var currentUser: User = .draff
-
 }
 
 extension EventFormState {
   var view: EventFormView.ViewState {
     EventFormView.ViewState(
-      title: self.title,
-      textFieldHeight: self.textFieldHeight,
-      durationRawValue: self.durationRawValue,
-      categoryRawValue: self.categoryRawValue,
-      selectedCateforyIndex: self.selectedCateforyIndex,
-      selectedDurationIndex: self.selectedDurationIndex,
-      showCategorySheet: self.showCategorySheet,
-      liveLocationToggleisOn: self.liveLocationToggleisOn,
-      moveMapView: self.moveMapView,
-      selectLocationtoggleisOn: self.selectLocationtoggleisOn,
-      selectedTag: self.selectedTag,
-      showSuccessActionSheet: self.showSuccessActionSheet,
-      placeMark: self.placeMark,
-      selectedPlace: self.selectedPlace,
-      currentPlace: self.currentPlace,
-      eventAddress: self.eventAddress,
-      selectedDutaionButtons: self.selectedDutaionButtons,
-      durations: self.durations,
-      catagories: self.catagories,
-      actionSheet: self.actionSheet,
-      alert: self.alert,
-      locationSearchState: self.locationSearchState,
-      isPostRequestOnFly: self.isPostRequestOnFly,
-      isEventCreatedSuccessfully: self.isEventCreatedSuccessfully,
-      currentUser: self.currentUser
+      title: title,
+      textFieldHeight: textFieldHeight,
+      durationRawValue: durationRawValue,
+      categoryRawValue: categoryRawValue,
+      selectedCateforyIndex: selectedCateforyIndex,
+      selectedDurationIndex: selectedDurationIndex,
+      showCategorySheet: showCategorySheet,
+      liveLocationToggleisOn: liveLocationToggleisOn,
+      moveMapView: moveMapView,
+      selectLocationtoggleisOn: selectLocationtoggleisOn,
+      selectedTag: selectedTag,
+      showSuccessActionSheet: showSuccessActionSheet,
+      placeMark: placeMark,
+      selectedPlace: selectedPlace,
+      currentPlace: currentPlace,
+      eventAddress: eventAddress,
+      selectedDutaionButtons: selectedDutaionButtons,
+      durations: durations,
+      catagories: catagories,
+      actionSheet: actionSheet,
+      alert: alert,
+      locationSearchState: locationSearchState,
+      isPostRequestOnFly: isPostRequestOnFly,
+      isEventCreatedSuccessfully: isEventCreatedSuccessfully,
+      currentUser: currentUser
     )
   }
 }

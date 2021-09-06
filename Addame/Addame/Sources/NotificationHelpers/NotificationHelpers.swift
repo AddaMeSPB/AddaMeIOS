@@ -1,14 +1,14 @@
 //
 //  NotificationHelpers.swift
-//  
+//
 //
 //  Created by Saroar Khandoker on 05.05.2021.
 //
 
 import Combine
 import ComposableArchitecture
-import UserNotificationClient
 import RemoteNotificationsClient
+import UserNotificationClient
 
 extension Effect where Output == Never, Failure == Never {
   public static func registerForRemoteNotifications(

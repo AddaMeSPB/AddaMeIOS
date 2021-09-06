@@ -1,20 +1,19 @@
-import ComposableArchitecture
-import SwiftUI
-import Contacts
-import Foundation
-import Combine
-import CoreData
-
-import CoreDataStore
-import SharedModels
-import HttpRequest
-import ChatView
 import AsyncImageLoder
+import ChatView
+import Combine
+import CombineContacts
+import ComposableArchitecture
+import ComposableArchitectureHelpers
 import ContactClient
 import ContactClientLive
-import CombineContacts
+import Contacts
+import CoreData
 import CoreDataClient
-import ComposableArchitectureHelpers
+import CoreDataStore
+import Foundation
+import HttpRequest
+import SharedModels
+import SwiftUI
 
 extension ContactsView {
   public struct ViewState: Equatable {
@@ -35,7 +34,6 @@ extension ContactsView {
 }
 
 public struct ContactsView: View {
-
   public let store: Store<ContactsState, ContactsAction>
 
   public init(store: Store<ContactsState, ContactsAction>) {
@@ -48,12 +46,12 @@ public struct ContactsView: View {
         List {
           ContactListView(
             store: viewStore.isLoading
-            ? Store(
-              initialState: ContactsState.contactsPlaceholder,
-              reducer: .empty,
-              environment: ()
-            )
-            : self.store
+              ? Store(
+                initialState: ContactsState.contactsPlaceholder,
+                reducer: .empty,
+                environment: ()
+              )
+              : self.store
           )
           .redacted(reason: viewStore.isLoading ? .placeholder : [])
         }
@@ -64,18 +62,17 @@ public struct ContactsView: View {
       .alert(self.store.scope(state: { $0.alert }), dismiss: .alertDismissed)
       .navigationBarTitle("Contacts", displayMode: .automatic)
     }
-//    .navigate(
-//      using: store.scope(
-//        state: \.chatState,
-//        action: ContactRowAction.chat
-//      ),
-//      destination: ChatView.init(store:),
-//      onDismiss: {
-//        ViewStore(store.stateless.stateless).send(.moveChatRoom(false))
-//      }
-//    )
+    //    .navigate(
+    //      using: store.scope(
+    //        state: \.chatState,
+    //        action: ContactRowAction.chat
+    //      ),
+    //      destination: ChatView.init(store:),
+    //      onDismiss: {
+    //        ViewStore(store.stateless.stateless).send(.moveChatRoom(false))
+    //      }
+    //    )
   }
-
 }
 
 // struct ContactsView_Previews: PreviewProvider {

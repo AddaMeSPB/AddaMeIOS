@@ -1,21 +1,20 @@
 //
 //  AssetExtractor.swift
-//  
+//
 //
 //  Created by Saroar Khandoker on 26.01.2021.
 //
 
 import Foundation
+
 #if os(macOS)
 
 #else
-import UIKit
+  import UIKit
 #endif
 
-public class AssetExtractor {
-
+public enum AssetExtractor {
   public static func createLocalUrl(forImageNamed name: String) -> URL? {
-
     let fileManager = FileManager.default
     let cacheDirectory = fileManager.urls(
       for: .cachesDirectory, in: .userDomainMask
@@ -38,5 +37,4 @@ public class AssetExtractor {
 
     return url
   }
-
 }

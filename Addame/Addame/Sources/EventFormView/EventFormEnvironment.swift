@@ -6,13 +6,11 @@
 //
 
 import ComposableArchitecture
-
 import EventClient
 import KeychainService
 import SharedModels
 
 public struct EventFormEnvironment {
-
   public var eventClient: EventClient
   public var mainQueue: AnySchedulerOf<DispatchQueue>
 
@@ -23,5 +21,4 @@ public struct EventFormEnvironment {
     self.eventClient = eventClient
     self.mainQueue = mainQueue
   }
-
 }

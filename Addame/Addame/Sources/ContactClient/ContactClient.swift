@@ -1,14 +1,13 @@
-import Contacts
-import SwiftUI
 import Combine
+import CombineContacts
+import Contacts
 import CoreData
 import HttpRequest
-import SharedModels
 import PhoneNumberKit
-import CombineContacts
+import SharedModels
+import SwiftUI
 
 public struct ContactClient {
-
   public typealias AuthorizationStatusHandler = () -> AnyPublisher<CNAuthorizationStatus, Never>
   public typealias BuildContactsHandler = () -> AnyPublisher<[Contact], ContactError>
   public typealias GetRegisterUsersHandler = ([Contact]) -> AnyPublisher<[User], HTTPError>
@@ -26,7 +25,6 @@ public struct ContactClient {
     self.buidContacts = buidContacts
     self.getRegisterUsersFromServer = getRegisterUsersFromServer
   }
-
 }
 
 // import Combine

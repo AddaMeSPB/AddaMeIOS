@@ -1,6 +1,6 @@
 //
 //  LazyView.swift
-//  
+//
 //
 //  Created by Saroar Khandoker on 05.03.2021.
 //

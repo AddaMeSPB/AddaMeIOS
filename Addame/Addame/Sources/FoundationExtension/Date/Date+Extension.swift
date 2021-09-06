@@ -7,42 +7,41 @@
 
 import Foundation
 
-public extension Date {
-  var toISO8601String: String? {
+extension Date {
+  public var toISO8601String: String? {
     ISO8601DateFormatter().string(from: self)
   }
 
-  func getFormattedDate(format: String) -> String {
+  public func getFormattedDate(format: String) -> String {
     let dateformat = DateFormatter()
     dateformat.locale = Locale.current
     dateformat.dateFormat = format
     return dateformat.string(from: self)
   }
 
-  var hour: Int {
-    let components = Calendar.current.dateComponents([.hour ], from: self)
+  public var hour: Int {
+    let components = Calendar.current.dateComponents([.hour], from: self)
     return components.hour ?? 0
   }
 
-  var minute: Int {
-    let components = Calendar.current.dateComponents([.minute ], from: self)
+  public var minute: Int {
+    let components = Calendar.current.dateComponents([.minute], from: self)
     return components.minute ?? 0
   }
 
-  var hourMinuteString: String {
+  public var hourMinuteString: String {
     let formatter = DateFormatter()
     formatter.dateFormat = "HH:mm"
     return formatter.string(from: self)
   }
 
-  var dayMonthYear: String {
+  public var dayMonthYear: String {
     let formatter = DateFormatter()
     formatter.dateFormat = "dd.MM.yyyy"
     return formatter.string(from: self)
   }
 
-  var dateFormatter: String {
-
+  public var dateFormatter: String {
     let dateFormatter = DateFormatter()
     dateFormatter.locale = Locale.autoupdatingCurrent
 

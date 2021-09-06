@@ -1,6 +1,6 @@
 //
 //  NavigationLink+Store.swift
-//  
+//
 //
 //  Created by Saroar Khandoker on 07.05.2021.
 //
@@ -28,8 +28,10 @@ extension NavigationLink {
     action: @escaping (_ isActive: Bool) -> Void,
     label: @escaping () -> Label
   ) -> some View
-  where DestinationContent: View,
-        Destination == IfLetStore<State, Action, DestinationContent?> {
+  where
+    DestinationContent: View,
+    Destination == IfLetStore<State, Action, DestinationContent?>
+  {
     WithViewStore(store.scope(state: { $0 != nil })) { viewStore in
       NavigationLink(
         destination: IfLetStore(

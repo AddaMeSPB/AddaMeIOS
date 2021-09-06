@@ -1,19 +1,18 @@
 //
 //  Live.swift
-//  
+//
 //
 //  Created by Saroar Khandoker on 27.01.2021.
 //
 
+import AttachmentClient
 import Combine
 import Foundation
 import HttpRequest
-import AttachmentClient
-import SharedModels
 import InfoPlist
+import SharedModels
 
 public struct AttachmentAPI {
-
   public static let build = Self()
 
   private var baseURL: URL { EnvironmentKeys.rootURL.appendingPathComponent("/attachments") }
@@ -30,12 +29,11 @@ public struct AttachmentAPI {
 
     return builder.send(scheduler: RunLoop.main)
       .catch { (error: HTTPError) -> AnyPublisher<Attachment, HTTPError> in
-        return Fail(error: error).eraseToAnyPublisher()
+        Fail(error: error).eraseToAnyPublisher()
       }
       .receive(on: DispatchQueue.main)
       .eraseToAnyPublisher()
   }
-
 }
 
 extension AttachmentClient {

@@ -1,6 +1,6 @@
 //
 //  UserNotificationClient.swift
-//  
+//
 //
 //  Created by Saroar Khandoker on 05.05.2021.
 //
@@ -10,7 +10,6 @@ import ComposableArchitecture
 import UserNotifications
 
 public struct UserNotificationClient {
-
   public var add: (UNNotificationRequest) -> Effect<Void, Error>
   public var delegate: Effect<DelegateEvent, Never>
   public var getNotificationSettings: Effect<Notification.Settings, Never>
@@ -24,7 +23,8 @@ public struct UserNotificationClient {
     case didReceiveResponse(Notification.Response, completionHandler: () -> Void)
     case openSettingsForNotification(Notification?)
     case willPresentNotification(
-      Notification, completionHandler: (UNNotificationPresentationOptions) -> Void)
+      Notification, completionHandler: (UNNotificationPresentationOptions) -> Void
+    )
 
     public static func == (lhs: Self, rhs: Self) -> Bool {
       switch (lhs, rhs) {

@@ -1,22 +1,21 @@
 //
 //  EventAction.swift
-//  
+//
 //
 //  Created by Saroar Khandoker on 06.04.2021.
 //
 
-import Foundation
+import ChatView
 import ComposableArchitecture
-import SharedModels
+import ComposableCoreLocation
+import EventDetailsView
+import EventFormView
+import Foundation
 import HttpRequest
 import MapKit
-import ComposableCoreLocation
-import EventFormView
-import ChatView
-import EventDetailsView
+import SharedModels
 
 public enum EventsAction: Equatable {
-
   case alertDismissed
   case dismissEventDetails
 
@@ -43,7 +42,6 @@ public enum EventsAction: Equatable {
   case popupSettings
   case dismissEvent
   case onAppear
-
 }
 
 public enum EventAction: Equatable {}
@@ -57,10 +55,10 @@ extension EventsAction {
       return .alertDismissed
     case .dismissEventDetails:
       return .dismissEventDetails
-    case .eventFormView(let active):
+    case let .eventFormView(active):
       return .eventFormView(isNavigate: active)
-    case .eventForm(let eventFormAction):
-      return self.eventForm(eventFormAction)
+    case let .eventForm(eventFormAction):
+      return eventForm(eventFormAction)
     case let .chatView(isNavigate: bool):
       return .chatView(isNavigate: bool)
     case let .chat(action):
@@ -69,7 +67,7 @@ extension EventsAction {
       return .event(index: index, action: action)
     case .currentLocationButtonTapped:
       return .currentLocationButtonTapped
-    case .eventTapped(let event):
+    case let .eventTapped(event):
       return eventTapped(event)
     case .popupSettings:
       return popupSettings
