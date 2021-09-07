@@ -106,7 +106,6 @@
 				C3E50C99261B5DFA00285977 /* Frameworks */,
 				C3E50C9A261B5DFA00285977 /* Resources */,
 				C36C678E26E3FC9A007CC94D /* swift-format */,
-				C36C678F26E3FCD7007CC94D /* swift-format-lint */,
 			);
 			buildRules = (
 			);
@@ -181,25 +180,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "# Type a script or drag a script file from your workspace to insert its path.\nif which swift-format >/dev/null; then\n    swift-format -m format -i -r ${PROJECT_DIR}\nelse\n    echo \"warning: swift-format not installed\"\nfi\n";
-		};
-		C36C678F26E3FCD7007CC94D /* swift-format-lint */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-			);
-			name = "swift-format-lint";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "# Type a script or drag a script file from your workspace to insert its path.\n\nif which swift-format >/dev/null; then\n    swift-format -m lint -r ${PROJECT_DIR}\n    exit 0\nelse\n    echo \"warning: swift-format not installed\"\nfi\n";
+			shellScript = "# Type a script or drag a script file from your workspace to insert its path.\nif which swift-format >/dev/null; then\n    #swift-format -m format -i -r ${PROJECT_DIR}\n    #swift-format -m lint -r ${PROJECT_DIR}\nelse\n    echo \"warning: swift-format not installed\"\nfi\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
