@@ -1,6 +1,2 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<testsuites name='EventFormViewTests.xctest' tests='1' failures='0'>
-  <testsuite name='EventFormViewTests.EventFormViewTests' tests='1' failures='0'>
-    <testcase classname='EventFormViewTests.EventFormViewTests' name='testCreatEvent' time='0.030'/>
-  </testsuite>
-</testsuites>
+<testsuites tests='0' failures='0'/>
