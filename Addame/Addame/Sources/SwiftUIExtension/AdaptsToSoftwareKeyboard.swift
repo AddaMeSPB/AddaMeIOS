@@ -1,16 +1,15 @@
 //
 //  AdaptsToSoftwareKeyboard.swift
-//  
+//
 //
 //  Created by Saroar Khandoker on 05.03.2021.
 //
 
+import Combine
 import Foundation
 import SwiftUI
-import Combine
 
 public struct AdaptsToSoftwareKeyboard: ViewModifier {
-
   @State var currentHeight: CGFloat = 0
 
   public init() {}

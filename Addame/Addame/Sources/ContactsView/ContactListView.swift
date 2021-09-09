@@ -1,31 +1,29 @@
 //
 //  ContactListView.swift
-//  
+//
 //
 //  Created by Saroar Khandoker on 12.06.2021.
 //
 
-import ComposableArchitecture
-import SwiftUI
-import Contacts
-import Foundation
-import Combine
-import CoreData
-
-import CoreDataStore
-import SharedModels
-import HttpRequest
-import ChatView
 import AsyncImageLoder
+import ChatView
+import Combine
+import CombineContacts
+import ComposableArchitecture
+import ComposableArchitectureHelpers
 import ContactClient
 import ContactClientLive
-import CombineContacts
+import Contacts
+import CoreData
 import CoreDataClient
-import ComposableArchitectureHelpers
+import CoreDataStore
+import Foundation
+import HttpRequest
+import SharedModels
+import SwiftUI
 import SwiftUIExtension
 
 struct ContactListView: View {
-
   @Environment(\.colorScheme) var colorScheme
   public let store: Store<ContactsState, ContactsAction>
 

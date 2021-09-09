@@ -1,6 +1,6 @@
 //
 //  UserClient.swift
-//  
+//
 //
 //  Created by Saroar Khandoker on 27.01.2021.
 //
@@ -8,15 +8,15 @@
 import Combine
 import Foundation
 import HttpRequest
-import SharedModels
-import UserClient
 import InfoPlist
 import KeychainService
+import SharedModels
+import UserClient
 
 func token() -> AnyPublisher<String, HTTPError> {
   guard let token: AuthTokenResponse = KeychainService.loadCodable(for: .token) else {
     print(#line, "not Authorized Token are missing")
-    return Fail(error: HTTPError.missingTokenFromIOS )
+    return Fail(error: HTTPError.missingTokenFromIOS)
       .eraseToAnyPublisher()
   }
 
@@ -26,7 +26,6 @@ func token() -> AnyPublisher<String, HTTPError> {
 }
 
 public struct UserAPI {
-
   public static let build = Self()
   private var baseURL: URL { EnvironmentKeys.rootURL.appendingPathComponent("/users/") }
 
@@ -35,7 +34,6 @@ public struct UserAPI {
     path: String,
     method: HTTPMethod
   ) -> AnyPublisher<Output, HTTPError> {
-
     return token().flatMap { token -> AnyPublisher<Output, HTTPError> in
       let builder: HttpRequest = .build(
         baseURL: baseURL,
@@ -43,45 +41,40 @@ public struct UserAPI {
         authType: .bearer(token: token),
         path: path,
         contentType: .json,
-        dataType: .encodable(input: input, encoder: .init() )
+        dataType: .encodable(input: input, encoder: .init())
       )
 
       return builder.send(scheduler: RunLoop.main)
         .catch { (error: HTTPError) -> AnyPublisher<Output, HTTPError> in
-          return Fail(error: error).eraseToAnyPublisher()
+          Fail(error: error).eraseToAnyPublisher()
         }
         .receive(on: DispatchQueue.main)
         .eraseToAnyPublisher()
     }
     .catch { (error: HTTPError) -> AnyPublisher<Output, HTTPError> in
-      return Fail(error: error).eraseToAnyPublisher()
+      Fail(error: error).eraseToAnyPublisher()
     }
     .receive(on: DispatchQueue.main)
     .eraseToAnyPublisher()
   }
 
   public func me(id: String, path: String) -> AnyPublisher<User, HTTPError> {
-
     return tokenHandle(input: id, path: path, method: .get)
       .catch { (error: HTTPError) -> AnyPublisher<User, HTTPError> in
-        return Fail(error: error).eraseToAnyPublisher()
+        Fail(error: error).eraseToAnyPublisher()
       }
       .receive(on: DispatchQueue.main)
       .eraseToAnyPublisher()
-
   }
 
   public func update(user: User, path: String) -> AnyPublisher<User, HTTPError> {
-
     return tokenHandle(input: user, path: path, method: .post)
       .catch { (error: HTTPError) -> AnyPublisher<User, HTTPError> in
-        return Fail(error: error).eraseToAnyPublisher()
+        Fail(error: error).eraseToAnyPublisher()
       }
       .receive(on: DispatchQueue.main)
       .eraseToAnyPublisher()
-
   }
-
 }
 
 extension UserClient {

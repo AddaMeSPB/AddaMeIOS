@@ -6,22 +6,22 @@
 //
 
 import Combine
-import Foundation
+import CombineContacts
 import ContactClient
-import HttpRequest
-import SharedModels
-import InfoPlist
-import KeychainService
 import Contacts
 import CoreData
-import PhoneNumberKit
-import CombineContacts
 import CoreDataStore
+import Foundation
+import HttpRequest
+import InfoPlist
+import KeychainService
+import PhoneNumberKit
+import SharedModels
 
 func token() -> AnyPublisher<String, HTTPError> {
   guard let token: AuthTokenResponse = KeychainService.loadCodable(for: .token) else {
     print(#line, "not Authorized Token are missing")
-    return Fail(error: HTTPError.missingTokenFromIOS )
+    return Fail(error: HTTPError.missingTokenFromIOS)
       .eraseToAnyPublisher()
   }
 
@@ -31,7 +31,6 @@ func token() -> AnyPublisher<String, HTTPError> {
 }
 
 public struct ContactAPI {
-
   public static let build = Self()
   private var baseURL: URL {
     EnvironmentKeys.rootURL.appendingPathComponent("/contacts/")
@@ -63,16 +62,16 @@ public struct ContactAPI {
   }
 
   public var requestAccess: AnyPublisher<Bool, ContactError> {
-    return self.combineContact.requestAccess(for: .contacts)
+    return combineContact.requestAccess(for: .contacts)
       .mapError { error in
-        return error
+        error
       }.eraseToAnyPublisher()
   }
 
   public func getCNContacts() -> AnyPublisher<[CNContact], ContactError> {
-    return self.combineContact.containers(matching: nil)
+    return combineContact.containers(matching: nil)
       .flatMap { containers -> AnyPublisher<CNContainer, ContactError> in
-        return containers
+        containers
           .publisher
           .setFailureType(to: ContactError.self)
           .eraseToAnyPublisher()
@@ -82,16 +81,15 @@ public struct ContactAPI {
         self.combineContact.unifiedContacts(matching: predicate, keysToFetch: keysToFetch)
       }
       .mapError {
-        return $0
+        $0
       }
       .eraseToAnyPublisher()
   }
 
   public func buildCustomContacts() -> AnyPublisher<[Contact], ContactError> {
-
-    return self.getCNContacts()
+    return getCNContacts()
       .flatMap { cnContacts -> AnyPublisher<CNContact, ContactError> in
-        return cnContacts
+        cnContacts
           .publisher
           .setFailureType(to: ContactError.self)
           .eraseToAnyPublisher()
@@ -100,7 +98,7 @@ public struct ContactAPI {
       .reduce([Contact](), +)
       .removeDuplicates()
       .mapError {
-        return $0
+        $0
       }
       .eraseToAnyPublisher()
   }
@@ -117,12 +115,12 @@ public struct ContactAPI {
       .compactMap {
         ($0.0, try? self.phoneNumberKit.parse($0.1, withRegion: region.regionCode ?? "RU"))
       }
-      .filter({ $0.1?.type == .mobile })
+      .filter { $0.1?.type == .mobile }
       .map {
-        return (identifier: $0.0, formattedPhoneNumber: self.phoneNumberKit.format($0.1!, toType: .e164))
+        (identifier: $0.0, formattedPhoneNumber: self.phoneNumberKit.format($0.1!, toType: .e164))
       }
       .map {
-        return Contact(
+        Contact(
           identifier: $0.identifier,
           userId: currentUSER.id, phoneNumber: $0.formattedPhoneNumber,
           fullName: fullName
@@ -138,37 +136,36 @@ public struct ContactAPI {
         authType: .bearer(token: token),
         path: "",
         contentType: .json,
-        dataType: .encodable(input: contacts, encoder: .init() )
+        dataType: .encodable(input: contacts, encoder: .init())
       )
 
       return builder.send(scheduler: RunLoop.main)
         .catch { (error: HTTPError) -> AnyPublisher<[User], HTTPError> in
-          return Fail(error: error).eraseToAnyPublisher()
+          Fail(error: error).eraseToAnyPublisher()
         }
         .receive(on: DispatchQueue.main)
         .eraseToAnyPublisher()
     }
     .catch { (error: HTTPError) -> AnyPublisher<[User], HTTPError> in
-      return Fail(error: error).eraseToAnyPublisher()
+      Fail(error: error).eraseToAnyPublisher()
     }
     .catch { (error: HTTPError) -> AnyPublisher<[User], HTTPError> in
-      return Fail(error: error).eraseToAnyPublisher()
+      Fail(error: error).eraseToAnyPublisher()
     }
     .receive(on: DispatchQueue.main)
     .eraseToAnyPublisher()
   }
 
   public func getRegUsers(by contacts: [Contact]) -> AnyPublisher<[User], HTTPError> {
-    return self.buildCustomContacts()
+    return buildCustomContacts()
       .mapError { contactError -> HTTPError in
-        return HTTPError.custom("from contactError to httpError", contactError)
+        HTTPError.custom("from contactError to httpError", contactError)
       }
       .flatMapLatest { contacts -> AnyPublisher<[User], HTTPError> in
         self.fetchUsers(by: contacts)
       }
       .eraseToAnyPublisher()
   }
-
 }
 
 extension ContactClient {

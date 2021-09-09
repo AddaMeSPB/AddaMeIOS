@@ -3,10 +3,9 @@ name: Swift
 on:
   pull_request:
     branches: [ main ]
-    branches: [ develop ]
 
 jobs:
-
+  
   swiftLint:
     runs-on: macos-latest
     steps:
@@ -29,8 +28,8 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: build
-        path: derivedData/Build/Products/Debug-iphonesimulator/Addame.app
-
+        path: derivedData/Build/Products/Debug-iphonesimulator/Addame.app     
+     
   unitTests:
     needs: build
     runs-on: macos-latest
@@ -45,3 +44,4 @@ jobs:
       run: bundle install
     - name: Run unit tests
       run: bundle exec fastlane unitTestLane
+

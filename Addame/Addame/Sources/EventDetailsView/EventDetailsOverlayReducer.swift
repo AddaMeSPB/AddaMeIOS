@@ -1,19 +1,18 @@
 //
 //  EventDetailsOverlayReducer.swift
-//  
+//
 //
 //  Created by Saroar Khandoker on 12.07.2021.
 //
 
 import ComposableArchitecture
-import SharedModels
 import KeychainService
+import SharedModels
 
 public let eventDetailsOverlayReducer = Reducer<
   EventDetailsOverlayState, EventDetailsOverlayAction, EventDetailsEnvironment
 > { state, action, environment in
   switch action {
-
   case .onAppear:
 
     return environment.conversationClient.find("", state.event.conversationsId)
@@ -30,7 +29,7 @@ public let eventDetailsOverlayReducer = Reducer<
 
   case let .askJoinRequest(bool):
     guard let currentUSER: User = KeychainService.loadCodable(for: .user),
-          let conversation = state.conversation
+      let conversation = state.conversation
     else {
       return .none
     }
@@ -58,7 +57,7 @@ public let eventDetailsOverlayReducer = Reducer<
     state.conversation = conversationItem
     return .none
   case let .conversationResponse(.failure(error)):
-    state.alert = .init(title: TextState("Something went wrong please try again later") )
+    state.alert = .init(title: TextState("Something went wrong please try again later"))
     return .none
   }
 }

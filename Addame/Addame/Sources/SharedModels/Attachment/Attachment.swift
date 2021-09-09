@@ -8,7 +8,6 @@
 import Foundation
 
 public struct Attachment: Codable, Equatable {
-
   public enum AttachmentType: String, Codable, Equatable {
     case file, image, audio, video
   }
@@ -48,5 +47,4 @@ public struct Attachment: Codable, Equatable {
     guard let lhsDate = lhs.createdAt, let rhsDate = rhs.createdAt else { return false }
     return lhsDate > rhsDate
   }
-
 }

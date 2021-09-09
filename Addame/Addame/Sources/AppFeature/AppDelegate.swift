@@ -1,15 +1,15 @@
-import UIKit
-import ComposableArchitecture
-import UserNotifications
-import UserNotificationClient
-import RemoteNotificationsClient
 import AuthClient
-import UserClient
-import EventClient
 import ChatClient
+import ComposableArchitecture
 import ConversationClient
+import EventClient
 import NotificationHelpers
+import RemoteNotificationsClient
 import SettingsView
+import UIKit
+import UserClient
+import UserNotificationClient
+import UserNotifications
 
 public enum AppDelegateAction: Equatable {
   case didFinishLaunching
@@ -25,15 +25,15 @@ struct AppDelegateEnvironment {
   var remoteNotifications: RemoteNotificationsClient
   var authClient: AuthClient
 
-//  #if DEBUG
-//    static let failing = Self(
-//      backgroundQueue: .failing("backgroundQueue"),
-//      mainQueue: .failing("mainQueue"),
-//      remoteNotifications: .failing,
-//      setUserInterfaceStyle: { _ in .failing("setUserInterfaceStyle") },
-//      userNotifications: .failing
-//    )
-//  #endif
+  //  #if DEBUG
+  //    static let failing = Self(
+  //      backgroundQueue: .failing("backgroundQueue"),
+  //      mainQueue: .failing("mainQueue"),
+  //      remoteNotifications: .failing,
+  //      setUserInterfaceStyle: { _ in .failing("setUserInterfaceStyle") },
+  //      userNotifications: .failing
+  //    )
+  //  #endif
 }
 
 let appDelegateReducer = Reducer<
@@ -74,21 +74,21 @@ let appDelegateReducer = Reducer<
   case let .didRegisterForRemoteNotifications(.success(tokenData)):
     let token = tokenData.map { String(format: "%02.2hhx", $0) }.joined()
     return .none
-//    environment.userNotifications.getNotificationSettings
-//      .flatMap { settings in
-//        environment.apiClient.apiRequest(
-//          route: .push(
-//            .register(
-//              .init(
-//                authorizationStatus: .init(rawValue: settings.authorizationStatus.rawValue),
-//                build: environment.build.number(),
-//                token: token
-//              )
-//            )
-//          )
-//        )
-//      }
-//      .fireAndForget()
+  //    environment.userNotifications.getNotificationSettings
+  //      .flatMap { settings in
+  //        environment.apiClient.apiRequest(
+  //          route: .push(
+  //            .register(
+  //              .init(
+  //                authorizationStatus: .init(rawValue: settings.authorizationStatus.rawValue),
+  //                build: environment.build.number(),
+  //                token: token
+  //              )
+  //            )
+  //          )
+  //        )
+  //      }
+  //      .fireAndForget()
 
   case let .userNotifications(.willPresentNotification(_, completionHandler)):
     return .fireAndForget {
@@ -101,10 +101,9 @@ let appDelegateReducer = Reducer<
   case let .userSettingsLoaded(result):
     state = (try? result.get()) ?? state
     return environment.setUserInterfaceStyle(state.colorScheme.userInterfaceStyle)
-        // NB: This is necessary because UIKit needs at least one tick of the run loop before we
-        //     can set the user interface style.
-        .subscribe(on: environment.mainQueue)
-        .fireAndForget()
-
+      // NB: This is necessary because UIKit needs at least one tick of the run loop before we
+      //     can set the user interface style.
+      .subscribe(on: environment.mainQueue)
+      .fireAndForget()
   }
 }

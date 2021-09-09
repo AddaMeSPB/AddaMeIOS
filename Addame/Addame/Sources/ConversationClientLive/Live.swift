@@ -1,22 +1,22 @@
 //
 //  ConversationAPI.swift
-//  
+//
 //
 //  Created by Saroar Khandoker on 22.02.2021.
 //
 
 import Combine
-import Foundation
 import ConversationClient
+import Foundation
 import HttpRequest
-import SharedModels
 import InfoPlist
 import KeychainService
+import SharedModels
 
 func token() -> AnyPublisher<String, HTTPError> {
   guard let token: AuthTokenResponse = KeychainService.loadCodable(for: .token) else {
     print(#line, "not Authorized Token are missing")
-    return Fail(error: HTTPError.missingTokenFromIOS )
+    return Fail(error: HTTPError.missingTokenFromIOS)
       .eraseToAnyPublisher()
   }
 
@@ -26,7 +26,6 @@ func token() -> AnyPublisher<String, HTTPError> {
 }
 
 public struct ConversationAPI {
-
   public static let build = Self()
   private var baseURL: URL { EnvironmentKeys.rootURL.appendingPathComponent("/conversations") }
 
@@ -37,7 +36,6 @@ public struct ConversationAPI {
     params: [String: Any] = [:],
     queryItems: [URLQueryItem] = []
   ) -> AnyPublisher<Output, HTTPError> {
-
     return token().flatMap { token -> AnyPublisher<Output, HTTPError> in
       let builder: HttpRequest = .build(
         baseURL: baseURL,
@@ -55,13 +53,13 @@ public struct ConversationAPI {
 
       return builder.send(scheduler: RunLoop.main)
         .catch { (error: HTTPError) -> AnyPublisher<Output, HTTPError> in
-          return Fail(error: error).eraseToAnyPublisher()
+          Fail(error: error).eraseToAnyPublisher()
         }
         .receive(on: DispatchQueue.main)
         .eraseToAnyPublisher()
     }
     .catch { (error: HTTPError) -> AnyPublisher<Output, HTTPError> in
-      return Fail(error: error).eraseToAnyPublisher()
+      Fail(error: error).eraseToAnyPublisher()
     }
     .receive(on: DispatchQueue.main)
     .eraseToAnyPublisher()
@@ -73,16 +71,17 @@ public struct ConversationAPI {
     params: [String: Any] = [:],
     queryItems: [URLQueryItem] = []
   ) -> AnyPublisher<Output, HTTPError> {
-    return tokenHandle(input: Never?.none, path: path, method: method, params: params, queryItems: queryItems)
-      .receive(on: DispatchQueue.main)
-      .eraseToAnyPublisher()
+    return tokenHandle(
+      input: Never?.none, path: path, method: method, params: params, queryItems: queryItems
+    )
+    .receive(on: DispatchQueue.main)
+    .eraseToAnyPublisher()
   }
 
   public func create(event: Event, path: String) -> AnyPublisher<Event, HTTPError> {
-
     return tokenHandle(input: event, path: path, method: .post)
       .catch { (error: HTTPError) -> AnyPublisher<Event, HTTPError> in
-        return Fail(error: error).eraseToAnyPublisher()
+        Fail(error: error).eraseToAnyPublisher()
       }
       .receive(on: DispatchQueue.main)
       .eraseToAnyPublisher()
@@ -94,11 +93,10 @@ public struct ConversationAPI {
   ) -> AnyPublisher<ConversationResponse.Item, HTTPError> {
     return tokenHandle(input: conversation, path: path, method: .post)
       .catch { (error: HTTPError) -> AnyPublisher<ConversationResponse.Item, HTTPError> in
-        return Fail(error: error).eraseToAnyPublisher()
+        Fail(error: error).eraseToAnyPublisher()
       }
       .receive(on: DispatchQueue.main)
       .eraseToAnyPublisher()
-
   }
 
   public func addUserToConversation(
@@ -113,34 +111,34 @@ public struct ConversationAPI {
       ]
     )
     .catch { (error: HTTPError) -> AnyPublisher<ConversationResponse.UserAdd, HTTPError> in
-      return Fail(error: error).eraseToAnyPublisher()
+      Fail(error: error).eraseToAnyPublisher()
     }
     .receive(on: DispatchQueue.main)
     .eraseToAnyPublisher()
   }
 
-  public func list(query: QueryItem, path: String ) -> AnyPublisher<ConversationResponse, HTTPError> {
+  public func list(query: QueryItem, path: String) -> AnyPublisher<ConversationResponse, HTTPError> {
     return tokenHandle(input: query, path: path, method: .get)
       .catch { (error: HTTPError) -> AnyPublisher<ConversationResponse, HTTPError> in
-        return Fail(error: error).eraseToAnyPublisher()
+        Fail(error: error).eraseToAnyPublisher()
       }
       .receive(on: DispatchQueue.main)
       .eraseToAnyPublisher()
   }
 
-  public func find(conversationsId: String, path: String) -> AnyPublisher<ConversationResponse.Item, HTTPError> {
+  public func find(conversationsId: String, path: String) -> AnyPublisher<
+    ConversationResponse.Item, HTTPError
+  > {
     return tokenHandle(
       path: path, method: .get,
       params: ["conversationsId": conversationsId]
     )
     .catch { (error: HTTPError) -> AnyPublisher<ConversationResponse.Item, HTTPError> in
-      return Fail(error: error).eraseToAnyPublisher()
+      Fail(error: error).eraseToAnyPublisher()
     }
     .receive(on: DispatchQueue.main)
     .eraseToAnyPublisher()
-
   }
-
 }
 
 extension ConversationClient {
@@ -155,7 +153,7 @@ extension ConversationClient {
 }
 
 extension Never: Encodable {
-    public func encode(to encoder: Encoder) throws {
-      fatalError("Never error called")
-    }
+  public func encode(to _: Encoder) throws {
+    fatalError("Never error called")
+  }
 }

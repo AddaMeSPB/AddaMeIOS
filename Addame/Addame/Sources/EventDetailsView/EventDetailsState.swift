@@ -1,19 +1,17 @@
 //
 //  EventDetailsState.swift
-//  
+//
 //
 //  Created by Saroar Khandoker on 12.07.2021.
 //
 
+import ChatView
 import ComposableArchitecture
 import MapKit
-
 import MapView
 import SharedModels
-import ChatView
 
 public struct EventDetailsState: Equatable {
-
   public init(
     alert: AlertState<EventDetailsAction>? = nil,
     event: EventResponse.Item,
@@ -44,13 +42,13 @@ public struct EventDetailsState: Equatable {
 extension EventDetailsState {
   var view: EventDetailsView.ViewState {
     EventDetailsView.ViewState(
-      alert: self.alert,
-      event: self.event,
-      pointsOfInterest: self.pointsOfInterest,
-      region: self.region,
-      conversation: self.conversation,
-      chatMembers: self.chatMembers,
-      eventDetailsOverlayState: self.eventDetailsOverlayState
+      alert: alert,
+      event: event,
+      pointsOfInterest: pointsOfInterest,
+      region: region,
+      conversation: conversation,
+      chatMembers: chatMembers,
+      eventDetailsOverlayState: eventDetailsOverlayState
     )
   }
 }
@@ -62,7 +60,8 @@ extension EventDetailsState {
 
   public static let event = EventResponse.Item(
     id: "5fbea245b226053f0ece711c", name: "Walk Around 🚶🏽🚶🏼‍♀️", categories: "LookingForAcompany",
-    imageUrl: "https://avatars.mds.yandex.net/get-pdb/2776508/af73774d-7409-4e73-81c8-c8ab127c2f8b/s1200?webp=false",
+    imageUrl:
+      "https://avatars.mds.yandex.net/get-pdb/2776508/af73774d-7409-4e73-81c8-c8ab127c2f8b/s1200?webp=false",
     duration: 14400, isActive: true, conversationsId: "5fbe8a8c492346f651b57946",
     addressName: "188839, Первомайское, СНТ Славино-2 Поселок, 31 Первомайское Россия",
     type: "Point", sponsored: false, overlay: false,

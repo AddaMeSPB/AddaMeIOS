@@ -1,28 +1,27 @@
 //
 //  TabsView.swift
-//  
+//
 //
 //  Created by Saroar Khandoker on 06.04.2021.
 //
 
 import ComposableArchitecture
-import EventView
 import ConversationsView
+import EventView
 import ProfileView
 import SwiftUI
 
 public struct TabsView: View {
-
   @AppStorage("isUserFirstNameEmpty")
   public var isUserFirstNameEmpty: Bool = true
   @Environment(\.colorScheme) var colorScheme
 
   struct ViewState: Equatable {
     public init(state: TabsState) {
-      self.selectedTab = state.selectedTab
-      self.event = state.event
-      self.conversations = state.conversations
-      self.profile = state.profile
+      selectedTab = state.selectedTab
+      event = state.event
+      conversations = state.conversations
+      profile = state.profile
     }
 
     public var selectedTab: Tabs
@@ -39,10 +38,12 @@ public struct TabsView: View {
 
   public var body: some View {
     WithViewStore(self.store.scope(state: ViewState.init)) { viewStore in
-      TabView(selection: viewStore.binding(
-        get: \.selectedTab,
-        send: TabsAction.didSelectTab
-      )) {
+      TabView(
+        selection: viewStore.binding(
+          get: \.selectedTab,
+          send: TabsAction.didSelectTab
+        )
+      ) {
         ForEach(
           Tabs.allCases, content: tabView(_:)
         )
@@ -83,10 +84,11 @@ public struct TabsView: View {
     switch tabs {
     case .event:
       NavigationView {
-        EventView(store: store.scope(
-          state: \.event,
-          action: TabsAction.event
-        ))
+        EventView(
+          store: store.scope(
+            state: \.event,
+            action: TabsAction.event
+          ))
       }
       .onAppear {
         ViewStore(store.stateless).send(.event(.onAppear))
@@ -95,10 +97,11 @@ public struct TabsView: View {
 
     case .conversation:
       NavigationView {
-        ConversationsView(store: store.scope(
-          state: \.conversations,
-          action: TabsAction.conversation
-        ))
+        ConversationsView(
+          store: store.scope(
+            state: \.conversations,
+            action: TabsAction.conversation
+          ))
       }
       .onAppear {
         ViewStore(store.stateless).send(.conversation(.onAppear))
@@ -108,10 +111,11 @@ public struct TabsView: View {
     case .profile:
 
       NavigationView {
-        ProfileView(store: store.scope(
-          state: \.profile,
-          action: TabsAction.profile
-        ))
+        ProfileView(
+          store: store.scope(
+            state: \.profile,
+            action: TabsAction.profile
+          ))
       }
       .onAppear {
         ViewStore(store.stateless).send(.profile(.fetchMyData))
@@ -122,7 +126,6 @@ public struct TabsView: View {
 }
 
 struct TabsView_Previews: PreviewProvider {
-
   static let tabsEnv = TabsEnvironment(
     backgroundQueue: .immediate,
     mainQueue: .immediate,

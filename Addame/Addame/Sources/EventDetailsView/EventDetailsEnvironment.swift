@@ -1,6 +1,6 @@
 //
 //  EventDetailsEnvironment.swift
-//  
+//
 //
 //  Created by Saroar Khandoker on 12.07.2021.
 //
@@ -19,5 +19,4 @@ public struct EventDetailsEnvironment {
 
   public let conversationClient: ConversationClient
   var mainQueue: AnySchedulerOf<DispatchQueue>
-
 }

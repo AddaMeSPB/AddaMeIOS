@@ -14,6 +14,6 @@ extension Binding where Value: Equatable {
 
 extension Binding where Value: Equatable {
   public func removeDuplicates() -> Self {
-    self.removeDuplicates(by: ==)
+    removeDuplicates(by: ==)
   }
 }

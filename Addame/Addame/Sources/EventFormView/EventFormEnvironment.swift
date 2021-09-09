@@ -6,13 +6,11 @@
 //
 
 import ComposableArchitecture
-
 import EventClient
 import KeychainService
 import SharedModels
 
 public struct EventFormEnvironment {
-
   public var eventClient: EventClient
   public var mainQueue: AnySchedulerOf<DispatchQueue>
 
@@ -23,14 +21,4 @@ public struct EventFormEnvironment {
     self.eventClient = eventClient
     self.mainQueue = mainQueue
   }
-
-  public var currentUser: User {
-    guard let currentUSER: User = KeychainService.loadCodable(for: .user) else {
-      assertionFailure("current user is missing")
-      return User.draff
-    }
-
-    return currentUSER
-  }
-
 }

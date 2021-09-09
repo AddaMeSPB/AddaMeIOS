@@ -1,13 +1,13 @@
 //
 //  ChatListView.swift
-//  
+//
 //
 //  Created by Saroar Khandoker on 17.06.2021.
 //
 
 import ComposableArchitecture
-import SwiftUI
 import SharedModels
+import SwiftUI
 
 struct ChatListView: View {
   let store: Store<ChatState, ChatAction>
@@ -25,7 +25,7 @@ struct ChatListView: View {
         WithViewStore(chatStore) { messageViewStore in
           ChatRowView(store: chatStore)
             .onAppear {
-              viewStore.send(.fetchMoreMessageIfNeeded(currentItem: messageViewStore.state) )
+              viewStore.send(.fetchMoreMessageIfNeeded(currentItem: messageViewStore.state))
             }
             .scaleEffect(x: 1, y: -1, anchor: .center)
         }

@@ -1,6 +1,6 @@
 //
 //  Live.swift
-//  
+//
 //
 //  Created by Saroar Khandoker on 06.01.2021.
 //
@@ -16,7 +16,8 @@ extension PathMonitorClient {
     monitor.pathUpdateHandler = subject.send
 
     return Self(
-      networkPathPublisher: subject
+      networkPathPublisher:
+        subject
         .handleEvents(
           receiveSubscription: { _ in monitor.start(queue: queue) },
           receiveCancel: monitor.cancel

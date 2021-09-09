@@ -111,3 +111,9 @@ vendor
 .bundle/config
 Addame/Configs/Development.xcconfig
 Addame/Configs/Production.xcconfig
+
+
+*.ipa
+*.dSYM.*
+/fastlane/report.xml
+/fastlane/FastlaneRunner

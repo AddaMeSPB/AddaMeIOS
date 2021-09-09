@@ -1,27 +1,26 @@
 //
 //  ContactRowReducer.swift
-//  
+//
 //
 //  Created by Saroar Khandoker on 25.06.2021.
 //
 
+import ChatClient
+import ChatClientLive
+import ChatView
 import Combine
 import ComposableArchitecture
 import ComposableArchitectureHelpers
-import SwiftUI
-import SharedModels
 import HttpRequest
-import ChatView
-
-import ChatClient
-import ChatClientLive
+import SharedModels
+import SwiftUI
 
 public struct ContactRowEnvironment {}
 
-public let contactRowReducer = Reducer<ContactRowState, ContactRowAction, ContactRowEnvironment> { state, action, _ in
+public let contactRowReducer = Reducer<ContactRowState, ContactRowAction, ContactRowEnvironment> {
+  state, action, _ in
 
   switch action {
-
   case let .moveToChatRoom(present):
     state.isMoving = true
     return .none

@@ -1,22 +1,21 @@
 //
 //  AppView.swift
-//  
+//
 //
 //  Created by Saroar Khandoker on 05.05.2021.
 //
 
-import ComposableArchitecture
-import SwiftUI
-import EventView
-import ConversationsView
-import ProfileView
-import TabsView
-import AuthenticationView
 import AuthClient
 import AuthClientLive
+import AuthenticationView
+import ComposableArchitecture
+import ConversationsView
+import EventView
+import ProfileView
+import SwiftUI
+import TabsView
 
 public struct AppView: View {
-
   public init() {}
 
   @AppStorage("isAuthorized")
@@ -37,17 +36,21 @@ public struct AppView: View {
 
   let tabsStore = Store(
     initialState: tabsState,
-    reducer: tabsReducer, // .debug(),
+    reducer: tabsReducer,  // .debug(),
     environment: tabsEnv
   )
 
   static let environment = AuthenticationEnvironment(
-    authClient: AuthClient.live(api: .build) ,
+    authClient: AuthClient.live(api: .build),
     mainQueue: DispatchQueue.main.eraseToAnyScheduler()
   )
 
   static let authState = LoginState.build
-  let authStore = Store(initialState: authState, reducer: loginReducer, environment: environment)
+  let authStore = Store(
+    initialState: authState,
+    reducer: loginReducer,
+    environment: environment
+  )
 
   @ViewBuilder
   public var body: some View {

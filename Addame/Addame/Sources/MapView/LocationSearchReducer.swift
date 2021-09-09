@@ -6,9 +6,10 @@
 //
 
 import Combine
-import SwiftUI
-import MapKit
 import ComposableArchitecture
+import Contacts
+import MapKit
+import SwiftUI
 
 private struct LocationManagerId: Hashable {}
 private struct CancelSearchId: Hashable {}
@@ -60,7 +61,7 @@ public let locationSearchReducer = Reducer<
     state.isEditing = trigger
     return .none
 
-  case .locationSearchManager(.completerDidUpdateResults(completer: let completer)):
+  case let .locationSearchManager(.completerDidUpdateResults(completer: completer)):
     state.pointsOfInterest = .init(uniqueElements: completer.results)
     return .none
 
@@ -75,7 +76,7 @@ public let locationSearchReducer = Reducer<
     return .none
 
   case let .didSelect(address: results):
-    let address = results.title // + " " + results.subtitle
+    let address = results.title  // + " " + results.subtitle
     return environment.getCoordinate(address)
       .receive(on: environment.mainQueue)
       .catchToEffect()
@@ -83,7 +84,6 @@ public let locationSearchReducer = Reducer<
 
   case let .pointOfInterest(index: index, address: address):
     return .none
-
   }
 }
 .combined(
@@ -102,22 +102,20 @@ private let locationManagerReducer = Reducer<
   LocationSearchState, LocalSearchManager.Action, LocationEnvironment
 > { state, action, _ in
   switch action {
-  case .completerDidUpdateResults(completer: let completer):
+  case let .completerDidUpdateResults(completer: completer):
     state.pointsOfInterest = .init(uniqueElements: completer.results)
     return .none
-  case .completer(_, didFailWithError: let didFailWithError):
+  case let .completer(_, didFailWithError: didFailWithError):
     return .none
   }
 }
-
-import Contacts
 
 extension MKPlacemark {
   var formattedAddress: String? {
     guard let postalAddress = postalAddress else { return nil }
     return CNPostalAddressFormatter.string(
-      from: postalAddress, style: .mailingAddress)
-      .replacingOccurrences(of: "\n", with: " "
-      )
+      from: postalAddress, style: .mailingAddress
+    )
+    .replacingOccurrences(of: "\n", with: " ")
   }
 }

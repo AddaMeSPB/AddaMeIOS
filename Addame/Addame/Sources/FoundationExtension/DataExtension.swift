@@ -7,8 +7,8 @@
 
 import Foundation
 
-public extension Data {
-  func toHexString() -> String {
+extension Data {
+  public func toHexString() -> String {
     return map { String(format: "%02.2hhx", $0) }.joined()
   }
 }

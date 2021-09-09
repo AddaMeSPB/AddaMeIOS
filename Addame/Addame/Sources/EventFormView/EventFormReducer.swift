@@ -5,12 +5,13 @@
 //  Created by Saroar Khandoker on 06.08.2021.
 //
 
-import Foundation
-import SwiftUI
 import ComposableArchitecture
-import SharedModels
+import Foundation
 import HttpRequest
+import KeychainService
 import MapView
+import SharedModels
+import SwiftUI
 
 public let eventFormReducer = Reducer<
   EventFormState, EventFormAction, EventFormEnvironment
@@ -18,6 +19,12 @@ public let eventFormReducer = Reducer<
 
   switch action {
   case .didAppear:
+    guard let currentUSER: User = KeychainService.loadCodable(for: .user) else {
+      // assertionFailure("current user is missing")
+      return .none
+    }
+    state.currentUser = currentUSER
+
     return .none
   case .didDisappear:
     return .none
@@ -47,17 +54,11 @@ public let eventFormReducer = Reducer<
   case .backToPVAfterCreatedEventSuccessfully:
     return .none
 
-  case .successFullMsg:
+  case let .eventsResponse(.success(event)):
     state.isEventCreatedSuccessfully = true
     state.isPostRequestOnFly = false
     return Effect(value: EventFormAction.backToPVAfterCreatedEventSuccessfully)
       .delay(for: 3, scheduler: environment.mainQueue)
-      .eraseToEffect()
-
-  case let .eventsResponse(.success(event)):
-
-    return Effect(value: EventFormAction.successFullMsg)
-      .receive(on: environment.mainQueue)
       .eraseToEffect()
 
   case let .eventsResponse(.failure(error)):
@@ -74,7 +75,7 @@ public let eventFormReducer = Reducer<
     let event = Event(
       name: state.title,
       details: "",
-      imageUrl: environment.currentUser.attachments?.last?.imageUrlString,
+      imageUrl: state.currentUser.attachments?.last?.imageUrlString,
       duration: state.durationIntValue,
       categories: state.categoryRawValue,
       isActive: true,
@@ -82,25 +83,28 @@ public let eventFormReducer = Reducer<
       type: .Point,
       sponsored: false,
       overlay: false,
-      coordinates: [coordinate.longitude, coordinate.latitude] // selectedPlace.coordinatesMongoDouble
+      coordinates: [coordinate.longitude, coordinate.latitude]
+      // mongoDB coordicate have to long then lat
+      // selectedPlace.coordinatesMongoDouble
     )
 
     state.isPostRequestOnFly = true
-    return environment.eventClient.create(event, "")
+    return environment.eventClient
+      .create(event, "")
       .retry(3)
       .receive(on: environment.mainQueue)
-      .catchToEffect()
-      .map(EventFormAction.eventsResponse)
+      .catchToEffect(EventFormAction.eventsResponse)
 
   case .actionSheetButtonTapped:
     let cancel = ActionSheetState<EventFormAction>.Button.cancel()
 
-    var alertButtons: [ActionSheetState<EventFormAction>.Button] = Categories.allCases.enumerated().map { _, item in
-      return .default(
-        .init("\(item.rawValue)"),
-        send: .selectedCategories(item)
-      )
-    }
+    var alertButtons: [ActionSheetState<EventFormAction>.Button] = Categories.allCases.enumerated()
+      .map { _, item in
+        .default(
+          .init("\(item.rawValue)"),
+          action: .send(.selectedCategories(item))
+        )
+      }
     alertButtons.append(cancel)
 
     state.actionSheet = .init(
@@ -162,7 +166,6 @@ public let eventFormReducer = Reducer<
 
   case let .locationSearch(action):
     return .none
-
   }
 }
 .presents(

@@ -1,19 +1,19 @@
 //
 //  ConversationsView.swift
-//  
+//
 //
 //  Created by Saroar Khandoker on 19.04.2021.
 //
 
-import SwiftUI
-import ComposableArchitecture
-import SharedModels
 import AsyncImageLoder
-import SwiftUIExtension
-import HttpRequest
 import ChatView
-import ContactsView
+import ComposableArchitecture
 import ComposableArchitectureHelpers
+import ContactsView
+import HttpRequest
+import SharedModels
+import SwiftUI
+import SwiftUIExtension
 
 extension ConversationsView {
   public struct ViewState: Equatable {
@@ -41,7 +41,7 @@ extension ConversationsView {
     public var conversation: ConversationResponse.Item?
     public var chatState: ChatState?
     public var contactsState: ContactsState?
-    public var isSheetPresented: Bool { self.contactsState != nil }
+    public var isSheetPresented: Bool { contactsState != nil }
     public var createConversation: CreateConversation?
   }
 
@@ -59,7 +59,6 @@ extension ConversationsView {
 }
 
 public struct ConversationsView: View {
-
   @State private var showingSheet = false
   public let store: Store<ConversationsState, ConversationsAction>
 
@@ -88,14 +87,13 @@ public struct ConversationsView: View {
           )
           .redacted(reason: viewStore.isLoadingPage ? .placeholder : [])
         }
-
       }
       .navigationTitle("Chats")
       .toolbar {
         ToolbarItem(placement: .navigationBarTrailing) {
-          Button(action: {
+          Button {
             viewStore.send(.contactsView(isPresented: true))
-          }) {
+          } label: {
             if #available(iOS 15.0, *) {
               Image(systemName: "bubble.left.and.bubble.right")
                 .opacity(viewStore.isSheetPresented ? 0 : 1)
@@ -108,13 +106,13 @@ public struct ConversationsView: View {
               Image(systemName: "square.and.pencil")
                 .opacity(viewStore.isSheetPresented ? 0 : 1)
             }
-
           }
         }
       }
       .background(Color(.systemBackground))
       .alert(self.store.scope(state: { $0.alert }), dismiss: ConversationsAction.alertDismissed)
-      .sheet(isPresented:
+      .sheet(
+        isPresented:
           viewStore.binding(
             get: { $0.isSheetPresented },
             send: ConversationsView.ViewAction.contactsView(isPresented:)
@@ -128,7 +126,6 @@ public struct ConversationsView: View {
           then: ContactsView.init(store:)
         )
       }
-
     }
     .debug("ConversationView")
     .navigate(
@@ -141,12 +138,10 @@ public struct ConversationsView: View {
         ViewStore(store.stateless).send(.chatView(isPresented: false))
       }
     )
-
   }
 }
 
 struct ConversationsView_Previews: PreviewProvider {
-
   static let environment = ConversationEnvironment(
     conversationClient: .happyPath,
     websocketClient: .live,
@@ -170,11 +165,9 @@ struct ConversationsView_Previews: PreviewProvider {
       }
     }
   }
-
 }
 
 public struct ConversationListView: View {
-
   public let store: Store<ConversationsState, ConversationsAction>
 
   public var body: some View {
@@ -184,20 +177,19 @@ public struct ConversationListView: View {
       ) { conversationStore in
         WithViewStore(conversationStore) { conversationViewStore in
 
-          Button(action: {
+          Button {
             viewStore.send(.conversationTapped(conversationViewStore.state))
-          }) {
+          } label: {
             ConversationRow(store: conversationStore)
-//              .onAppear {
-//                viewStore.send(
-//                  .fetchMoreConversationIfNeeded(
-//                    currentItem: conversationViewStore.state
-//                  )
-//                )
-//              }
+            //              .onAppear {
+            //                viewStore.send(
+            //                  .fetchMoreConversationIfNeeded(
+            //                    currentItem: conversationViewStore.state
+            //                  )
+            //                )
+            //              }
           }
           .buttonStyle(PlainButtonStyle())
-
         }
       }
     }
@@ -205,7 +197,6 @@ public struct ConversationListView: View {
 }
 
 struct ConversationRow: View {
-
   @Environment(\.colorScheme) var colorScheme
   public let store: Store<ConversationResponse.Item, ConversationAction>
 
@@ -214,7 +205,7 @@ struct ConversationRow: View {
   }
 
   public var body: some View {
-    WithViewStore(self.store) { viewStore  in
+    WithViewStore(self.store) { viewStore in
       Group {
         HStack(spacing: 0) {
           if viewStore.lastMessage?.sender.avatarUrl != nil {
@@ -247,8 +238,8 @@ struct ConversationRow: View {
               .font(.system(size: 18, weight: .semibold, design: .rounded))
               .foregroundColor(Color(.systemBlue))
 
-            if viewStore.lastMessage != nil {
-              Text(viewStore.lastMessage!.messageBody).lineLimit(1)
+            if let lmsg = viewStore.lastMessage {
+              Text(lmsg.messageBody).lineLimit(1)
             }
           }
           .padding(5)
@@ -256,8 +247,8 @@ struct ConversationRow: View {
           Spacer(minLength: 3)
 
           VStack(alignment: .trailing, spacing: 5) {
-            if viewStore.lastMessage != nil {
-              Text("\(viewStore.lastMessage!.createdAt?.dateFormatter ?? String.empty)")
+            if let lmsg = viewStore.lastMessage {
+              Text("\(lmsg.createdAt?.dateFormatter ?? String.empty)")
             }
 
             if viewStore.lastMessage?.messageBody != String.empty {
@@ -267,14 +258,12 @@ struct ConversationRow: View {
               Spacer()
             }
           }
-
         }
         .frame(minWidth: 0, maxWidth: .infinity, minHeight: 20, alignment: .leading)
         .padding(2)
       }
     }
   }
-
 }
 
 public struct ConversationList: Identifiable, Equatable {
@@ -288,8 +277,7 @@ public struct ConversationList: Identifiable, Equatable {
 }
 
 public struct MessageList: Identifiable, Equatable {
-
-  public init(id: String = "", messages: [ChatMessageResponse.Item] = [] ) {
+  public init(id: String = "", messages: [ChatMessageResponse.Item] = []) {
     self.id = id
     self.messages = messages
   }

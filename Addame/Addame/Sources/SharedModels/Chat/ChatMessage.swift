@@ -8,7 +8,6 @@
 import Foundation
 
 public struct ChatMessage: Codable, Identifiable {
-
   public init(
     id: String? = nil, conversationId: String,
     messageBody: String, sender: User,
@@ -48,16 +47,16 @@ public struct ChatMessage: Codable, Identifiable {
   }
 
   public init(_ chatMessage: ChatMessageResponse.Item) {
-    self.id = chatMessage.id
-    self.conversationId = chatMessage.conversationId
-    self.messageBody = chatMessage.messageBody
-    self.sender = chatMessage.sender
-    self.recipient = chatMessage.recipient
-    self.messageType = chatMessage.messageType
-    self.isRead = chatMessage.isRead
-    self.isDelivered = chatMessage.isDelivered
-    self.createdAt = chatMessage.createdAt
-    self.updatedAt = chatMessage.updatedAt
+    id = chatMessage.id
+    conversationId = chatMessage.conversationId
+    messageBody = chatMessage.messageBody
+    sender = chatMessage.sender
+    recipient = chatMessage.recipient
+    messageType = chatMessage.messageType
+    isRead = chatMessage.isRead
+    isDelivered = chatMessage.isDelivered
+    createdAt = chatMessage.createdAt
+    updatedAt = chatMessage.updatedAt
   }
 }
 
@@ -69,7 +68,6 @@ extension ChatMessage: Hashable {
 }
 
 public struct ChatMessageResponse: Codable, Equatable {
-
   public let items: [Item]
   public let metadata: Metadata
 
@@ -79,7 +77,6 @@ public struct ChatMessageResponse: Codable, Equatable {
   }
 
   public struct Item: Codable, Identifiable, Hashable, Comparable, Equatable {
-
     public var id: String?
     public var conversationId, messageBody: String
     public var sender: User
@@ -108,16 +105,16 @@ public struct ChatMessageResponse: Codable, Equatable {
     }
 
     public init(_ chatMessage: ChatMessage) {
-      self.id = chatMessage.id
-      self.conversationId = chatMessage.conversationId
-      self.messageBody = chatMessage.messageBody
-      self.sender = chatMessage.sender
-      self.recipient = chatMessage.recipient
-      self.messageType = chatMessage.messageType
-      self.isRead = chatMessage.isRead
-      self.isDelivered = chatMessage.isDelivered
-      self.createdAt = chatMessage.createdAt
-      self.updatedAt = chatMessage.updatedAt
+      id = chatMessage.id
+      conversationId = chatMessage.conversationId
+      messageBody = chatMessage.messageBody
+      sender = chatMessage.sender
+      recipient = chatMessage.recipient
+      messageType = chatMessage.messageType
+      isRead = chatMessage.isRead
+      isDelivered = chatMessage.isDelivered
+      createdAt = chatMessage.createdAt
+      updatedAt = chatMessage.updatedAt
     }
 
     public var wSchatMessage: ChatMessage {
@@ -142,7 +139,6 @@ public struct ChatMessageResponse: Codable, Equatable {
       guard let lhsDate = lhs.createdAt, let rhsDate = rhs.createdAt else { return false }
       return lhsDate > rhsDate
     }
-
   }
 }
 

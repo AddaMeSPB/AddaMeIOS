@@ -1,20 +1,21 @@
 //
 //  ProfileAction.swift
-//  
+//
 //
 //  Created by Saroar Khandoker on 06.04.2021.
 //
 
-import SwiftUI
-import SharedModels
 import HttpRequest
+import SettingsView
+import SharedModels
+import SwiftUI
 
 public enum ProfileAction: Equatable {
   case onAppear
   case alertDismissed
   case isUploadingImage
   case showingImagePicker
-  case moveToSettingsView
+  case settingsView(isNavigation: Bool)
   case moveToAuthView
 
   case fetchMyData
@@ -26,15 +27,16 @@ public enum ProfileAction: Equatable {
   case attacmentResponse(Result<Attachment, HTTPError>)
   case myEventsResponse(Result<EventResponse, HTTPError>)
   case event(index: EventResponse.Item.ID, action: MyEventAction)
+  case settings(SettingsAction)
 
   case resetAuthData
 }
 
 public enum MyEventAction: Equatable {}
 
-public extension ProfileAction {
+extension ProfileAction {
   // swiftlint:disable:next cyclomatic_complexity
-  static func view(_ localAction: ProfileView.ViewAction) -> Self {
+  public static func view(_ localAction: ProfileView.ViewAction) -> Self {
     // swiftlint:disable:next superfluous_disable_command
     switch localAction {
     case .onAppear:
@@ -47,24 +49,26 @@ public extension ProfileAction {
       return .showingImagePicker
     case .moveToSettingsView:
       return .moveToAuthView
-    case .moveToAuthView:
-      return .moveToAuthView
+    case let .settingsView(isNavigation: present):
+      return .settingsView(isNavigation: present)
     case .fetchMyData:
       return .fetchMyData
-    case .uploadAvatar(let image):
+    case let .uploadAvatar(image):
       return .uploadAvatar(image)
     case let .updateUserName(firstName, lastName):
       return .updateUserName(firstName, lastName)
-    case .createAttachment(let attacment):
+    case let .createAttachment(attacment):
       return .createAttachment(attacment)
-    case .userResponse(let res):
+    case let .userResponse(res):
       return .userResponse(res)
-    case .attacmentResponse(let res):
+    case let .attacmentResponse(res):
       return .attacmentResponse(res)
     case let .event(index, action):
       return .event(index: index, action: action)
     case .resetAuthData:
       return .resetAuthData
+    case let .settings(action):
+      return .settings(action)
     }
   }
 }

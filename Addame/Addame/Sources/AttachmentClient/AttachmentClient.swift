@@ -5,13 +5,12 @@
 //  Created by Saroar Khandoker on 27.01.2021.
 //
 
-import Foundation
 import Combine
+import Foundation
 import HttpRequest
 import SharedModels
 
 public struct AttachmentClient {
-
   public typealias UserImageUploadHandler = (Attachment) -> AnyPublisher<Attachment, HTTPError>
   public let uploadAvatar: UserImageUploadHandler
 

@@ -1,17 +1,17 @@
 //
 //  EventState.swift
-//  
+//
 //
 //  Created by Saroar Khandoker on 06.04.2021.
 //
 
-import SharedModels
+import ChatView
 import ComposableArchitecture
 import ComposableCoreLocation
-import MapKit
-import EventFormView
-import ChatView
 import EventDetailsView
+import EventFormView
+import MapKit
+import SharedModels
 
 public struct EventsState: Equatable {
   public init(
@@ -68,42 +68,64 @@ public struct EventsState: Equatable {
   public var eventDetailsState: EventDetailsState?
   public var chatState: ChatState?
 
-  public var isEventDetailsSheetPresented: Bool { self.eventDetailsState != nil }
-
+  public var isEventDetailsSheetPresented: Bool { eventDetailsState != nil }
 }
 
 extension EventsState {
   var view: EventView.ViewState {
     EventView.ViewState(
-      alert: self.alert, isConnected: self.isConnected,
-      isLocationAuthorized: self.isLocationAuthorized,
-      waitingForUpdateLocation: self.waitingForUpdateLocation,
-      isLoadingPage: self.isLoadingPage, isMovingChatRoom: self.isMovingChatRoom,
-      location: self.location,
-      events: self.events, myEvents: self.myEvents,
-      event: self.event,
-      placeMark: self.placeMark,
-      eventFormState: self.eventFormState, eventDetailsState: self.eventDetailsState,
-      chatState: self.chatState,
-      conversation: self.conversation
+      alert: alert, isConnected: isConnected,
+      isLocationAuthorized: isLocationAuthorized,
+      waitingForUpdateLocation: waitingForUpdateLocation,
+      isLoadingPage: isLoadingPage, isMovingChatRoom: isMovingChatRoom,
+      location: location,
+      events: events, myEvents: myEvents,
+      event: event,
+      placeMark: placeMark,
+      eventFormState: eventFormState, eventDetailsState: eventDetailsState,
+      chatState: chatState,
+      conversation: conversation
     )
   }
 }
 
 // swiftlint:disable all
 extension EventsState {
-
   public static let placeholderEvents = Self(
     isConnected: true,
     isLocationAuthorized: true,
     waitingForUpdateLocation: false,
     isLoadingPage: true,
-    location: Location(coordinate: CLLocationCoordinate2D(latitude: 60.020532228306031, longitude: 30.388014239849944)),
+    location: Location(
+      coordinate: CLLocationCoordinate2D(
+        latitude: 60.020532228306031, longitude: 30.388014239849944)),
     events: [
-      .init(id: "5fbfe53675a93bda87c7cb16", name: "Cool :)", categories: "General", duration: 14400, isActive: true, conversationsId: "5fbfe5361cdd72e23297914a", addressName: "8к1литД улица Вавиловых , Saint Petersburg", type: "Point", sponsored: false, overlay: false, coordinates: [60.020532228306031, 30.388014239849944], createdAt: Date(), updatedAt: Date() ),
-      .init(id: "5fbe8a8c8ba94be8a688324a", name: "Awesome 🤩 app", categories: "General", duration: 14400, isActive: true, conversationsId: "5fbe8a8c492346f651b57946", addressName: "8к1литД улица Вавиловых , Saint Petersburg", type: "Point", sponsored: false, overlay: false, coordinates: [60.020525506753494, 30.387988546891499], createdAt: Date(), updatedAt: Date()),
-      .init(id: "5fbea245b226053f0ece711c", name: "Bicycling 🚴🏽", categories: "LookingForAcompany", duration: 14400, isActive: true, conversationsId: "5fbe8a8c492346f651b57946", addressName: "9к5 улица Бутлерова Saint Petersburg, Saint Petersburg", type: "Point", sponsored: false, overlay: false, coordinates: [60.00380571585201, 30.399472870547118], createdAt: Date(), updatedAt: Date()),
-      .init(id: "5fbea245b226053f0ece711c", name: "Walk Around 🚶🏽🚶🏼‍♀️", categories: "LookingForAcompany", imageUrl: "https://avatars.mds.yandex.net/get-pdb/2776508/af73774d-7409-4e73-81c8-c8ab127c2f8b/s1200?webp=false", duration: 14400, isActive: true, conversationsId: "5fbe8a8c492346f651b57946", addressName: "188839, Первомайское, СНТ Славино-2 Поселок, 31 Первомайское Россия", type: "Point", sponsored: false, overlay: false, coordinates: [60.261340452875721, 29.873706166262373], createdAt: Date(), updatedAt: Date())
+      .init(
+        id: "5fbfe53675a93bda87c7cb16", name: "Cool :)", categories: "General", duration: 14400,
+        isActive: true, conversationsId: "5fbfe5361cdd72e23297914a",
+        addressName: "8к1литД улица Вавиловых , Saint Petersburg", type: "Point", sponsored: false,
+        overlay: false, coordinates: [60.020532228306031, 30.388014239849944], createdAt: Date(),
+        updatedAt: Date()),
+      .init(
+        id: "5fbe8a8c8ba94be8a688324a", name: "Awesome 🤩 app", categories: "General",
+        duration: 14400, isActive: true, conversationsId: "5fbe8a8c492346f651b57946",
+        addressName: "8к1литД улица Вавиловых , Saint Petersburg", type: "Point", sponsored: false,
+        overlay: false, coordinates: [60.020525506753494, 30.387988546891499], createdAt: Date(),
+        updatedAt: Date()),
+      .init(
+        id: "5fbea245b226053f0ece711c", name: "Bicycling 🚴🏽", categories: "LookingForAcompany",
+        duration: 14400, isActive: true, conversationsId: "5fbe8a8c492346f651b57946",
+        addressName: "9к5 улица Бутлерова Saint Petersburg, Saint Petersburg", type: "Point",
+        sponsored: false, overlay: false, coordinates: [60.00380571585201, 30.399472870547118],
+        createdAt: Date(), updatedAt: Date()),
+      .init(
+        id: "5fbea245b226053f0ece711c", name: "Walk Around 🚶🏽🚶🏼‍♀️", categories: "LookingForAcompany",
+        imageUrl:
+          "https://avatars.mds.yandex.net/get-pdb/2776508/af73774d-7409-4e73-81c8-c8ab127c2f8b/s1200?webp=false",
+        duration: 14400, isActive: true, conversationsId: "5fbe8a8c492346f651b57946",
+        addressName: "188839, Первомайское, СНТ Славино-2 Поселок, 31 Первомайское Россия",
+        type: "Point", sponsored: false, overlay: false,
+        coordinates: [60.261340452875721, 29.873706166262373], createdAt: Date(), updatedAt: Date()),
     ]
   )
 }

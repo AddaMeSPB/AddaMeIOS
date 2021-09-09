@@ -1,14 +1,14 @@
 //
 //  ContactRowAction.swift
-//  
+//
 //
 //  Created by Saroar Khandoker on 25.06.2021.
 //
 
-import SharedModels
-import HttpRequest
 import ChatView
 import Contacts
+import HttpRequest
+import SharedModels
 
 public enum ContactRowAction: Equatable {
   case moveToChatRoom(Bool)

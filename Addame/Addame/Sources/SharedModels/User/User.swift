@@ -6,12 +6,12 @@
 //
 
 import Foundation
-import KeychainService
 import FoundationExtension
+import KeychainService
 
 // MARK: - User
-public struct User: Codable, Equatable, Hashable, Identifiable {
 
+public struct User: Codable, Equatable, Hashable, Identifiable {
   public static var draff: Self {
     .init(
       id: UUID().uuidString, phoneNumber: "+79212121211",
@@ -70,10 +70,11 @@ public struct User: Codable, Equatable, Hashable, Identifiable {
       return "SwiftUI preview missing User"
     }
 
-    let lastFourCharacters = String(self.phoneNumber.suffix(4))
-    let phoneNumWithLastFourHiddenCharcters = self.phoneNumber.replace(target: lastFourCharacters, withString: "****")
+    let lastFourCharacters = String(phoneNumber.suffix(4))
+    let phoneNumWithLastFourHiddenCharcters = phoneNumber.replace(
+      target: lastFourCharacters, withString: "****")
 
-    return user.id == self.id ? self.phoneNumber : phoneNumWithLastFourHiddenCharcters
+    return user.id == id ? phoneNumber : phoneNumWithLastFourHiddenCharcters
   }
 
   public func hash(into hasher: inout Hasher) {
@@ -82,20 +83,14 @@ public struct User: Codable, Equatable, Hashable, Identifiable {
 
   public static func == (lhs: User, rhs: User) -> Bool {
     return
-      lhs.id == rhs.id &&
-      lhs.avatarUrl == rhs.avatarUrl &&
-      lhs.phoneNumber == rhs.phoneNumber &&
-      lhs.firstName == rhs.firstName &&
-      lhs.lastName == rhs.lastName &&
-      lhs.email == rhs.email
+      lhs.id == rhs.id && lhs.avatarUrl == rhs.avatarUrl && lhs.phoneNumber == rhs.phoneNumber
+      && lhs.firstName == rhs.firstName && lhs.lastName == rhs.lastName && lhs.email == rhs.email
   }
-
 }
 
 extension User {
-
   public var lastAvatarURLString: String? {
-    guard let atchmts = self.attachments  else {
+    guard let atchmts = attachments else {
       return nil
     }
     print(#line, atchmts)
@@ -103,11 +98,10 @@ extension User {
   }
 
   public var imageURL: URL? {
-    guard lastAvatarURLString != nil else {
+    guard let lastAvatarURLS = lastAvatarURLString else {
       return nil
     }
 
-    return URL(string: lastAvatarURLString!)!
+    return URL(string: lastAvatarURLS)!
   }
-
 }

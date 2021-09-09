@@ -8,10 +8,9 @@
 import SwiftUI
 
 public struct DynamicHeightTextField: UIViewRepresentable {
-
   public init(text: Binding<String>, height: Binding<CGFloat>) {
-    self._text = text
-    self._height = height
+    _text = text
+    _height = height
   }
 
   @Binding var text: String
@@ -38,7 +37,7 @@ public struct DynamicHeightTextField: UIViewRepresentable {
     return textView
   }
 
-  public func updateUIView(_ uiView: UITextView, context: Context) {
+  public func updateUIView(_ uiView: UITextView, context _: Context) {
     uiView.text = text
   }
 
@@ -48,22 +47,21 @@ public struct DynamicHeightTextField: UIViewRepresentable {
 }
 
 public class Coordinator: NSObject, UITextViewDelegate, NSLayoutManagerDelegate {
-
   var dynamicHeightTextField: DynamicHeightTextField
 
   weak var textView: UITextView?
 
   init(dynamicSizeTextField: DynamicHeightTextField) {
-    self.dynamicHeightTextField = dynamicSizeTextField
+    dynamicHeightTextField = dynamicSizeTextField
   }
 
   public func textViewDidChange(_ textView: UITextView) {
-    self.dynamicHeightTextField.text = textView.text
+    dynamicHeightTextField.text = textView.text
   }
 
   public func textView(
     _ textView: UITextView,
-    shouldChangeTextIn range: NSRange,
+    shouldChangeTextIn _: NSRange,
     replacementText text: String
   ) -> Bool {
     if text == "\n" {
@@ -74,11 +72,10 @@ public class Coordinator: NSObject, UITextViewDelegate, NSLayoutManagerDelegate 
   }
 
   public func layoutManager(
-    _ layoutManager: NSLayoutManager,
-    didCompleteLayoutFor textContainer: NSTextContainer?,
-    atEnd layoutFinishedFlag: Bool
+    _: NSLayoutManager,
+    didCompleteLayoutFor _: NSTextContainer?,
+    atEnd _: Bool
   ) {
-
     DispatchQueue.main.async { [weak self] in
       guard let textView = self?.textView else {
         return
@@ -88,6 +85,5 @@ public class Coordinator: NSObject, UITextViewDelegate, NSLayoutManagerDelegate 
         self?.dynamicHeightTextField.height = size.height
       }
     }
-
   }
 }

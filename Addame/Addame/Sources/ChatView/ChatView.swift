@@ -1,8 +1,8 @@
 import ComposableArchitecture
-import SwiftUI
-import SharedModels
-import HttpRequest
 import Foundation
+import HttpRequest
+import SharedModels
+import SwiftUI
 import WebSocketClient
 
 extension ChatView {
@@ -46,7 +46,6 @@ extension ChatView {
 }
 
 public struct ChatView: View {
-
   public let store: Store<ChatState, ChatAction>
 
   public init(
@@ -56,23 +55,22 @@ public struct ChatView: View {
   }
 
   public var body: some View {
-
-    WithViewStore(self.store.scope(state: { $0.view }, action: ChatAction.view )) { viewStore  in
+    WithViewStore(self.store.scope(state: { $0.view }, action: ChatAction.view)) { viewStore in
       VStack {
         ZStack {
           List {
             ChatListView(
               store: viewStore.isLoadingPage
-              ? Store(
-                initialState: ChatState.placeholderMessages,
-                reducer: .empty,
-                environment: ()
-              )
-              : self.store
+                ? Store(
+                  initialState: ChatState.placeholderMessages,
+                  reducer: .empty,
+                  environment: ()
+                )
+                : self.store
             )
-              .redacted(reason: viewStore.isLoadingPage ? .placeholder : [])
+            .redacted(reason: viewStore.isLoadingPage ? .placeholder : [])
           }
-          .listStyle(.plain)
+          .listStyle(.plain)  // only for xcode 13
           .scaleEffect(x: 1, y: -1, anchor: .center)
           .offset(x: 0, y: 2)
         }
@@ -85,7 +83,6 @@ public struct ChatView: View {
 
       ChatBottomView(store: store)
     }
-
   }
 }
 

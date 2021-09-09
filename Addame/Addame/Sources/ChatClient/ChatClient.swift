@@ -1,12 +1,13 @@
 import Combine
 import Foundation
+import FoundationExtension
 import HttpRequest
 import SharedModels
-import FoundationExtension
 
 public struct ChatClient {
-
-  public typealias MessageListHandler = (QueryItem, String, String) -> AnyPublisher<ChatMessageResponse, HTTPError>
+  public typealias MessageListHandler = (QueryItem, String, String) -> AnyPublisher<
+    ChatMessageResponse, HTTPError
+  >
 
   public let messages: MessageListHandler
 

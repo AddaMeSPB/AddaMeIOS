@@ -1,12 +1,13 @@
-import ComposableArchitecture
-import SwiftUI
 import AsyncImageLoder
-import UserClient
-import KeychainService
-import SwiftUIExtension
-import SharedModels
 import AuthenticationView
+import ComposableArchitecture
 import HttpRequest
+import KeychainService
+import SettingsView
+import SharedModels
+import SwiftUI
+import SwiftUIExtension
+import UserClient
 
 extension ProfileView {
   public struct ViewState: Equatable {
@@ -16,12 +17,13 @@ extension ProfileView {
     public var inputImage: UIImage?
     public var moveToSettingsView = false
     public var moveToAuthView: Bool = false
-    public var user: User = User.draff
+    public var user = User.draff
     public var isUserHaveAvatarLink: Bool = false
     public var myEvents: IdentifiedArrayOf<EventResponse.Item> = []
     public var isLoadingPage = false
     public var canLoadMorePages = true
     public var currentPage = 1
+    public var settingsState: SettingsState?
   }
 
   public enum ViewAction: Equatable {
@@ -30,7 +32,7 @@ extension ProfileView {
     case isUploadingImage
     case showingImagePicker
     case moveToSettingsView
-    case moveToAuthView
+    case settingsView(isNavigation: Bool)
 
     case fetchMyData
     case uploadAvatar(_ image: UIImage)
@@ -40,13 +42,13 @@ extension ProfileView {
     case userResponse(Result<User, HTTPError>)
     case attacmentResponse(Result<Attachment, HTTPError>)
     case event(index: EventResponse.Item.ID, action: MyEventAction)
+    case settings(SettingsAction)
 
     case resetAuthData
   }
 }
 
 public struct ProfileView: View {
-
   @Environment(\.colorScheme) var colorScheme
   let store: Store<ProfileState, ProfileAction>
 
@@ -56,10 +58,9 @@ public struct ProfileView: View {
 
   @ViewBuilder
   public var body: some View {
-    WithViewStore(self.store.scope(state: { $0.view }, action: ProfileAction.view )) { viewStore  in
+    WithViewStore(self.store.scope(state: { $0.view }, action: ProfileAction.view)) { viewStore in
 
       ScrollView {
-
         if viewStore.state.user.attachments == nil {
           Image(systemName: "person.fill")
             .font(.system(size: 200, weight: .medium))
@@ -93,7 +94,7 @@ public struct ProfileView: View {
                 .resizable()
             }
           )
-//          .redacted(reason: .placeholder)
+          //          .redacted(reason: .placeholder)
           .aspectRatio(contentMode: .fit)
           .overlay(
             ProfileImageOverlay(store: self.store),
@@ -115,11 +116,11 @@ public struct ProfileView: View {
         Divider()
 
         HStack {
-          Button(action: {
+          Button {
             viewStore.send(.resetAuthData)
             //            self.uvm.resetAuthData()
             //            self.uvm.moveToAuthView = true
-          }) {
+          } label: {
             Text("Logout")
               .font(.title)
               .bold()
@@ -145,7 +146,27 @@ public struct ProfileView: View {
       //        ImagePicker(image: self.$uvm.inputImage)
       //      }
       .toolbar {
-        ToolbarItem(placement: .navigationBarTrailing ) { settings }
+        ToolbarItem(placement: .navigationBarTrailing) {
+          //          settings
+
+          Button {
+            viewStore.send(.settingsView(isNavigation: true))
+          } label: {
+            Image(systemName: "gear")
+              .font(.title)
+            //        .foregroundColor(Color("bg"))
+          }
+          .navigate(
+            using: store.scope(
+              state: \.settingsState,
+              action: ProfileAction.settings
+            ),
+            destination: SettingsView.init(store:),
+            onDismiss: {
+              viewStore.send(.settingsView(isNavigation: false))
+            }
+          )
+        }
       }
       .onAppear {
         viewStore.send(.fetchMyData)
@@ -153,38 +174,10 @@ public struct ProfileView: View {
       .background(Color(UIColor.systemBackground).edgesIgnoringSafeArea(.all))
       .alert(self.store.scope(state: { $0.alert }), dismiss: .alertDismissed)
     }
-
-  }
-
-  private var settings: some View {
-    Button(action: {
-      // self.uvm.moveToSettingsView = true
-    }) {
-      Image(systemName: "gear")
-        .font(.title)
-      //        .foregroundColor(Color("bg"))
-    }
-    //    .background(
-    //      NavigationLink(
-    //        destination: SettingsView()
-    //          .edgesIgnoringSafeArea(.bottom)
-    //          .onAppear(perform: {
-    //            self.uvm.tabBarHideAction(true)
-    //            self.uvm.moveToSettingsView = false
-    //          })
-    //          .onDisappear(perform: {
-    //            self.uvm.tabBarHideAction(false)
-    //          }),
-    //        isActive: self.$uvm.moveToSettingsView
-    //      ) {
-    //        EmptyView()
-    //      }
-    //    )
   }
 }
 
 struct ProfileView_Previews: PreviewProvider {
-
   static let environment = ProfileEnvironment(
     userClient: .happyPath,
     eventClient: .happyPath,
@@ -196,7 +189,7 @@ struct ProfileView_Previews: PreviewProvider {
 
   static let store = Store(
     initialState: ProfileState.events,
-    reducer: profileReducer, // here i am mixing
+    reducer: profileReducer,  // here i am mixing
     environment: environment
   )
 
@@ -208,11 +201,9 @@ struct ProfileView_Previews: PreviewProvider {
         .environment(\.colorScheme, .dark)
     }
   }
-
 }
 
 public struct ProfileImageOverlay: View {
-
   @Environment(\.colorScheme) var colorScheme
 
   let store: Store<ProfileState, ProfileAction>
@@ -222,7 +213,7 @@ public struct ProfileImageOverlay: View {
   }
 
   public var body: some View {
-    WithViewStore(self.store.scope(state: { $0.view }, action: ProfileAction.view )) { viewStore in
+    WithViewStore(self.store.scope(state: { $0.view }, action: ProfileAction.view)) { viewStore in
       ZStack {
         if viewStore.state.isUploadingImage {
           withAnimation {
@@ -239,21 +230,23 @@ public struct ProfileImageOverlay: View {
         VStack {
           HStack {
             Spacer()
-            Button(action: {
-              viewStore.send(.showingImagePicker)
-            }, label: {
-              Image(systemName: "camera")
-                .font(.system(size: 15, weight: .medium))
-                .foregroundColor(colorScheme == .dark ? .white : .black)
-                .frame(width: 40, height: 40)
-                .background(Color.green)
-                .clipShape(Circle())
-                .padding(.trailing, 30)
-            })
+            Button(
+              action: {
+                viewStore.send(.showingImagePicker)
+              },
+              label: {
+                Image(systemName: "camera")
+                  .font(.system(size: 15, weight: .medium))
+                  .foregroundColor(colorScheme == .dark ? .white : .black)
+                  .frame(width: 40, height: 40)
+                  .background(Color.green)
+                  .clipShape(Circle())
+                  .padding(.trailing, 30)
+              }
+            )
             .imageScale(.large)
-            .frame(width: 40, height: 40, alignment: .center/*@END_MENU_TOKEN@*/)
+            .frame(width: 40, height: 40, alignment: .center)
             .padding()
-
           }
 
           Spacer()
@@ -261,7 +254,6 @@ public struct ProfileImageOverlay: View {
           Text(viewStore.user.fullName)
             .font(.title).bold()
             .foregroundColor(Color.backgroundColor(for: self.colorScheme))
-
         }
         .padding(6)
       }
@@ -296,7 +288,6 @@ public struct ProfileImageOverlay: View {
 // }
 
 public struct MyEventListView: View {
-
   let store: Store<ProfileState, ProfileAction>
 
   public var body: some View {
@@ -305,10 +296,10 @@ public struct MyEventListView: View {
         self.store.scope(state: \.myEvents, action: ProfileAction.event)
       ) { eventStore in
         WithViewStore(eventStore) { _ in
-//          Button(action: { viewStore.send(.eventTapped(eventViewStore.state)) }) {
-            EventRowView(store: eventStore)
-//          }
-//          .buttonStyle(PlainButtonStyle())
+          //          Button(action: { viewStore.send(.eventTapped(eventViewStore.state)) }) {
+          EventRowView(store: eventStore)
+          //          }
+          //          .buttonStyle(PlainButtonStyle())
         }
       }
     }
@@ -316,7 +307,6 @@ public struct MyEventListView: View {
 }
 
 public struct EventRowView: View {
-
   @Environment(\.colorScheme) var colorScheme
 
   public init(store: Store<EventResponse.Item, MyEventAction>) {
@@ -327,27 +317,32 @@ public struct EventRowView: View {
 
   public var body: some View {
     WithViewStore(self.store) { viewStore in
-        VStack(alignment: .leading) {
-          Text(viewStore.name)
-            .lineLimit(2)
-            .foregroundColor(colorScheme  == .dark ? Color.white : Color.black)
-            .font(.system(size: 23, weight: .light, design: .rounded))
-            .padding(10)
-            .padding(.leading, 10)
+      VStack(alignment: .leading) {
+        Text(viewStore.name)
+          .lineLimit(2)
+          .foregroundColor(colorScheme == .dark ? Color.white : Color.black)
+          .font(.system(size: 23, weight: .light, design: .rounded))
+          .padding(10)
+          .padding(.leading, 10)
 
-          Text(viewStore.addressName)
-            .lineLimit(2)
-            .font(.system(size: 15, weight: .light, design: .rounded))
-            .foregroundColor(.blue)
-            .padding([.leading, .bottom], 20)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(
-          RoundedRectangle(cornerRadius: 10)
-            .foregroundColor(colorScheme == .dark ? Color(#colorLiteral(red: 0.2605174184, green: 0.2605243921, blue: 0.260520637, alpha: 1)) : Color(#colorLiteral(red: 0.8374180198, green: 0.8374378085, blue: 0.8374271393, alpha: 0.5)) )
-        )
-        .padding(10)
+        Text(viewStore.addressName)
+          .lineLimit(2)
+          .font(.system(size: 15, weight: .light, design: .rounded))
+          .foregroundColor(.blue)
+          .padding([.leading, .bottom], 20)
+      }
+      .frame(maxWidth: .infinity, alignment: .leading)
+      .background(
+        RoundedRectangle(cornerRadius: 10)
+          .foregroundColor(
+            colorScheme == .dark
+              ? Color(
+                #colorLiteral(red: 0.2605174184, green: 0.2605243921, blue: 0.260520637, alpha: 1))
+              : Color(
+                #colorLiteral(
+                  red: 0.8374180198, green: 0.8374378085, blue: 0.8374271393, alpha: 0.5)))
+      )
+      .padding(10)
     }
   }
-
 }

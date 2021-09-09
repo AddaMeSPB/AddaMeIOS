@@ -1,6 +1,6 @@
 //
 //  QueryItem.swift
-//  
+//
 //
 //  Created by Saroar Khandoker on 23.02.2021.
 //
@@ -31,11 +31,11 @@ public struct QueryItem: Codable {
   public var parameters: [String: Any] {
     let mirror = Mirror(reflecting: self)
     let dict = Dictionary(
-      uniqueKeysWithValues: mirror.children.lazy.map({ (label: String?, value: Any
-    ) -> (String, Any)? in
-      guard let label = label else { return nil }
-      return (label, value)
-    }).compactMap { $0 })
+      uniqueKeysWithValues: mirror.children.lazy.map {
+        (label: String?, value: Any) -> (String, Any)? in
+        guard let label = label else { return nil }
+        return (label, value)
+      }.compactMap { $0 })
     return dict
   }
 

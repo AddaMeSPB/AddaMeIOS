@@ -5,16 +5,15 @@
 //  Created by Saroar Khandoker on 09.08.2021.
 //
 
-import ComposableArchitecture
 import Combine
+import ComposableArchitecture
+import IdentifiedCollections
+import MapKit
+import Network
 import SwiftUI
 import SwiftUIExtension
-import Network
-import MapKit
-import IdentifiedCollections
 
 public struct LocationEnvironment {
-
   public var localSearch: LocalSearchManager
   public var mainQueue: AnySchedulerOf<DispatchQueue>
 
@@ -27,12 +26,11 @@ public struct LocationEnvironment {
   }
 
   func getCoordinate(_ addressString: String) -> Effect<CLPlacemark, Never> {
-
     return Effect<CLPlacemark, Never>.future { callback in
       let geocoder = CLGeocoder()
       geocoder.geocodeAddressString(addressString) { placemarks, error in
         if error != nil {
-          print(#line, error)
+          print(#line, error as Any)
           // callback(.failure( kCLLocationCoordinate2DInvalid, error as CoordinateError?))
         }
 
@@ -42,5 +40,4 @@ public struct LocationEnvironment {
       }
     }
   }
-
 }

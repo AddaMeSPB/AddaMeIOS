@@ -1,20 +1,19 @@
 //
 //  TabsEnvironment.swift
-//  
+//
 //
 //  Created by Saroar Khandoker on 04.06.2021.
 //
 
 import Combine
 import ComposableArchitecture
-import WebSocketClient
 import HttpRequest
 import InfoPlist
 import KeychainService
 import SharedModels
+import WebSocketClient
 
 public struct TabsEnvironment {
-
   public var backgroundQueue: AnySchedulerOf<DispatchQueue>
   public var mainQueue: AnySchedulerOf<DispatchQueue>
   public let webSocketClient: WebSocketClient
@@ -32,7 +31,7 @@ public struct TabsEnvironment {
   public func getAccessToken() -> AnyPublisher<String, HTTPError> {
     guard let token: AuthTokenResponse = KeychainService.loadCodable(for: .token) else {
       assertionFailure("not Authorized Token are missing")
-      return Fail(error: HTTPError.missingTokenFromIOS )
+      return Fail(error: HTTPError.missingTokenFromIOS)
         .eraseToAnyPublisher()
     }
 
@@ -49,5 +48,4 @@ public struct TabsEnvironment {
 
     return currentUSER
   }
-
 }

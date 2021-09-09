@@ -1,28 +1,25 @@
 //
 //  EventDetailsView.swift
-//  
+//
 //
 //  Created by Saroar Khandoker on 05.07.2021.
 //
 
-import ComposableArchitecture
-import SwiftUI
-import MapKit
-
-import SharedModels
-import HttpRequest
-
-import ComposableCoreLocation
 import AsyncImageLoder
-import SwiftUIExtension
-import ComposableArchitectureHelpers
-import MapView
-import ConversationClient
-import KeychainService
 import ChatView
+import ComposableArchitecture
+import ComposableArchitectureHelpers
+import ComposableCoreLocation
+import ConversationClient
+import HttpRequest
+import KeychainService
+import MapKit
+import MapView
+import SharedModels
+import SwiftUI
+import SwiftUIExtension
 
 public struct EventDetailsView: View {
-
   @Environment(\.colorScheme) var colorScheme
   @Environment(\.presentationMode) private var presentationMode
 
@@ -37,11 +34,11 @@ public struct EventDetailsView: View {
   public let store: Store<EventDetailsState, EventDetailsAction>
 
   @ViewBuilder public var body: some View {
-    WithViewStore(self.store.scope(state: { $0.view }, action: EventDetailsAction.view)) { viewStore in
+    WithViewStore(self.store.scope(state: { $0.view }, action: EventDetailsAction.view)) {
+      viewStore in
 
       ScrollView {
         VStack {
-
           if viewStore.event.imageUrl != nil {
             AsyncImage(
               urlString: viewStore.event.imageUrl,
@@ -62,7 +59,8 @@ public struct EventDetailsView: View {
             .aspectRatio(contentMode: .fill)
             .edgesIgnoringSafeArea(.top)
             .overlay(
-              EventDetailsOverlayView(store: self.store.scope(
+              EventDetailsOverlayView(
+                store: self.store.scope(
                   state: \.eventDetailsOverlayState,
                   action: EventDetailsAction.eventDetailsOverlay
                 )
@@ -71,23 +69,24 @@ public struct EventDetailsView: View {
               alignment: .bottomTrailing
             )
             .overlay(
-                Button {
-                  presentationMode.wrappedValue.dismiss()
-                } label: {
-                  Image(systemName: "xmark.circle.fill")
-                    .imageScale(.large)
-                    .frame(width: 60, height: 60, alignment: .center)
-                }
-                .padding([.top, .trailing], 10),
-                alignment: .topTrailing
-              )
+              Button {
+                presentationMode.wrappedValue.dismiss()
+              } label: {
+                Image(systemName: "xmark.circle.fill")
+                  .imageScale(.large)
+                  .frame(width: 60, height: 60, alignment: .center)
+              }
+              .padding([.top, .trailing], 10),
+              alignment: .topTrailing
+            )
 
           } else {
-
-            Image(uiImage: UIColor.blue.image(
-              CGSize(
-                width: UIScreen.main.bounds.width,
-                height: UIScreen.main.bounds.height / 2.3)
+            Image(
+              uiImage: UIColor.blue.image(
+                CGSize(
+                  width: UIScreen.main.bounds.width,
+                  height: UIScreen.main.bounds.height / 2.3
+                )
               )
             )
             .resizable()
@@ -96,7 +95,8 @@ public struct EventDetailsView: View {
             .aspectRatio(contentMode: .fill)
             .edgesIgnoringSafeArea(.top)
             .overlay(
-              EventDetailsOverlayView(store: self.store.scope(
+              EventDetailsOverlayView(
+                store: self.store.scope(
                   state: \.eventDetailsOverlayState,
                   action: EventDetailsAction.eventDetailsOverlay
                 )
@@ -105,17 +105,16 @@ public struct EventDetailsView: View {
               alignment: .bottomTrailing
             )
             .overlay(
-                Button {
-                  presentationMode.wrappedValue.dismiss()
-                } label: {
-                  Image(systemName: "xmark.circle.fill")
-                    .imageScale(.large)
-                    .frame(width: 60, height: 60, alignment: .center)
-                }
-                .padding([.top, .trailing], 10),
-                alignment: .topTrailing
-              )
-
+              Button {
+                presentationMode.wrappedValue.dismiss()
+              } label: {
+                Image(systemName: "xmark.circle.fill")
+                  .imageScale(.large)
+                  .frame(width: 60, height: 60, alignment: .center)
+              }
+              .padding([.top, .trailing], 10),
+              alignment: .topTrailing
+            )
           }
 
           Text("Event friends: \(viewStore.chatMembers)")
@@ -129,45 +128,43 @@ public struct EventDetailsView: View {
             .padding(.bottom, -10)
 
           ScrollView {
-              LazyVGrid(columns: columns, spacing: 10) {
-                ForEach(viewStore.conversation?.members?.uniqElemets() ?? []) { member in
-                  VStack(alignment: .leading) {
-
-                    if member.avatarUrl != nil {
-                      AsyncImage(
-                        urlString: member.avatarUrl,
-                        placeholder: {
-                          ProgressView()
-                        },
-                        image: {
-                          Image(uiImage: $0).resizable()
-                        }
-                      )
+            LazyVGrid(columns: columns, spacing: 10) {
+              ForEach(viewStore.conversation?.members?.uniqElemets() ?? []) { member in
+                VStack(alignment: .leading) {
+                  if member.avatarUrl != nil {
+                    AsyncImage(
+                      urlString: member.avatarUrl,
+                      placeholder: {
+                        ProgressView()
+                      },
+                      image: {
+                        Image(uiImage: $0).resizable()
+                      }
+                    )
+                    .aspectRatio(contentMode: .fit)
+                    .frame(minWidth: 0, maxWidth: .infinity, minHeight: 50)
+                    .clipShape(Circle())
+                    .padding()
+                  } else {
+                    Image(systemName: "person.circle")
+                      .resizable()
                       .aspectRatio(contentMode: .fit)
                       .frame(minWidth: 0, maxWidth: .infinity, minHeight: 50)
                       .clipShape(Circle())
                       .padding()
-                    } else {
-                      Image(systemName: "person.circle")
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(minWidth: 0, maxWidth: .infinity, minHeight: 50)
-                        .clipShape(Circle())
-                        .padding()
-                    }
-
-                    Text("\(member.fullName)")
-                      .foregroundColor(colorScheme == .dark ? Color.white : Color.black)
-                      .lineLimit(1)
-//                      .alignmentGuide(.center)
-                      // { viewDimensions in viewDimensions[.leading] }
-                      .font(.system(size: 15, weight: .light, design: .rounded))
-                    Spacer()
                   }
-                  .padding()
 
+                  Text("\(member.fullName)")
+                    .foregroundColor(colorScheme == .dark ? Color.white : Color.black)
+                    .lineLimit(1)
+                    //                      .alignmentGuide(.center)
+                    // { viewDimensions in viewDimensions[.leading] }
+                    .font(.system(size: 15, weight: .light, design: .rounded))
+                  Spacer()
                 }
+                .padding()
               }
+            }
           }
 
           Spacer()
@@ -194,22 +191,17 @@ public struct EventDetailsView: View {
           .edgesIgnoringSafeArea([.all])
           .frame(height: 400)
           .padding(.bottom, 20)
-
-        } // VStack
-      } // ScrollView
+        }  // VStack
+      }  // ScrollView
       .background(Color(.systemBackground))
-
     }
     .onAppear {
       ViewStore(store.stateless).send(.onAppear)
     }
-
   }
-
 }
 
 extension EventDetailsView {
-
   public struct ViewState: Equatable {
     public var alert: AlertState<EventDetailsAction>?
     public let event: EventResponse.Item
@@ -227,11 +219,9 @@ extension EventDetailsView {
     case updateRegion(CoordinateRegion?)
     case eventDetailsOverlay(EventDetailsOverlayAction)
   }
-
 }
 
 struct EventDetailsView_Previews: PreviewProvider {
-
   static let environment = EventDetailsEnvironment(
     conversationClient: ConversationClient.happyPath,
     mainQueue: .immediate
@@ -245,28 +235,28 @@ struct EventDetailsView_Previews: PreviewProvider {
 
   static var previews: some View {
     TabView {
-//      NavigationView {
-        EventDetailsView(store: store)
-//          .redacted(reason: .placeholder)
-//          .redacted(reason: EventsState.events.isLoadingPage ? .placeholder : [])
-//          .environment(\.colorScheme, .dark)
-//      }
+      //      NavigationView {
+      EventDetailsView(store: store)
+      //          .redacted(reason: .placeholder)
+      //          .redacted(reason: EventsState.events.isLoadingPage ? .placeholder : [])
+      //          .environment(\.colorScheme, .dark)
+      //      }
     }
-//
-//    Group {
-//      TabView {
-//        NavigationView {
-//          EventView(store: store)
-//  //          .redacted(reason: .placeholder)
-//        }
-//      }
-//      TabView {
-//        NavigationView {
-//          EventView(store: store)
-//  //          .redacted(reason: .placeholder)
-//            .environment(\.colorScheme, .dark)
-//        }
-//      }
-//    }
+    //
+    //    Group {
+    //      TabView {
+    //        NavigationView {
+    //          EventView(store: store)
+    //  //          .redacted(reason: .placeholder)
+    //        }
+    //      }
+    //      TabView {
+    //        NavigationView {
+    //          EventView(store: store)
+    //  //          .redacted(reason: .placeholder)
+    //            .environment(\.colorScheme, .dark)
+    //        }
+    //      }
+    //    }
   }
 }

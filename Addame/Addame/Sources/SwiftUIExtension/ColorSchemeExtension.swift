@@ -1,34 +1,30 @@
 //
 //  ColorSchemeExtension.swift
-//  
+//
 //
 //  Created by Saroar Khandoker on 02.02.2021.
 //
 
 import SwiftUI
 
-public extension Color {
+extension Color {
 
-  static let lightBackgroundColor = Color(white: 1.0)
-
-  static let darkBackgroundColor = Color(white: 0.0)
-
-  static func backgroundColor(for colorScheme: ColorScheme) -> Color {
-        if colorScheme == .dark {
-            return lightBackgroundColor
-        } else {
-            return darkBackgroundColor
-        }
+  public static func backgroundColor(for colorScheme: ColorScheme) -> Color {
+    if colorScheme == .dark {
+      return Color(white: 1.0)
+    } else {
+      return Color(white: 0.0)
     }
+  }
 }
 
 // USE case
 struct ColoredView: View {
-    @Environment(\.colorScheme) var colorScheme: ColorScheme
+  @Environment(\.colorScheme) var colorScheme: ColorScheme
 
-    var body: some View {
-        Rectangle().fill(Color.backgroundColor(for: self.colorScheme))
-    }
+  var body: some View {
+    Rectangle().fill(Color.backgroundColor(for: self.colorScheme))
+  }
 }
 
 struct ColoredView_Previews: PreviewProvider {

@@ -1,9 +1,10 @@
 // swift-tools-version:5.3
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
-import PackageDescription
 import Foundation
+import PackageDescription
 
+// swiftlint:disable file_length
 let package = Package(
   name: "Addame",
   platforms: [
@@ -69,9 +70,11 @@ let package = Package(
   ],
 
   dependencies: [
-    .package(name: "AWSSDKSwift", url: "https://github.com/swift-aws/aws-sdk-swift.git", from: "4.9.0"),
+    .package(
+      name: "AWSSDKSwift", url: "https://github.com/swift-aws/aws-sdk-swift.git", from: "4.9.0"),
     .package(url: "https://github.com/marmelroy/PhoneNumberKit", .upToNextMajor(from: "3.3.3")),
-    .package(url: "https://github.com/pointfreeco/swift-composable-architecture.git", from: "0.21.0"),
+    .package(
+      url: "https://github.com/pointfreeco/swift-composable-architecture.git", from: "0.25.1"),
     .package(url: "https://github.com/pointfreeco/composable-core-location", from: "0.1.0"),
     .package(url: "https://github.com/pointfreeco/xctest-dynamic-overlay", from: "0.1.0"),
     .package(url: "https://github.com/AddaMeSPB/CombineContacts.git", from: "1.0.0"),
@@ -89,11 +92,13 @@ let package = Package(
 
         "EventView", "ConversationsView", "ProfileView", "TabsView", "AuthenticationView",
         "SettingsView"
-      ]),
+      ]
+    ),
 
     .testTarget(
       name: "AppFeatureTests",
-      dependencies: ["AppFeature"]),
+      dependencies: ["AppFeature"]
+    ),
 
     // Core
     .target(name: "AsyncImageLoder"),
@@ -122,13 +127,15 @@ let package = Package(
       name: "RemoteNotificationsClient",
       dependencies: [
         .product(name: "ComposableArchitecture", package: "swift-composable-architecture")
-      ]),
+      ]
+    ),
 
     .target(
       name: "UserNotificationClient",
       dependencies: [
         .product(name: "ComposableArchitecture", package: "swift-composable-architecture")
-      ]),
+      ]
+    ),
 
     .target(
       name: "UIApplicationClient",
@@ -150,7 +157,8 @@ let package = Package(
       name: "CoreDataClient",
       dependencies: [
         "CoreDataStore", "ContactClient", "ContactClientLive", "SharedModels"
-      ]),
+      ]
+    ),
 
     .target(
       name: "AttachmentClient",
@@ -158,7 +166,8 @@ let package = Package(
         .product(name: "S3", package: "AWSSDKSwift"),
         "SharedModels", "KeychainService", "FoundationExtension",
         "HttpRequest", "InfoPlist"
-      ]),
+      ]
+    ),
     .target(name: "AttachmentClientLive", dependencies: ["AttachmentClient"]),
 
     .target(
@@ -166,7 +175,8 @@ let package = Package(
       dependencies: [
         "SharedModels", "InfoPlist", "FoundationExtension",
         "HttpRequest", "PhoneNumberKit"
-      ]),
+      ]
+    ),
     .target(name: "AuthClientLive", dependencies: ["AuthClient"]),
 
     .target(
@@ -174,7 +184,8 @@ let package = Package(
       dependencies: [
         "SharedModels", "FoundationExtension", "HttpRequest",
         "InfoPlist", "KeychainService"
-      ]),
+      ]
+    ),
     .target(name: "ChatClientLive", dependencies: ["ChatClient"]),
 
     .target(
@@ -182,17 +193,21 @@ let package = Package(
       dependencies: [
         "SharedModels", "InfoPlist", "FoundationExtension",
         "HttpRequest", "PhoneNumberKit", "CombineContacts"
-      ]),
+      ]
+    ),
     .target(
       name: "ContactClientLive",
-      dependencies: ["ContactClient", "CoreDataStore"]),
+      dependencies: ["ContactClient", "CoreDataStore"]
+    ),
 
     .target(
       name: "ConversationClient",
-      dependencies: ["FoundationExtension", "HttpRequest", "SharedModels"]),
+      dependencies: ["FoundationExtension", "HttpRequest", "SharedModels"]
+    ),
     .target(
       name: "ConversationClientLive",
-      dependencies: ["ConversationClient", "KeychainService", "InfoPlist"]),
+      dependencies: ["ConversationClient", "KeychainService", "InfoPlist"]
+    ),
 
     .target(
       name: "EventClient",
@@ -200,14 +215,16 @@ let package = Package(
     ),
     .target(
       name: "EventClientLive",
-      dependencies: ["EventClient", "KeychainService"]),
+      dependencies: ["EventClient", "KeychainService"]
+    ),
 
     .target(name: "PathMonitorClient"),
     .target(name: "PathMonitorClientLive", dependencies: ["PathMonitorClient"]),
 
     .target(
       name: "UserClient",
-      dependencies: ["SharedModels", "HttpRequest", "KeychainService", "InfoPlist"]),
+      dependencies: ["SharedModels", "HttpRequest", "KeychainService", "InfoPlist"]
+    ),
     .target(name: "UserClientLive", dependencies: ["UserClient"]),
 
     .target(
@@ -215,20 +232,22 @@ let package = Package(
       dependencies: [
         .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
         "FoundationExtension", "HttpRequest", "SharedModels", "InfoPlist", "KeychainService"
-      ]),
+      ]
+    ),
     .target(
       name: "WebSocketClientLive",
       dependencies: [
         .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
         "WebSocketClient"
-      ]),
+      ]
+    ),
 
-      .target(
-        name: "LocationSearchClient",
-        dependencies: [
-          .product(name: "ComposableArchitecture", package: "swift-composable-architecture")
-        ]
-      ),
+    .target(
+      name: "LocationSearchClient",
+      dependencies: [
+        .product(name: "ComposableArchitecture", package: "swift-composable-architecture")
+      ]
+    ),
 
     // Views
     .target(
@@ -237,7 +256,8 @@ let package = Package(
         .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
         "PhoneNumberKit", "SharedModels", "AuthClient", "KeychainService",
         "HttpRequest", "AuthClientLive"
-      ]),
+      ]
+    ),
 
     .target(
       name: "TabsView",
@@ -245,10 +265,12 @@ let package = Package(
         .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
         "AuthClient", "AuthClientLive", "UserClient", "UserClientLive",
         "EventClient", "EventClientLive", "AttachmentClient", "AttachmentClientLive",
-        "PathMonitorClient", "PathMonitorClientLive", "ConversationClient", "ConversationClientLive",
+        "PathMonitorClient", "PathMonitorClientLive", "ConversationClient",
+        "ConversationClientLive",
         "EventView", "ConversationsView", "ProfileView",
         "SwiftUIExtension", "WebSocketClient", "WebSocketClientLive"
-      ]),
+      ]
+    ),
 
     .target(
       name: "ChatView",
@@ -284,7 +306,8 @@ let package = Package(
         "WebSocketClientLive", "ChatClient", "ChatClientLive",
         "CoreDataStore", "CoreDataClient",
         "ChatView", "ComposableArchitectureHelpers"
-      ]),
+      ]
+    ),
 
     .target(
       name: "EventView",
@@ -296,7 +319,8 @@ let package = Package(
         "SwiftUIExtension", "FoundationExtension", "AsyncImageLoder",
         "HttpRequest", "KeychainService", "ChatClient", "ChatView",
         "PathMonitorClientLive", "EventClientLive", "ComposableArchitectureHelpers",
-        "EventDetailsView", "ConversationClient", "ConversationClientLive"
+        "EventDetailsView", "ConversationClient", "ConversationClientLive",
+        "UserDefaultsClient"
       ]
     ),
 
@@ -308,8 +332,17 @@ let package = Package(
         "SharedModels", "EventClient", "InfoPlist",
         "PathMonitorClient", "ConversationClient", "ComposableArchitectureHelpers",
         "SwiftUIExtension", "FoundationExtension", "AsyncImageLoder",
-        "HttpRequest", "KeychainService", "ChatClient", "EventClient", "EventClientLive",
-        "PathMonitorClientLive", "ComposableArchitectureHelpers", "MapView", "HttpRequest"
+        "HttpRequest", "KeychainService", "ChatClient", "EventClientLive",
+        "PathMonitorClientLive", "MapView"
+      ]
+    ),
+    .testTarget(
+      name: "EventFormViewTests",
+      dependencies: [
+        "EventFormView",
+        "HttpRequest",
+        "KeychainService",
+        "SharedModels"
       ]
     ),
 
@@ -328,25 +361,25 @@ let package = Package(
     ),
 
     .target(
-        name: "ProfileView",
-        dependencies: [
-          .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
-          "AuthClient", "EventClient", "AttachmentClient",
-          "InfoPlist", "UserClient", "SharedModels",
-          "SwiftUIExtension", "FoundationExtension", "AsyncImageLoder",
-          "HttpRequest", "KeychainService", "AuthenticationView",
-          "AttachmentClientLive", "AuthClientLive", "UserClientLive",
-          "EventClientLive"
-        ]
+      name: "ProfileView",
+      dependencies: [
+        .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
+        "AuthClient", "EventClient", "AttachmentClient",
+        "InfoPlist", "UserClient", "SharedModels",
+        "SwiftUIExtension", "FoundationExtension", "AsyncImageLoder",
+        "HttpRequest", "KeychainService", "AuthenticationView",
+        "AttachmentClientLive", "AuthClientLive", "UserClientLive",
+        "EventClientLive", "SettingsView", "ComposableArchitectureHelpers"
+      ]
     ),
 
     .target(
       name: "SettingsView",
       dependencies: [
-        "UIApplicationClient", "UserDefaultsClient",
         .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
         .product(name: "XCTestDynamicOverlay", package: "xctest-dynamic-overlay"),
-        "UserNotificationClient"
+        "UserNotificationClient", "UIApplicationClient", "UserDefaultsClient",
+        "KeychainService"
       ]
     ),
 
@@ -354,10 +387,13 @@ let package = Package(
       name: "MapView",
       dependencies: [
         .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
-        .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
         .product(name: "XCTestDynamicOverlay", package: "xctest-dynamic-overlay"),
         "SwiftUIExtension", "SharedModels", "ComposableArchitectureHelpers"
       ]
+    ),
+    .testTarget(
+      name: "MapViewTests",
+      dependencies: ["MapView"]
     ),
 
     // Helpers

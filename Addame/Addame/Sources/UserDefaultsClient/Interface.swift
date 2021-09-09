@@ -1,6 +1,6 @@
 //
 //  UserDefaultsClient.swift
-//  
+//
 //
 //  Created by Saroar Khandoker on 05.05.2021.
 //
@@ -20,13 +20,12 @@ public struct UserDefaultsClient {
   public var setInteger: (Int, String) -> Effect<Never, Never>
 
   public var hasShownFirstLaunchOnboarding: Bool {
-    self.boolForKey(hasShownFirstLaunchOnboardingKey)
+    boolForKey(hasShownFirstLaunchOnboardingKey)
   }
 
   public func setHasShownFirstLaunchOnboarding(_ bool: Bool) -> Effect<Never, Never> {
-    self.setBool(bool, hasShownFirstLaunchOnboardingKey)
+    setBool(bool, hasShownFirstLaunchOnboardingKey)
   }
-
 }
 
 let hasShownFirstLaunchOnboardingKey = "hasShownFirstLaunchOnboardingKey"

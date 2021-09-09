@@ -1,6 +1,6 @@
 //
 //  ImagePicker.swift
-//  
+//
 //
 //  Created by Saroar Khandoker on 26.01.2021.
 //
@@ -14,7 +14,7 @@ public struct ImagePicker: UIViewControllerRepresentable {
   @Binding var image: UIImage?
 
   public init(image: Binding<UIImage?>) {
-    self._image = image
+    _image = image
   }
 
   public func makeUIViewController(
@@ -26,14 +26,15 @@ public struct ImagePicker: UIViewControllerRepresentable {
   }
 
   public func updateUIViewController(
-    _ uiViewController: UIImagePickerController, context: UIViewControllerRepresentableContext<ImagePicker>
+    _: UIImagePickerController, context _: UIViewControllerRepresentableContext<ImagePicker>
   ) {}
 
   public func makeCoordinator() -> Coordinator {
     Coordinator(self)
   }
 
-  public class Coordinator: NSObject, UINavigationControllerDelegate, UIImagePickerControllerDelegate {
+  public class Coordinator: NSObject, UINavigationControllerDelegate,
+    UIImagePickerControllerDelegate {
     public let parent: ImagePicker
 
     public init(_ parent: ImagePicker) {
@@ -41,16 +42,14 @@ public struct ImagePicker: UIViewControllerRepresentable {
     }
 
     public func imagePickerController(
-      _ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey: Any]
+      _: UIImagePickerController,
+      didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey: Any]
     ) {
-
       if let uiImage = info[.originalImage] as? UIImage {
         parent.image = uiImage
       }
 
       parent.presentationMode.wrappedValue.dismiss()
-
     }
   }
-
 }

@@ -6,23 +6,21 @@
 //
 //
 
-import Foundation
 import CoreData
+import Foundation
 
 extension ContactEntity {
+  @nonobjc public class func fetchRequest() -> NSFetchRequest<ContactEntity> {
+    return NSFetchRequest<ContactEntity>(entityName: "ContactEntity")
+  }
 
-    @nonobjc public class func fetchRequest() -> NSFetchRequest<ContactEntity> {
-        return NSFetchRequest<ContactEntity>(entityName: "ContactEntity")
-    }
-
-    @NSManaged public var avatar: String?
-    @NSManaged public var fullName: String
-    @NSManaged public var id: String?
-    @NSManaged public var identifier: String
-    @NSManaged public var isRegister: Bool
-    @NSManaged public var phoneNumber: String
-    @NSManaged public var userId: String
-
+  @NSManaged public var avatar: String?
+  @NSManaged public var fullName: String
+  @NSManaged public var id: String?
+  @NSManaged public var identifier: String
+  @NSManaged public var isRegister: Bool
+  @NSManaged public var phoneNumber: String
+  @NSManaged public var userId: String
 }
 
 extension ContactEntity: Identifiable {}

@@ -1,13 +1,12 @@
 //
 //  EventDetailOverlayState.swift
-//  
+//
 //
 //  Created by Saroar Khandoker on 12.07.2021.
 //
 
 import ComposableArchitecture
 import MapKit
-
 import MapView
 import SharedModels
 
@@ -40,13 +39,13 @@ public struct EventDetailsOverlayState: Equatable {
 extension EventDetailsOverlayState {
   var view: EventDetailsOverlayView.ViewState {
     EventDetailsOverlayView.ViewState(
-      alert: self.alert,
-      event: self.event,
-      conversation: self.conversation,
-      conversationOwnerName: self.conversationOwnerName,
-      isMember: self.isMember,
-      isAdmin: self.isAdmin,
-      isMovingChatRoom: self.isMovingChatRoom
+      alert: alert,
+      event: event,
+      conversation: conversation,
+      conversationOwnerName: conversationOwnerName,
+      isMember: isMember,
+      isAdmin: isAdmin,
+      isMovingChatRoom: isMovingChatRoom
     )
   }
 }

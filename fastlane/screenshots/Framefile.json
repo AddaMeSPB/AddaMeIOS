@@ -1,0 +1,16 @@
+{
+  "device_frame_version": "latest",
+  "default": {
+    "keyword": {
+      "font": "./fonts/Chalkduster.ttf"
+    },
+    "title": {
+      "color": "#FFFFFF"
+    },
+    "padding": 50,
+    "title_below_image": false,
+    "background": "./background.jpg",
+    "show_complete_frame": true
+  },
+  "data": []
+}
