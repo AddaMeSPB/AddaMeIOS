@@ -3,6 +3,8 @@ name: Swift
 on:
   pull_request:
     branches: [ main ]
+
+  pull_request:
     branches: [ develop ]
 
 jobs:
