@@ -44,3 +44,4 @@ jobs:
       run: bundle install
     - name: Run unit tests
       run: bundle exec fastlane unitTestLane
+
