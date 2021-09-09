@@ -1,4 +1,5 @@
 disabled_rules:
+  - empty_enum_arguments
   - vertical_parameter_alignment_on_call
   - weak_delegate
   - vertical_parameter_alignment

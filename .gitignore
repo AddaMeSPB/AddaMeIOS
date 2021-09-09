@@ -117,3 +117,5 @@ Addame/Configs/Production.xcconfig
 *.dSYM.*
 /fastlane/report.xml
 /fastlane/FastlaneRunner
+test_output/report.html
+test_output/report.junit
