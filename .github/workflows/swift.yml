@@ -1,17 +1,46 @@
 name: Swift
 
 on:
-  push:
-    branches: [ develop ]
   pull_request:
-    branches: [ main ]
+    branches: [ develop ]
 
 jobs:
-  build:
 
+  swiftLint:
     runs-on: macos-latest
-
     steps:
-    - uses: actions/checkout@v1
-    - name: GitHub Action for SwiftLint
-      uses: norio-nomura/action-swiftlint@3.2.1
+    - uses: actions/checkout@v2
+    - name: Install Bundle
+      run: bundle install
+    - name: Run swiftlint
+      run: bundle exec fastlane swiftLintLane
+
+  build:
+    needs: swiftLint
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install Bundle
+      run: bundle install
+    - name: Build
+      run: bundle exec fastlane buildLane
+    - name: Upload build
+      uses: actions/upload-artifact@v2
+      with:
+        name: build
+        path: derivedData/Build/Products/Debug-iphonesimulator/Addame.app
+
+  unitTests:
+    needs: build
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Download core tests
+      uses: actions/download-artifact@v2
+      with:
+        name: coreTests
+        path: derivedData/Build/Products/Debug-iphonesimulator/EventFormViewTests.xctest
+    - name: Install Bundle
+      run: bundle install
+    - name: Run unit tests
+      run: bundle exec fastlane unitTestLane
