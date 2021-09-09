@@ -26,6 +26,7 @@ class Fastfile: LaneFile {
   func buildLane() {
     desc("Build for testing")
     scan(workspace: "Addame.xcworkspace",
+         scheme: "Addame",
          derivedDataPath: "derivedData",
          buildForTesting: .userDefined(true),
          xcargs: "CI=true")
