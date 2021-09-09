@@ -2,10 +2,7 @@ name: Swift
 
 on:
   pull_request:
-    branches: [ main ]
-
-  pull_request:
-    branches: [ develop ]
+    branches: [ main, develop ]
 
 jobs:
   
