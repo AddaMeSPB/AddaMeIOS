@@ -81,7 +81,7 @@ extension ConversationsState {
         Conversation(
           id: UUID().uuidString, title: "Running", type: .group, createdAt: Date(),
           updatedAt: Date())
-      ),
+      )
     ]
     ),
     conversation: .init(

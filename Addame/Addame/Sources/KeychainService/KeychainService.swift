@@ -70,12 +70,12 @@ public class KeychainService: NSObject {
     let objects = [
       kSecClassGenericPasswordValue,
       service, service, dataFromString,
-      kSecAttrAccessibleAfterFirstUnlockValue,
+      kSecAttrAccessibleAfterFirstUnlockValue
     ]
     let forKeys = [
       kSecClassValue, kSecAttrServiceValue,
       kSecAttrAccountValue, kSecValueDataValue,
-      kSecAttrAccessibleValue,
+      kSecAttrAccessibleValue
     ]
     let keychainQuery = NSMutableDictionary(
       objects: objects,
@@ -90,12 +90,12 @@ public class KeychainService: NSObject {
   private class func save(_ service: NSString, data: NSData) {
     let objects = [
       kSecClassGenericPasswordValue, service, service, data,
-      kSecAttrAccessibleAfterFirstUnlockValue,
+      kSecAttrAccessibleAfterFirstUnlockValue
     ]
     let forKeys = [
       kSecClassValue, kSecAttrServiceValue,
       kSecAttrAccountValue, kSecValueDataValue,
-      kSecAttrAccessibleValue,
+      kSecAttrAccessibleValue
     ]
 
     let keychainQuery = NSMutableDictionary(objects: objects, forKeys: forKeys)
@@ -110,12 +110,12 @@ public class KeychainService: NSObject {
     let objects = [
       kSecClassGenericPasswordValue,
       service, service, kCFBooleanTrue,
-      kSecMatchLimitOneValue, kSecAttrAccessibleAfterFirstUnlockValue,
+      kSecMatchLimitOneValue, kSecAttrAccessibleAfterFirstUnlockValue
     ]
     let forKeys = [
       kSecClassValue, kSecAttrServiceValue,
       kSecAttrAccountValue, kSecReturnDataValue,
-      kSecMatchLimitValue, kSecAttrAccessibleValue,
+      kSecMatchLimitValue, kSecAttrAccessibleValue
     ]
 
     let keychainQuery = NSMutableDictionary(objects: objects, forKeys: forKeys)
@@ -139,12 +139,12 @@ public class KeychainService: NSObject {
     let objects = [
       kSecClassGenericPasswordValue, service, service,
       kCFBooleanTrue as Any,
-      kSecMatchLimitOneValue, kSecAttrAccessibleAfterFirstUnlockValue,
+      kSecMatchLimitOneValue, kSecAttrAccessibleAfterFirstUnlockValue
     ]
     let forKeys = [
       kSecClassValue, kSecAttrServiceValue,
       kSecAttrAccountValue, kSecReturnDataValue,
-      kSecMatchLimitValue, kSecAttrAccessibleValue,
+      kSecMatchLimitValue, kSecAttrAccessibleValue
     ]
 
     let keychainQuery = NSMutableDictionary(
@@ -171,7 +171,7 @@ public class KeychainService: NSObject {
       kSecClassInternetPassword,
       kSecClassCertificate,
       kSecClassKey,
-      kSecClassIdentity,
+      kSecClassIdentity
     ]
 
     for itemClass in secItemClasses {

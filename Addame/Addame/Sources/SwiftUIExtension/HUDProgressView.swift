@@ -25,7 +25,7 @@ public struct HUDProgressView: View {
           AngularGradient(
             gradient: .init(colors: [
               Color(.systemBlue),
-              Color.primary.opacity(0),
+              Color.primary.opacity(0)
             ]),
             center: .center
           )

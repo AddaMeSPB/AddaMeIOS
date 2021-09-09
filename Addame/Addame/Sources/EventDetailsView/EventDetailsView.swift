@@ -24,7 +24,7 @@ public struct EventDetailsView: View {
   @Environment(\.presentationMode) private var presentationMode
 
   private let columns = [
-    GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible()),
+    GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())
   ]
 
   public init(store: Store<EventDetailsState, EventDetailsAction>) {

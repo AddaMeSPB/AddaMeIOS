@@ -11,7 +11,7 @@ import UIKit
 public class ImageDraw {
   private let renderer = UIGraphicsImageRenderer(size: CGSize(width: 400, height: 400))
   private var colors = [
-    UIColor.red, UIColor.brown, UIColor.yellow, UIColor.green, UIColor.black, UIColor.blue,
+    UIColor.red, UIColor.brown, UIColor.yellow, UIColor.green, UIColor.black, UIColor.blue
   ]
 
   public init() {}

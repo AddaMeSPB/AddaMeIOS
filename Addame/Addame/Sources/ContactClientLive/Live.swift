@@ -41,7 +41,7 @@ public struct ContactAPI {
   private let keysToFetch: [CNKeyDescriptor] = [
     CNContactFormatter.descriptorForRequiredKeys(for: .fullName),
     CNContactPhoneNumbersKey as CNKeyDescriptor,
-    CNContactIdentifierKey as CNKeyDescriptor,
+    CNContactIdentifierKey as CNKeyDescriptor
   ]
   private let combineContact = CombineContacts()
   let region = Locale.current

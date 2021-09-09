@@ -43,8 +43,7 @@ extension Decodable {
   }
 
   public static func decode(json: String, using usingForWebRtcingEncoding: String.Encoding = .utf8)
-    -> Self?
-  {
+    -> Self? {
     guard let data = json.data(using: usingForWebRtcingEncoding) else { return nil }
     return Self.decode(data: data)
   }

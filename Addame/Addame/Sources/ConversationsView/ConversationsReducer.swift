@@ -21,7 +21,7 @@ import SwiftUI
 import WebSocketClient
 import WebSocketClientLive
 
-// swiftlint:disable:next line_length
+// swiftlint:disable:next line_length superfluous_disable_command
 public let conversationsReducer = Reducer<
   ConversationsState, ConversationsAction, ConversationEnvironment
 > { state, action, environment in

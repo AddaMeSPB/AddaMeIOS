@@ -30,8 +30,7 @@ extension NavigationLink {
   ) -> some View
   where
     DestinationContent: View,
-    Destination == IfLetStore<State, Action, DestinationContent?>
-  {
+    Destination == IfLetStore<State, Action, DestinationContent?> {
     WithViewStore(store.scope(state: { $0 != nil })) { viewStore in
       NavigationLink(
         destination: IfLetStore(

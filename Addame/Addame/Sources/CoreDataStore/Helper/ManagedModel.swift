@@ -10,7 +10,7 @@ import Foundation
 
 public typealias APIData = Encodable
 
-protocol ManagedModel: class, NSFetchRequestResult {
+protocol ManagedModel: NSFetchRequestResult {
   static var entity: NSEntityDescription { get }
   static var entityName: String { get }
   static var defaultSortDescriptors: [NSSortDescriptor] { get }
@@ -34,7 +34,7 @@ extension ManagedModel {
     let request = sortedFetchRequest
     guard let existingPredicate = request.predicate else { fatalError("must have predicate") }
     request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
-      existingPredicate, predicate,
+      existingPredicate, predicate
     ])
     return request
   }
@@ -48,7 +48,7 @@ extension ManagedModel {
     return NSCompoundPredicate(andPredicateWithSubpredicates: [defaultPredicate, predicate])
   }
 
-  // swiftlint:disable force_try
+  // swiftlint:disable force_try superfluous_disable_command
   public static func fetch(
     in context: NSManagedObjectContext,
     configurationBlock: (
@@ -86,8 +86,7 @@ extension ManagedModel where Self: NSManagedObject {
   }
 
   static func findOrFetch(in context: NSManagedObjectContext, matching predicate: NSPredicate)
-    -> Self?
-  {
+    -> Self? {
     guard let object = materializedObject(in: context, matching: predicate) else {
       return fetch(in: context) { request in
         request.predicate = predicate

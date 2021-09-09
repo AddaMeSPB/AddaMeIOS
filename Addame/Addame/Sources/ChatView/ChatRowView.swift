@@ -46,8 +46,7 @@ struct ChatRowView: View {
   let store: Store<ChatMessageResponse.Item, MessageAction>
 
   @ViewBuilder func currentUserRow(viewStore: ViewStore<ChatMessageResponse.Item, MessageAction>)
-    -> some View
-  {
+    -> some View {
     HStack {
       Group {
         AvatarView(avatarUrl: viewStore.sender.avatarUrl)

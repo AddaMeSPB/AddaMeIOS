@@ -193,7 +193,9 @@ public struct EventView: View {
     )
   }
 
-  private func toolbarItemTrailingButton(_ viewStore: ViewStore<EventView.ViewState, EventView.ViewAction>) -> some View {
+  private func toolbarItemTrailingButton(
+    _ viewStore: ViewStore<EventView.ViewState, EventView.ViewAction>
+  ) -> some View {
     Button {
       viewStore.send(.eventFormView(isNavigate: true))
     } label: {

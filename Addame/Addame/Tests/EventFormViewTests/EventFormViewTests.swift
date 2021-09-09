@@ -50,7 +50,7 @@ class EventFormViewTests: XCTestCase {
           "https://adda.nyc3.digitaloceanspaces.com/uploads/images/5fabb05d2470c17919b3c0e2/1605811270871.jpeg",
         createdAt: now,
         updatedAt: now
-      ),
+      )
     ]
 
     let cuser = User(
@@ -77,7 +77,7 @@ class EventFormViewTests: XCTestCase {
     )
 
     let location = placeMark.location?.coordinate
-    let eventAddress = "\(placeMark.postalAddress)"
+    let eventAddress = "\(String(describing: placeMark.postalAddress))"
 
     let state = EventFormState(
       placeMark: placeMark,
@@ -140,7 +140,10 @@ class EventFormViewTests: XCTestCase {
           )
         )
       )
-    )
+    ) {
+      $0.isEventCreatedSuccessfully = true
+      $0.isPostRequestOnFly = false
+    }
     scheduler.advance(by: 4)
     store.receive(.backToPVAfterCreatedEventSuccessfully)
   }

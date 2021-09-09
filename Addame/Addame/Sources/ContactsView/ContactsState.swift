@@ -51,7 +51,7 @@ public struct ContactsState: Equatable {
 //  }
 // }
 
-// swiftlint:disable line_length
+// swiftlint:disable line_length superfluous_disable_command
 extension ContactsState {
   public static let contactsPlaceholder = Self(
     contacts: [
@@ -91,7 +91,7 @@ extension ContactsState {
       .init(
         id: UUID().uuidString, isMoving: false,
         contact: .init(
-          identifier: "5fd75df879983965ad5cd629", phoneNumber: "+79211111119", fullName: "Krill")),
+          identifier: "5fd75df879983965ad5cd629", phoneNumber: "+79211111119", fullName: "Krill"))
     ]
   )
 }

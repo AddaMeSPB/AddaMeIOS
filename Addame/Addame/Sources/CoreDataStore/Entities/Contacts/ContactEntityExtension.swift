@@ -33,8 +33,7 @@ extension ContactEntity: ManagedModel {
   public static var defaultPredicate: NSPredicate { return NSPredicate(value: true) }
 
   public static func findOrCreate(withData data: APIData, in context: NSManagedObjectContext)
-    -> ContactEntity
-  {
+    -> ContactEntity {
     guard let content = data as? Contact else {
       fatalError("Incorrent API response")
     }

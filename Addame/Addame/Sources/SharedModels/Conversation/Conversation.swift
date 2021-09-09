@@ -177,8 +177,7 @@ extension ConversationResponse {
     }
 
     public static func < (lhs: ConversationResponse.UserAdd, rhs: ConversationResponse.UserAdd)
-      -> Bool
-    {
+      -> Bool {
       return lhs.id == rhs.id
         && lhs.createdAt == rhs.createdAt
         && lhs.updatedAt == rhs.updatedAt

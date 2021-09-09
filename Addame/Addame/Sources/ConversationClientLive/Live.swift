@@ -107,7 +107,7 @@ public struct ConversationAPI {
       path: path, method: .post,
       params: [
         "conversationsId": addUser.conversationsId,
-        "usersId": addUser.usersId,
+        "usersId": addUser.usersId
       ]
     )
     .catch { (error: HTTPError) -> AnyPublisher<ConversationResponse.UserAdd, HTTPError> in

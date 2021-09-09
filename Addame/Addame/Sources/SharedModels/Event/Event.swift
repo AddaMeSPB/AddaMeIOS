@@ -208,6 +208,7 @@ extension CLLocation {
   }
 }
 
+// swiftlint:disable identifier_name
 public enum GeoType: String {
   case Point
   case LineString
