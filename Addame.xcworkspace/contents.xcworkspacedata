@@ -8,6 +8,6 @@
       location = "group:Addame.xcodeproj">
    </FileRef>
    <FileRef
-      location = "group:Addame/Addame">
+      location = "group:AddameSPM">
    </FileRef>
 </Workspace>

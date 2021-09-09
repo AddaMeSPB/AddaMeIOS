@@ -2,10 +2,7 @@ name: Swift
 
 on:
   pull_request:
-    branches: [ main ]
-
-  pull_request:
-    branches: [ develop ]
+    branches: [ main, develop ]
 
 jobs:
   
@@ -20,7 +17,9 @@ jobs:
 
   build:
     needs: swiftLint
-    runs-on: macos-latest
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_13.0.app/Contents/Developer
+    runs-on: macos-11.0
     steps:
     - uses: actions/checkout@v2
     - name: Install Bundle
@@ -31,20 +30,22 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: build
-        path: derivedData/Build/Products/Debug-iphonesimulator/Addame.app     
+        path: '"derivedData/Build/Products/Debug CI-iphonesimulator/Addame.app"'
      
   unitTests:
     needs: build
-    runs-on: macos-latest
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_13.0.app/Contents/Developer
+    runs-on: macos-11.0
     steps:
     - uses: actions/checkout@v2
-    - name: Download core tests
-      uses: actions/download-artifact@v2
-      with:
-        name: coreTests
-        path: derivedData/Build/Products/Debug-iphonesimulator/EventFormViewTests.xctest
     - name: Install Bundle
       run: bundle install
     - name: Run unit tests
       run: bundle exec fastlane unitTestLane
+    - name: Run tests
+      uses: actions/download-artifact@v2
+      with:
+        name: unitTests
+        path: '"derivedData/Build/Products/Debug CI-iphonesimulator/EventFormViewTests.xctest"'
 
