@@ -1,22 +1,22 @@
 //
 //  Live.swift
-//  
+//
 //
 //  Created by Saroar Khandoker on 05.03.2021.
 //
 
+import ChatClient
 import Combine
 import Foundation
-import ChatClient
 import HttpRequest
-import SharedModels
 import InfoPlist
 import KeychainService
+import SharedModels
 
 func token() -> AnyPublisher<String, HTTPError> {
   guard let token: AuthTokenResponse = KeychainService.loadCodable(for: .token) else {
     print(#line, "not Authorized Token are missing")
-    return Fail(error: HTTPError.missingTokenFromIOS )
+    return Fail(error: HTTPError.missingTokenFromIOS)
       .eraseToAnyPublisher()
   }
 
@@ -30,13 +30,12 @@ public struct ChatAPI {
   private var baseURL: URL { EnvironmentKeys.rootURL.appendingPathComponent("/messages") }
 
   private func tokenHandle<Input: Encodable, Output: Decodable>(
-    input: Input,
+    input _: Input,
     path: String,
     method: HTTPMethod,
     params: [String: Any] = [:],
     queryItems: [URLQueryItem] = []
   ) -> AnyPublisher<Output, HTTPError> {
-
     return token().flatMap { token -> AnyPublisher<Output, HTTPError> in
       let builder: HttpRequest = .build(
         baseURL: baseURL,
@@ -49,28 +48,27 @@ public struct ChatAPI {
 
       return builder.send(scheduler: RunLoop.main)
         .catch { (error: HTTPError) -> AnyPublisher<Output, HTTPError> in
-          return Fail(error: error).eraseToAnyPublisher()
+          Fail(error: error).eraseToAnyPublisher()
         }
         .receive(on: DispatchQueue.main)
         .eraseToAnyPublisher()
     }
     .catch { (error: HTTPError) -> AnyPublisher<Output, HTTPError> in
-      return Fail(error: error).eraseToAnyPublisher()
+      Fail(error: error).eraseToAnyPublisher()
     }
     .receive(on: DispatchQueue.main)
     .eraseToAnyPublisher()
   }
 
   public func messages(
-    query: QueryItem, conversationID: String, path: String
+    query: QueryItem, conversationID _: String, path: String
   ) -> AnyPublisher<ChatMessageResponse, HTTPError> {
     return tokenHandle(input: query, path: path, method: .get, params: query.parameters)
       .catch { (error: HTTPError) -> AnyPublisher<ChatMessageResponse, HTTPError> in
-        return Fail(error: error).eraseToAnyPublisher()
+        Fail(error: error).eraseToAnyPublisher()
       }
       .receive(on: DispatchQueue.main)
       .eraseToAnyPublisher()
-
   }
 }
 

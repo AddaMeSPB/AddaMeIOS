@@ -1,15 +1,15 @@
 //
 //  SwiftUIView.swift
-//  
+//
 //
 //  Created by Saroar Khandoker on 07.04.2021.
 //
 
-import SwiftUI
+import AuthClient
 import ComposableArchitecture
 import PhoneNumberKit
 import SharedModels
-import AuthClient
+import SwiftUI
 
 public struct PhoneNumberTextFieldView: UIViewRepresentable, Equatable {
   public static func == (lhs: PhoneNumberTextFieldView, rhs: PhoneNumberTextFieldView) -> Bool {
@@ -32,37 +32,38 @@ public struct PhoneNumberTextFieldView: UIViewRepresentable, Equatable {
     phoneTextField.withExamplePlaceholder = true
     // phoneTextField.placeholder = "Enter phone number"
     phoneTextField.becomeFirstResponder()
-    phoneTextField.addTarget(context.coordinator, action: #selector(Coordinator.onTextUpdate), for: .editingChanged)
+    phoneTextField.addTarget(
+      context.coordinator, action: #selector(Coordinator.onTextUpdate), for: .editingChanged)
     return phoneTextField
   }
 
   public func getCurrentText() {
-    self.phoneNumber = phoneTextField.text!
+    guard let phoneText = phoneTextField.text else {
+      return
+    }
+    phoneNumber = phoneText
   }
 
-  public func updateUIView(_ view: PhoneNumberTextField, context: Context) {}
+  public func updateUIView(_: PhoneNumberTextField, context _: Context) {}
 
   public class Coordinator: NSObject, UITextFieldDelegate {
-
     var control: PhoneNumberTextFieldView
 
     init(_ control: PhoneNumberTextFieldView) {
       self.control = control
     }
 
-    @objc func onTextUpdate(textField: UITextField) {
-      control.isValid = self.control.phoneTextField.isValidNumber
+    @objc func onTextUpdate(textField _: UITextField) {
+      control.isValid = control.phoneTextField.isValidNumber
     }
-
   }
 }
 
 public struct AuthenticationView: View {
-
-  private var baseURL: URL { URL(string: "http://0.0.0.0:8080/v1/")! } // load from info plist
+  private var baseURL: URL { URL(string: "http://0.0.0.0:8080/v1/")! }  // load from info plist
   @State private var phoneField: PhoneNumberTextFieldView?
   @State private var isValidPhoneNumber: Bool = false
-  @State private var phoneNumber: String = String.empty
+  @State private var phoneNumber = String.empty
 
   let store: Store<LoginState, LoginAction>
 
@@ -74,22 +75,24 @@ public struct AuthenticationView: View {
     _ viewStore: ViewStore<AuthenticationView.ViewState, AuthenticationView.ViewAction>
   ) -> some View {
     HStack {
-
       phoneField.frame(minWidth: 0, maxWidth: .infinity, minHeight: 0, maxHeight: 60)
         .keyboardType(.phonePad)
         .padding(.leading)
 
-      Button(action: {
-        self.phoneField?.getCurrentText()
-        viewStore.send(.sendPhoneNumberButtonTapped(self.phoneNumber))
-      }, label: {
-        Text("GO")
-          .font(.headline)
-          .bold()
-          .padding()
-      })
+      Button(
+        action: {
+          self.phoneField?.getCurrentText()
+          viewStore.send(.sendPhoneNumberButtonTapped(self.phoneNumber))
+        },
+        label: {
+          Text("GO")
+            .font(.headline)
+            .bold()
+            .padding()
+        }
+      )
       .disabled(!self.isValidPhoneNumber)
-      .foregroundColor(self.isValidPhoneNumber ? Color.black : Color.white )
+      .foregroundColor(self.isValidPhoneNumber ? Color.black : Color.white)
       .background(
         self.isValidPhoneNumber ? Color.yellow : Color.gray
       )
@@ -98,7 +101,10 @@ public struct AuthenticationView: View {
     .overlay(
       RoundedRectangle(cornerRadius: 30)
         .stroke(Color.black.opacity(0.1), lineWidth: 0.6)
-        .foregroundColor(Color(#colorLiteral(red: 0.8039215803, green: 0.8039215803, blue: 0.8039215803, alpha: 0.06563035103)))
+        .foregroundColor(
+          Color(
+            #colorLiteral(
+              red: 0.8039215803, green: 0.8039215803, blue: 0.8039215803, alpha: 0.06563035103)))
     )
     .onAppear {
       self.phoneField = PhoneNumberTextFieldView(
@@ -109,7 +115,7 @@ public struct AuthenticationView: View {
   }
 
   public var body: some View {
-    WithViewStore(self.store.scope(state: { $0.view }, action: LoginAction.view )) { viewStore  in
+    WithViewStore(self.store.scope(state: { $0.view }, action: LoginAction.view)) { viewStore in
       ZStack {
         if viewStore.isLoginRequestInFlight {
           withAnimation {
@@ -118,7 +124,6 @@ public struct AuthenticationView: View {
         }
 
         VStack {
-
           Text("Adda")
             .font(Font.system(size: 56, weight: .heavy, design: .rounded))
             .foregroundColor(.red)
@@ -139,7 +144,6 @@ public struct AuthenticationView: View {
           }
 
           ZStack {
-
             if !viewStore.isValidationCodeIsSend {
               inputMobileNumberTextView(viewStore)
             }
@@ -147,12 +151,8 @@ public struct AuthenticationView: View {
             if viewStore.isValidationCodeIsSend {
               inputValidationCodeTextView(viewStore)
             }
-
           }
-          .padding(.top, /*@START_MENU_TOKEN@*/10/*@END_MENU_TOKEN@*/)
-          .padding(.bottom, 20)
-          .padding(.leading, 10)
-          .padding(.trailing, /*@START_MENU_TOKEN@*/10/*@END_MENU_TOKEN@*/)
+          .padding(EdgeInsets(top: 10, leading: 10, bottom: 20, trailing: 10))
 
           if !viewStore.isValidationCodeIsSend {
             termsAndPrivacyView(viewStore)
@@ -160,10 +160,8 @@ public struct AuthenticationView: View {
 
           Spacer()
         }
-
       }
       .alert(self.store.scope(state: { $0.alert }), dismiss: .alertDismissed)
-
     }
   }
 
@@ -174,7 +172,8 @@ public struct AuthenticationView: View {
       HStack {
         TextField(
           "__ __ __ __ __ __",
-          text: viewStore.binding(get: { $0.authResponse?.code ?? "" }, send: ViewAction.verificationRequest )
+          text: viewStore.binding(
+            get: { $0.authResponse?.code ?? "" }, send: ViewAction.verificationRequest)
         )
         .font(.largeTitle)
         .multilineTextAlignment(.center)
@@ -183,11 +182,15 @@ public struct AuthenticationView: View {
         .padding(.leading)
 
       }.cornerRadius(25)
-      .overlay(
-        RoundedRectangle(cornerRadius: 25)
-          .stroke(Color.black.opacity(0.2), lineWidth: 0.6)
-          .foregroundColor(Color(#colorLiteral(red: 0.8039215803, green: 0.8039215803, blue: 0.8039215803, alpha: 0.06563035103)))
-      )
+        .overlay(
+          RoundedRectangle(cornerRadius: 25)
+            .stroke(Color.black.opacity(0.2), lineWidth: 0.6)
+            .foregroundColor(
+              Color(
+                #colorLiteral(
+                  red: 0.8039215803, green: 0.8039215803, blue: 0.8039215803, alpha: 0.06563035103))
+            )
+        )
     }
   }
 
@@ -202,20 +205,25 @@ public struct AuthenticationView: View {
         .padding()
 
       HStack {
-        Button(action: {
-          viewStore.send(.showTermsSheet)
-        }, label: {
-          Text("Terms")
-            .font(.title3)
-            .bold()
-            .foregroundColor(.blue)
-        })
+        Button(
+          action: {
+            viewStore.send(.showTermsSheet)
+          },
+          label: {
+            Text("Terms")
+              .font(.title3)
+              .bold()
+              .foregroundColor(.blue)
+          }
+        )
         .sheet(
-          isPresented: viewStore.binding(get: { $0.showTermsSheet }, send: { _ -> ViewAction in
-            .showTermsSheet
-          })
+          isPresented: viewStore.binding(
+            get: { $0.showTermsSheet },
+            send: { _ -> ViewAction in
+              .showTermsSheet
+            })
         ) {
-          TermsAndPrivacyWebView(urlString: baseURL.appendingPathComponent("/terms").absoluteString )
+          TermsAndPrivacyWebView(urlString: baseURL.appendingPathComponent("/terms").absoluteString)
         }
 
         Text("&")
@@ -223,19 +231,25 @@ public struct AuthenticationView: View {
           .bold()
           .padding([.leading, .trailing], 10)
 
-        Button(action: {
-          viewStore.send(.showPrivacySheet)
-        }, label: {
-          Text("Privacy")
-            .font(.title3)
-            .bold()
-            .foregroundColor(.blue)
-        })
+        Button(
+          action: {
+            viewStore.send(.showPrivacySheet)
+          },
+          label: {
+            Text("Privacy")
+              .font(.title3)
+              .bold()
+              .foregroundColor(.blue)
+          }
+        )
         .sheet(
-          isPresented: viewStore.binding(get: { $0.showPrivacySheet
-          }, send: { _ -> ViewAction in .showPrivacySheet })
+          isPresented: viewStore.binding(
+            get: {
+              $0.showPrivacySheet
+            }, send: { _ -> ViewAction in .showPrivacySheet })
         ) {
-          TermsAndPrivacyWebView(urlString: baseURL.appendingPathComponent("/privacy").absoluteString )
+          TermsAndPrivacyWebView(
+            urlString: baseURL.appendingPathComponent("/privacy").absoluteString)
         }
       }
     }
@@ -243,10 +257,10 @@ public struct AuthenticationView: View {
 }
 
 struct AuthenticationView_Previews: PreviewProvider {
-
   static let now = Date()
 
-  static let user = User(id: UUID().uuidString, phoneNumber: "+79218821217", createdAt: now, updatedAt: now)
+  static let user = User(
+    id: UUID().uuidString, phoneNumber: "+79218821217", createdAt: now, updatedAt: now)
   static let access = AuthTokenResponse(accessToken: "fdsfdsafas", refreshToken: "sfasdfas")
 
   static var environment = AuthenticationEnvironment(
@@ -257,7 +271,8 @@ struct AuthenticationView_Previews: PreviewProvider {
   static var store = Store(
     initialState: LoginState(),
     reducer: loginReducer,
-    environment: environment)
+    environment: environment
+  )
 
   static var previews: some View {
     AuthenticationView(store: store)
@@ -288,14 +303,14 @@ extension AuthenticationView {
 extension LoginState {
   var view: AuthenticationView.ViewState {
     AuthenticationView.ViewState(
-      alert: self.alert,
-      authResponse: self.authResponse,
-      isUserFirstNameEmpty: self.isUserFirstNameEmpty,
-      isValidationCodeIsSend: self.isValidationCodeIsSend,
-      isLoginRequestInFlight: self.isLoginRequestInFlight,
-      isAuthorized: self.isAuthorized,
-      showTermsSheet: self.showTermsSheet,
-      showPrivacySheet: self.showPrivacySheet
+      alert: alert,
+      authResponse: authResponse,
+      isUserFirstNameEmpty: isUserFirstNameEmpty,
+      isValidationCodeIsSend: isValidationCodeIsSend,
+      isLoginRequestInFlight: isLoginRequestInFlight,
+      isAuthorized: isAuthorized,
+      showTermsSheet: showTermsSheet,
+      showPrivacySheet: showPrivacySheet
     )
   }
 }
@@ -305,9 +320,9 @@ extension LoginAction {
     switch localAction {
     case .alertDismissed:
       return .alertDismissed
-    case .sendPhoneNumberButtonTapped(let phoneNumber):
+    case let .sendPhoneNumberButtonTapped(phoneNumber):
       return .sendPhoneNumberButtonTapped(phoneNumber)
-    case .verificationRequest(let authResponse):
+    case let .verificationRequest(authResponse):
       return .verificationRequest(authResponse)
     case .showTermsSheet:
       return .showTermsSheet

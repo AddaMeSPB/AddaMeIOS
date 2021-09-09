@@ -1,21 +1,20 @@
 //
 //  EventDetailsReducer.swift
-//  
+//
 //
 //  Created by Saroar Khandoker on 05.07.2021.
 //
 
+import ChatView
 import ComposableArchitecture
-import SwiftUI
-import MapKit
-
-import SharedModels
-import HttpRequest
-import MapView
 import ConversationClient
 import ConversationClientLive
+import HttpRequest
 import KeychainService
-import ChatView
+import MapKit
+import MapView
+import SharedModels
+import SwiftUI
 
 public let eventDetailsReducer = Reducer<
   EventDetailsState, EventDetailsAction, EventDetailsEnvironment
@@ -30,10 +29,10 @@ public let eventDetailsReducer = Reducer<
           mainQueue: $0.mainQueue
         )
       }
-), Reducer { state, action, _ in
+    ),
+  Reducer { state, action, _ in
 
     switch action {
-
     case .onAppear:
 
       let coordinate = CLLocationCoordinate2D(
@@ -60,16 +59,15 @@ public let eventDetailsReducer = Reducer<
       return .none
     case let .eventDetailsOverlay(action):
       switch action {
-
       case .onAppear:
         return .none
       case .alertDismissed:
         return .none
-      case .startChat(_):
+      case .startChat:
         return .none
-      case .askJoinRequest(_):
+      case .askJoinRequest:
         return .none
-      case .joinToEvent(_):
+      case .joinToEvent:
         return .none
       case let .conversationResponse(.success(conversationItem)):
 
@@ -80,20 +78,21 @@ public let eventDetailsReducer = Reducer<
         state.conversation = conversationItem
         state.chatMembers = conversationItem.members?.count ?? 0
 
-        state.eventDetailsOverlayState.isMember = conversationItem.members?.contains(
-          where: { $0.id == currentUSER.id }
-        ) ?? false
+        state.eventDetailsOverlayState.isMember =
+          conversationItem.members?.contains(
+            where: { $0.id == currentUSER.id }
+          ) ?? false
 
-        state.eventDetailsOverlayState.isAdmin = conversationItem.admins?.contains(
-          where: { $0.id == currentUSER.id }
-        ) ?? false
+        state.eventDetailsOverlayState.isAdmin =
+          conversationItem.admins?.contains(
+            where: { $0.id == currentUSER.id }
+          ) ?? false
 
         return .none
 
       case let .conversationResponse(.failure(error)):
         return .none
-
       }
     }
-
-})
+  }
+)

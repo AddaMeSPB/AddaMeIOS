@@ -1,6 +1,6 @@
 //
 //  Reducer+Presents.swift
-//  
+//
 //
 //  Created by Saroar Khandoker on 13.06.2021.
 //
@@ -34,7 +34,8 @@ extension Reducer {
     let localEffectsId = UUID()
     var lastNonNilLocalState: LocalState?
     return Self { state, action, environment in
-      let localEffects = localReducer
+      let localEffects =
+        localReducer
         .optional()
         .replaceNilState(with: lastNonNilLocalState)
         .captureState { lastNonNilLocalState = $0 ?? lastNonNilLocalState }

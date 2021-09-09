@@ -1,24 +1,25 @@
 //
 //  ProfileReducer.swift
-//  
+//
 //
 //  Created by Saroar Khandoker on 06.04.2021.
 //
 
-import ComposableArchitecture
-import Foundation
-import Combine
-import SwiftUI
-
-import HttpRequest
-import UserClient
-import EventClient
-import KeychainService
 import AttachmentClient
+import Combine
+import ComposableArchitecture
+import ComposableArchitectureHelpers
+import EventClient
+import Foundation
+import HttpRequest
+import KeychainService
+import SettingsView
 import SharedModels
+import SwiftUI
+import UIKit
+import UserClient
 
 public func getUserFromKeychain() -> Effect<User, HTTPError> {
-
   return Effect<User, HTTPError>.future { callBack in
     guard let user: User = KeychainService.loadCodable(for: .user) else {
       print(#line, "missing token")
@@ -27,7 +28,6 @@ public func getUserFromKeychain() -> Effect<User, HTTPError> {
 
     return callBack(.success(user))
   }
-
 }
 
 // public let eventReducer = Reducer<EventsState, EventsAction, EventsEnvironment>.combine(
@@ -40,11 +40,11 @@ public func getUserFromKeychain() -> Effect<User, HTTPError> {
 //    struct LocationManagerId: Hashable {}
 //
 
-public let profileReducer = Reducer<ProfileState, ProfileAction, ProfileEnvironment> { state, action, environment in
+public let profileReducer = Reducer<ProfileState, ProfileAction, ProfileEnvironment> {
+  state, action, environment in
 
   func fetchMoreMyEvents() -> Effect<ProfileAction, Never> {
-
-    guard !state.isLoadingPage && state.canLoadMorePages else { return .none }
+    guard !state.isLoadingPage, state.canLoadMorePages else { return .none }
 
     state.isLoadingPage = true
 
@@ -73,8 +73,8 @@ public let profileReducer = Reducer<ProfileState, ProfileAction, ProfileEnvironm
 
     return .none
 
-  case .moveToSettingsView:
-
+  case let .settingsView(isNavigation: present):
+    state.settingsState = present ? SettingsState() : nil
     return .none
 
   case .moveToAuthView:
@@ -89,7 +89,7 @@ public let profileReducer = Reducer<ProfileState, ProfileAction, ProfileEnvironm
       .catchToEffect()
       .map(ProfileAction.userResponse)
 
-  case .uploadAvatar(let image):
+  case let .uploadAvatar(image):
     guard let user: User = KeychainService.loadCodable(for: .user) else {
       return .none
     }
@@ -123,7 +123,7 @@ public let profileReducer = Reducer<ProfileState, ProfileAction, ProfileEnvironm
       .catchToEffect()
       .map(ProfileAction.userResponse)
 
-  case .createAttachment(let attachment):
+  case let .createAttachment(attachment):
 
     return environment.attachmentClient.uploadAvatar(attachment)
       .receive(on: environment.mainQueue)
@@ -139,18 +139,18 @@ public let profileReducer = Reducer<ProfileState, ProfileAction, ProfileEnvironm
 
     return .none
 
-  case .userResponse(.success(let user)):
+  case let .userResponse(.success(user)):
     state.user = user
     state.isUploadingImage = false
 
     return .none
 
-  case .userResponse(.failure(let error)):
+  case let .userResponse(.failure(error)):
     state.isUploadingImage = false
-    state.alert = .init(title: TextState( "\(#line) \(error.description)"))
+    state.alert = .init(title: TextState("\(#line) \(error.description)"))
     return .none
 
-  case .attacmentResponse(.success(let attachmentResponse)):
+  case let .attacmentResponse(.success(attachmentResponse)):
 
     state.isUploadingImage = false
     if var userAttacments = state.user.attachments, !userAttacments.contains(attachmentResponse) {
@@ -159,12 +159,12 @@ public let profileReducer = Reducer<ProfileState, ProfileAction, ProfileEnvironm
 
     return .none
 
-  case .attacmentResponse(.failure(let error)):
+  case let .attacmentResponse(.failure(error)):
     state.isUploadingImage = false
-    state.alert = .init(title: TextState( "\(#line) \(error.description)"))
+    state.alert = .init(title: TextState("\(#line) \(error.description)"))
     return .none
 
-  case .myEventsResponse(.success(let events)):
+  case let .myEventsResponse(.success(events)):
 
     state.canLoadMorePages = state.myEvents.count < events.metadata.total
     state.isLoadingPage = false
@@ -172,14 +172,31 @@ public let profileReducer = Reducer<ProfileState, ProfileAction, ProfileEnvironm
 
     state.myEvents = .init(uniqueElements: events.items)
 
-    return.none
+    return .none
 
-  case .myEventsResponse(.failure(let error)):
+  case let .myEventsResponse(.failure(error)):
 
     state.alert = .init(
       title: TextState("fetch my event error")
     )
 
     return .none
+
+  case let .settings(action):
+    return .none
   }
 }
+.presents(
+  settingsReducer,
+  state: \.settingsState,
+  action: /ProfileAction.settings,
+  environment: { _ in
+    SettingsEnvironment(
+      applicationClient: .noop,
+      backgroundQueue: .main,
+      mainQueue: .main,
+      userDefaults: .live(),
+      userNotifications: .live
+    )
+  }
+)

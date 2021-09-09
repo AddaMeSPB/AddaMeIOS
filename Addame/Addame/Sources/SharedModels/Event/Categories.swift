@@ -12,10 +12,10 @@ public enum Categories: String, CaseIterable, Codable, Equatable, Hashable {
   case General, Hangouts
   case LookingForAcompany = "Looking for a company"
   case Acquaintances, Work,
-       Question, News, Services, Meal,
-       Children, Shop, Mood, Sport, Accomplishment, Ugliness,
-       Driver, Discounts, Warning, Health, Animals, Weekend,
-       Education, Walker, Realty, Charity, Accident, Weather
+    Question, News, Services, Meal,
+    Children, Shop, Mood, Sport, Accomplishment, Ugliness,
+    Driver, Discounts, Warning, Health, Animals, Weekend,
+    Education, Walker, Realty, Charity, Accident, Weather
 
   case GetTogether = "Get Together"
   case TakeOff = "Take Off"

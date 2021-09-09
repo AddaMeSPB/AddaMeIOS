@@ -5,13 +5,13 @@
 //  Created by Saroar Khandoker on 09.08.2021.
 //
 
-import Foundation
-import ComposableArchitecture
 import Combine
+import ComposableArchitecture
+import Foundation
+import MapKit
+import Network
 import SwiftUI
 import SwiftUIExtension
-import Network
-import MapKit
 
 // swiftlint:disable file_length superfluous_disable_command
 
@@ -25,7 +25,6 @@ extension LocationSearchState {
 extension MKLocalSearchCompletion: Identifiable {}
 
 public struct LocationSearchState: Equatable, Hashable, Identifiable {
-
   public init(
     id: UUID = UUID(),
     searchTextInput: String = "",
@@ -48,18 +47,17 @@ public struct LocationSearchState: Equatable, Hashable, Identifiable {
   public var isEditing: Bool = false
   public var pointsOfInterest: IdentifiedArrayOf<MKLocalSearchCompletion> = []
   public var isDidSelectedAddress: Bool = false
-
 }
 
 extension LocationSearchState {
   var view: LocationSearchView.ViewState {
     LocationSearchView.ViewState(
-      id: self.id,
-      searchTextInput: self.searchTextInput,
-      textFieldHeight: self.textFieldHeight,
-      isEditing: self.isEditing,
-      pointsOfInterest: self.pointsOfInterest,
-      isDidSelectedAddress: self.isDidSelectedAddress
+      id: id,
+      searchTextInput: searchTextInput,
+      textFieldHeight: textFieldHeight,
+      isEditing: isEditing,
+      pointsOfInterest: pointsOfInterest,
+      isDidSelectedAddress: isDidSelectedAddress
     )
   }
 }

@@ -1,0 +1,160 @@
+{
+  "object": {
+    "pins": [
+      {
+        "package": "AWSSDKSwift",
+        "repositoryURL": "https://github.com/swift-aws/aws-sdk-swift.git",
+        "state": {
+          "branch": null,
+          "revision": "b402b8a434ca39f24d189289ab93fbee96664502",
+          "version": "4.9.0"
+        }
+      },
+      {
+        "package": "combine-schedulers",
+        "repositoryURL": "https://github.com/pointfreeco/combine-schedulers",
+        "state": {
+          "branch": null,
+          "revision": "6dcc7c034d28fe7ac652453faeae07656f723909",
+          "version": "0.5.1"
+        }
+      },
+      {
+        "package": "CombineContacts",
+        "repositoryURL": "https://github.com/AddaMeSPB/CombineContacts.git",
+        "state": {
+          "branch": null,
+          "revision": "2c42eee66390207f96e03b333d0c84688778aee7",
+          "version": "1.0.0"
+        }
+      },
+      {
+        "package": "composable-core-location",
+        "repositoryURL": "https://github.com/pointfreeco/composable-core-location",
+        "state": {
+          "branch": null,
+          "revision": "ad0b25210c1daef738f2565c4308765123fa248f",
+          "version": "0.1.0"
+        }
+      },
+      {
+        "package": "HttpRequest",
+        "repositoryURL": "https://github.com/AddaMeSPB/HttpRequest.git",
+        "state": {
+          "branch": null,
+          "revision": "8f93450f1113a697be54ffe6a071b9fd2bf90b95",
+          "version": "2.2.0"
+        }
+      },
+      {
+        "package": "HypertextApplicationLanguage",
+        "repositoryURL": "https://github.com/swift-aws/HypertextApplicationLanguage.git",
+        "state": {
+          "branch": null,
+          "revision": "aa2c9141d491682f17b2310aed17b9adfc006256",
+          "version": "1.1.1"
+        }
+      },
+      {
+        "package": "INIParser",
+        "repositoryURL": "https://github.com/swift-aws/Perfect-INIParser.git",
+        "state": {
+          "branch": null,
+          "revision": "42de0efc7a01105e19b80d533d3d282a98277f6c",
+          "version": "3.0.3"
+        }
+      },
+      {
+        "package": "PhoneNumberKit",
+        "repositoryURL": "https://github.com/marmelroy/PhoneNumberKit",
+        "state": {
+          "branch": null,
+          "revision": "1ef0431b971f69c48ca5eb4cdba07f2c5da54c35",
+          "version": "3.3.3"
+        }
+      },
+      {
+        "package": "AWSSDKSwiftCore",
+        "repositoryURL": "https://github.com/soto-project/soto-core.git",
+        "state": {
+          "branch": null,
+          "revision": "856a7df0c15763de4f9f3e3d7baea4a8aa009d22",
+          "version": "4.7.2"
+        }
+      },
+      {
+        "package": "swift-case-paths",
+        "repositoryURL": "https://github.com/pointfreeco/swift-case-paths",
+        "state": {
+          "branch": null,
+          "revision": "d226d167bd4a68b51e352af5655c92bce8ee0463",
+          "version": "0.7.0"
+        }
+      },
+      {
+        "package": "swift-collections",
+        "repositoryURL": "https://github.com/apple/swift-collections",
+        "state": {
+          "branch": null,
+          "revision": "0959ba76a1d4a98fd11163aa83fd49c25b93bfae",
+          "version": "0.0.5"
+        }
+      },
+      {
+        "package": "swift-composable-architecture",
+        "repositoryURL": "https://github.com/pointfreeco/swift-composable-architecture.git",
+        "state": {
+          "branch": null,
+          "revision": "96cdc7e38e2d1d89b95b0ad80c914eb369476c4b",
+          "version": "0.24.0"
+        }
+      },
+      {
+        "package": "swift-identified-collections",
+        "repositoryURL": "https://github.com/pointfreeco/swift-identified-collections",
+        "state": {
+          "branch": null,
+          "revision": "edececbdb56b07e9402f2f3f5b907d220a28b4ea",
+          "version": "0.1.1"
+        }
+      },
+      {
+        "package": "swift-nio",
+        "repositoryURL": "https://github.com/apple/swift-nio.git",
+        "state": {
+          "branch": null,
+          "revision": "9a992ee3de1f8da9f2968fc96b26714834f3105f",
+          "version": "2.31.1"
+        }
+      },
+      {
+        "package": "swift-nio-ssl",
+        "repositoryURL": "https://github.com/apple/swift-nio-ssl.git",
+        "state": {
+          "branch": null,
+          "revision": "9db7cee4b62c39160a6bd513a47a1ecdcceac18a",
+          "version": "2.14.0"
+        }
+      },
+      {
+        "package": "swift-nio-transport-services",
+        "repositoryURL": "https://github.com/apple/swift-nio-transport-services.git",
+        "state": {
+          "branch": null,
+          "revision": "39587bceccda72780e2a8a8c5e857e42a9df2fa8",
+          "version": "1.11.0"
+        }
+      },
+      {
+        "package": "xctest-dynamic-overlay",
+        "repositoryURL": "https://github.com/pointfreeco/xctest-dynamic-overlay",
+        "state": {
+          "branch": null,
+          "revision": "b9eeb1a7ea3fd6fea54ce57dee2f5794b667c8df",
+          "version": "0.2.0"
+        }
+      }
+    ]
+  },
+  "version": 1
+}

@@ -1,25 +1,25 @@
 //
 //  EventRowView.swift
-//  
+//
 //
 //  Created by Saroar Khandoker on 15.04.2021.
 //
 
-import ComposableArchitecture
-import SwiftUI
 import AsyncImageLoder
+import ComposableArchitecture
 import SharedModels
+import SwiftUI
 
 // public struct EventRowView: View {
-//  
+//
 //  @Environment(\.colorScheme) var colorScheme
-//  
+//
 //  public init(store: Store<EventResponse.Item, MyEventAction>) {
 //    self.store = store
 //  }
-//  
+//
 //  public let store: Store<EventResponse.Item, MyEventAction>
-//  
+//
 //  public var body: some View {
 //    WithViewStore(self.store) { viewStore in
 //      HStack {
@@ -43,7 +43,7 @@ import SharedModels
 //            .padding(10)
 //            .cornerRadius(radius: 10, corners: [.topLeft, .bottomLeft])
 //        }
-//        
+//
 //        VStack(alignment: .leading) {
 //          Text(viewStore.name)
 //            .foregroundColor(colorScheme  == .dark ? Color.white : Color.black)
@@ -52,7 +52,7 @@ import SharedModels
 //            .font(.system(size: 23, weight: .light, design: .rounded))
 //            .padding(.top, 10)
 //            .padding(.bottom, 5)
-//          
+//
 //          Text(viewStore.addressName)
 //            .lineLimit(2)
 //            .alignmentGuide(.leading) { d in d[.leading] }
@@ -60,7 +60,7 @@ import SharedModels
 //            .foregroundColor(.blue)
 //            .padding(.bottom, 5)
 //        }
-//        
+//
 //        Spacer()
 //      }
 //      .background(
@@ -71,5 +71,5 @@ import SharedModels
 //      .padding([.leading, .trailing], 10)
 //    }
 //  }
-//  
+//
 // }

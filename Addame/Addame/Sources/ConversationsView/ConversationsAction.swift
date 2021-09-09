@@ -1,16 +1,16 @@
 //
 //  ConversationAction.swift
-//  
+//
 //
 //  Created by Saroar Khandoker on 19.04.2021.
 //
 
-import Foundation
-import ComposableArchitecture
-import SharedModels
-import HttpRequest
 import ChatView
+import ComposableArchitecture
 import ContactsView
+import Foundation
+import HttpRequest
+import SharedModels
 
 public enum ConversationsAction: Equatable {
   case onAppear
@@ -31,22 +31,22 @@ extension ConversationsAction {
   static func view(_ localAction: ConversationsView.ViewAction) -> Self {
     switch localAction {
     case .onAppear:
-      return self .onAppear
-    case .conversationsResponse(let res):
-      return self.conversationsResponse(res)
-    case .fetchMoreConversationIfNeeded(let currentItem):
-      return self.fetchMoreConversationIfNeeded(currentItem: currentItem)
+      return onAppear
+    case let .conversationsResponse(res):
+      return conversationsResponse(res)
+    case let .fetchMoreConversationIfNeeded(currentItem):
+      return fetchMoreConversationIfNeeded(currentItem: currentItem)
     case .alertDismissed:
-      return self.alertDismissed
-    case .conversationTapped(let conversationItem):
-      return self.conversationTapped(conversationItem)
-    case .chat(let action):
-      return self.chat(action)
-    case .contacts(let action):
-      return self.contacts(action)
-    case .chatView(isPresented: let isPresented):
+      return alertDismissed
+    case let .conversationTapped(conversationItem):
+      return conversationTapped(conversationItem)
+    case let .chat(action):
+      return chat(action)
+    case let .contacts(action):
+      return contacts(action)
+    case let .chatView(isPresented: isPresented):
       return .chatView(isPresented: isPresented)
-    case .contactsView(isPresented: let isPresented):
+    case let .contactsView(isPresented: isPresented):
       return .contactsView(isPresented: isPresented)
     }
   }

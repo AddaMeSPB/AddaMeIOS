@@ -7,8 +7,8 @@
 
 import Foundation
 
-public extension String {
-  var toISO8601Date: Date? {
-        ISO8601DateFormatter().date(from: self)
-    }
+extension String {
+  public var toISO8601Date: Date? {
+    ISO8601DateFormatter().date(from: self)
+  }
 }

@@ -1,6 +1,6 @@
 //
 //  ImageDraw.swift
-//  
+//
 //
 //  Created by Saroar Khandoker on 28.01.2021.
 //
@@ -10,12 +10,13 @@ import UIKit
 
 public class ImageDraw {
   private let renderer = UIGraphicsImageRenderer(size: CGSize(width: 400, height: 400))
-  private var colors = [UIColor.red, UIColor.brown, UIColor.yellow, UIColor.green, UIColor.black, UIColor.blue]
+  private var colors = [
+    UIColor.red, UIColor.brown, UIColor.yellow, UIColor.green, UIColor.black, UIColor.blue
+  ]
 
   public init() {}
 
   public func buildRandomImage() -> UIImage {
-
     colors.shuffle()
 
     let image = renderer.image { context in
@@ -32,5 +33,4 @@ public class ImageDraw {
 
     return image
   }
-
 }

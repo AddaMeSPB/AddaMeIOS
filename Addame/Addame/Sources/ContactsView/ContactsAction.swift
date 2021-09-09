@@ -1,14 +1,14 @@
 //
 //  ContactsAction.swift
-//  
+//
 //
 //  Created by Saroar Khandoker on 12.05.2021.
 //
 
-import SharedModels
-import HttpRequest
 import ChatView
 import Contacts
+import HttpRequest
+import SharedModels
 
 // public enum ChatAction: Equatable {}
 

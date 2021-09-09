@@ -1,31 +1,27 @@
 //
 //  EventForm.swift
-//  
+//
 //
 //  Created by Saroar Khandoker on 06.04.2021.
 //
 
-import Foundation
 import Combine
-import SwiftUI
-import MapKit
-
-import MapView
 import ComposableArchitecture
 import ComposableArchitectureHelpers
-import SwiftUIExtension
-import HttpRequest
-import SharedModels
-import KeychainService
-
 import EventClient
 import EventClientLive
+import Foundation
+import HttpRequest
+import KeychainService
+import MapKit
+import MapView
+import SharedModels
+import SwiftUI
+import SwiftUIExtension
 
 extension EventFormView {
-
   public struct ViewState: Equatable {
-
-    public var title: String = String.empty
+    public var title = String.empty
     public var textFieldHeight: CGFloat = 30
     public var durationRawValue: String = DurationButtons.FourHours.rawValue
     public var categoryRawValue: String = Categories.General.rawValue
@@ -39,6 +35,7 @@ extension EventFormView {
         liveLocationToggleisOn = false
       }
     }
+
     public var selectedTag: String?
     public var showSuccessActionSheet = false
     public var placeMark: CLPlacemark?
@@ -56,14 +53,15 @@ extension EventFormView {
     public var isPostRequestOnFly: Bool = false
     public var isEventCreatedSuccessfully: Bool = false
 
-    public var isSheetPresented: Bool { self.locationSearchState != nil }
+    public var isSheetPresented: Bool { locationSearchState != nil }
     public var isAllFeildsAreValid: Bool {
-      return !self.title.isEmpty && self.title.count > 4
-      && !self.eventAddress.isEmpty
-      && !self.durationRawValue.isEmpty
-      && !self.categoryRawValue.isEmpty
+      return !title.isEmpty && title.count > 4
+        && !eventAddress.isEmpty
+        && !durationRawValue.isEmpty
+        && !categoryRawValue.isEmpty
     }
 
+    public var currentUser: User = .draff
   }
 
   public enum ViewAction: Equatable {
@@ -82,13 +80,10 @@ extension EventFormView {
     case submitButtonTapped
     case actionSheetButtonTapped
     case actionSheetDismissed
-
   }
-
 }
 
 public struct EventFormView: View {
-
   @Environment(\.colorScheme) var colorScheme
 
   public init(store: Store<EventFormState, EventFormAction>) {
@@ -105,7 +100,6 @@ public struct EventFormView: View {
       )
     ) { viewStore in
       ZStack(alignment: viewStore.state.isEventCreatedSuccessfully ? .top : .bottomTrailing) {
-
         if viewStore.state.isPostRequestOnFly {
           ProgressView()
         }
@@ -113,7 +107,6 @@ public struct EventFormView: View {
         Form {
           Section {
             HStack {
-
               TextField(
                 "Title",
                 text: viewStore.binding(
@@ -125,11 +118,11 @@ public struct EventFormView: View {
               .font(Font.system(size: 15, weight: .medium, design: .serif))
               // .hideKeyboardOnTap()
               .lineLimit(3)
-//              .background(
-//                colorScheme == .dark ?
-//                  Color(#colorLiteral(red: 0.2549019754, green: 0.2745098174, blue: 0.3019607961, alpha: 1))
-//                  : Color(.systemGray6)
-//              )
+              //              .background(
+              //                colorScheme == .dark ?
+              //                  Color(#colorLiteral(red: 0.2549019754, green: 0.2745098174, blue: 0.3019607961, alpha: 1))
+              //                  : Color(.systemGray6)
+              //              )
               .foregroundColor(Color(UIColor.systemRed))
               .accentColor(Color.green)
               .textFieldStyle(.roundedBorder)
@@ -137,7 +130,6 @@ public struct EventFormView: View {
                 RoundedRectangle(cornerRadius: 10)
                   .stroke(Color.gray, lineWidth: 1)
               )
-
             }
             .padding(.vertical)
 
@@ -147,7 +139,10 @@ public struct EventFormView: View {
 
               Text(viewStore.durationRawValue)
                 .font(.title).bold()
-                .foregroundColor(Color(#colorLiteral(red: 0.9154241085, green: 0.2969468832, blue: 0.2259359956, alpha: 1)))
+                .foregroundColor(
+                  Color(
+                    #colorLiteral(
+                      red: 0.9154241085, green: 0.2969468832, blue: 0.2259359956, alpha: 1)))
             }
             .padding(.vertical)
 
@@ -166,32 +161,35 @@ public struct EventFormView: View {
             .pickerStyle(SegmentedPickerStyle())
             .padding(.vertical)
 
-            Button(action: {
+            Button {
               viewStore.send(.actionSheetButtonTapped)
-            }) {
-               HStack {
-                 VStack(alignment: .leading) {
-                   Text("Select your")
-                   Text("Categoris")
-                 }
-                 Spacer()
-                 Text("⇡ \(viewStore.categoryRawValue)")
-                   .font(.title)
-                   .foregroundColor(Color(#colorLiteral(red: 0.9154241085, green: 0.2969468832, blue: 0.2259359956, alpha: 1)))
-
-               }
-               .padding(.vertical)
+            } label: {
+              HStack {
+                VStack(alignment: .leading) {
+                  Text("Select your")
+                  Text("Categoris")
+                }
+                Spacer()
+                Text("⇡ \(viewStore.categoryRawValue)")
+                  .font(.title)
+                  .foregroundColor(
+                    Color(
+                      #colorLiteral(
+                        red: 0.9154241085, green: 0.2969468832, blue: 0.2259359956, alpha: 1)))
+              }
+              .padding(.vertical)
             }
             .actionSheet(
               self.store.scope(state: \.actionSheet),
               dismiss: .actionSheetDismissed
             )
 
-            Toggle(isOn:
-              viewStore.binding(
-                get: \.liveLocationToggleisOn,
-                send: ViewAction.liveLocationToggleChanged
-              )
+            Toggle(
+              isOn:
+                viewStore.binding(
+                  get: \.liveLocationToggleisOn,
+                  send: ViewAction.liveLocationToggleChanged
+                )
             ) {
               HStack {
                 VStack(alignment: .leading) {
@@ -207,13 +205,13 @@ public struct EventFormView: View {
 
             if viewStore.state.liveLocationToggleisOn {
               // swiftlint:disable line_length
-              Text("📍 we will use your curent location as your event location if you want to choice other place then please click and turn off to get new window for choice your EVENT location"
+              Text(
+                "📍 we will use your curent location as your event location if you want to choice other place then please click and turn off to get new window for choice your EVENT location"
               )
               .font(.system(size: 13, weight: .light, design: .rounded))
               .foregroundColor(Color.red)
               .padding([.top, .bottom], 10)
             }
-
           }
         }
         .padding(.bottom, 20)
@@ -224,7 +222,6 @@ public struct EventFormView: View {
         } else {
           sendButton(viewStore)
         }
-
       }
 
       .navigationTitle("Event Form")
@@ -235,7 +232,8 @@ public struct EventFormView: View {
       .onDisappear {
         viewStore.send(.didDisappear)
       }
-      .sheet(isPresented:
+      .sheet(
+        isPresented:
           viewStore.binding(
             get: { $0.isSheetPresented },
             send: EventFormView.ViewAction.isSearchSheet(isPresented:)
@@ -259,9 +257,9 @@ public struct EventFormView: View {
     _ viewStore: ViewStore<EventFormView.ViewState, EventFormView.ViewAction>
   ) -> some View {
     return VStack {
-      Button(action: {
+      Button {
         viewStore.send(.submitButtonTapped)
-      }) {
+      } label: {
         if viewStore.state.isAllFeildsAreValid {
           HStack(spacing: 10) {
             Text("Submit")
@@ -281,14 +279,13 @@ public struct EventFormView: View {
             .padding()
             .background(Color.red)
         }
-
       }
       .background(viewStore.state.isAllFeildsAreValid ? Color.blue : Color.red)
-      .clipShape(viewStore.state.isAllFeildsAreValid ? AnyShape(Capsule()) : AnyShape(Circle()) ).animation(.default)
+      .clipShape(viewStore.state.isAllFeildsAreValid ? AnyShape(Capsule()) : AnyShape(Circle()))
+      .animation(.default)
       .disabled(!viewStore.state.isAllFeildsAreValid)
       .padding()
       .padding(.bottom, 55)
-
     }
     .padding()
   }
@@ -317,12 +314,11 @@ public struct EventFormView: View {
       radius: 20
     )
     .padding()
+    .padding(.top, 65)
   }
-
 }
 
 struct EventFormView_Previews: PreviewProvider {
-
   static let store = Store(
     initialState: EventFormState.eventFormPlacholder,
     reducer: eventFormReducer,
@@ -333,12 +329,11 @@ struct EventFormView_Previews: PreviewProvider {
   )
 
   static var previews: some View {
-      NavigationView {
-        EventFormView(store: store)
-          // .redacted(reason: .placeholder)
-          // .redacted(reason: EventsState.events.isLoadingPage ? .placeholder : [])
-          .environment(\.colorScheme, .dark)
-      }
+    NavigationView {
+      EventFormView(store: store)
+        // .redacted(reason: .placeholder)
+        // .redacted(reason: EventsState.events.isLoadingPage ? .placeholder : [])
+        .environment(\.colorScheme, .dark)
+    }
   }
-
 }

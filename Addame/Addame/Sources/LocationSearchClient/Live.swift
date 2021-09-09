@@ -1,6 +1,6 @@
 //
 //  Live.swift
-//  
+//
 //
 //  Created by Saroar Khandoker on 06.07.2021.
 //
@@ -18,10 +18,10 @@ extension LocalSearchClient {
           case let (.some(response), _):
             callback(.success(LocalSearchResponse(response: response)))
 
-          case let (_, .some):
+          case (_, .some):
             callback(.failure(LocalSearchClient.Error()))
 
-          case let (.none, .none):
+          case (.none, .none):
             fatalError("It should not be possible that response and error are both nil.")
           }
         }

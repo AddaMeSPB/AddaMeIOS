@@ -1,15 +1,15 @@
 //
 //  ContactRowState.swift
-//  
+//
 //
 //  Created by Saroar Khandoker on 26.06.2021.
 //
 
-import Contacts
-import ComposableArchitecture
-import SharedModels
-import HttpRequest
 import ChatView
+import ComposableArchitecture
+import Contacts
+import HttpRequest
+import SharedModels
 
 public struct ContactRowState: Equatable, Identifiable {
   public init(
@@ -25,5 +25,4 @@ public struct ContactRowState: Equatable, Identifiable {
   public var id: String?
   public var isMoving: Bool = false
   public var contact: Contact
-
 }

@@ -1,13 +1,13 @@
 //
 //  ChatAction.swift
-//  
+//
 //
 //  Created by Saroar Khandoker on 06.04.2021.
 //
 
-import SharedModels
-import HttpRequest
 import Foundation
+import HttpRequest
+import SharedModels
 import WebSocketClient
 
 public enum MessageAction: Equatable {}
@@ -28,17 +28,17 @@ public enum ChatAction: Equatable {
   case sendButtonTapped
 }
 
-public extension ChatAction {
+extension ChatAction {
   // swiftlint:disable cyclomatic_complexity
-  static func view(_ localAction: ChatView.ViewAction) -> Self {
+  public static func view(_ localAction: ChatView.ViewAction) -> Self {
     switch localAction {
     case .onAppear:
       return .onAppear
     case .alertDismissed:
       return .alertDismissed
-    case .conversation(let conversation):
+    case let .conversation(conversation):
       return .conversation(conversation)
-    case .messages(let messages):
+    case let .messages(messages):
       return .messages(messages)
     case let .fetchMoreMessageIfNeeded(currentItem: currentItem):
       return .fetchMoreMessageIfNeeded(currentItem: currentItem)
@@ -46,15 +46,15 @@ public extension ChatAction {
       return .fetchMoreMessage(currentItem: item)
     case let .message(index, action):
       return .message(index: index, action: action)
-    case .sendResponse(let error):
+    case let .sendResponse(error):
       return .sendResponse(error)
-    case .webSocket(let action):
+    case let .webSocket(action):
       return .webSocket(action)
-    case .pingResponse(let error):
+    case let .pingResponse(error):
       return .pingResponse(error)
-    case .receivedSocketMessage(let result):
+    case let .receivedSocketMessage(result):
       return .receivedSocketMessage(result)
-    case .messageToSendChanged(let string):
+    case let .messageToSendChanged(string):
       return .messageToSendChanged(string)
     case .sendButtonTapped:
       return .sendButtonTapped

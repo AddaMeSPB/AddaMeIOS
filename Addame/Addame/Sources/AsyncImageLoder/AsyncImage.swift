@@ -5,11 +5,10 @@
 //  Created by Saroar Khandoker on 31.08.2020.
 //
 
-import SwiftUI
 import Combine
+import SwiftUI
 
 public struct AsyncImage<Placeholder: View>: View {
-
   @StateObject private var loader: ImageLoader
   private var placeholder: Placeholder
   private var image: (UIImage) -> Image
@@ -34,7 +33,6 @@ public struct AsyncImage<Placeholder: View>: View {
     @ViewBuilder placeholder: () -> Placeholder,
     @ViewBuilder image: @escaping (UIImage) -> Image = Image.init(uiImage:)
   ) {
-
     var url = URL(string: "")
     if urlString == nil {
       if let fileURL = AssetExtractor.createLocalUrl(forImageNamed: "Avatar") {
@@ -61,12 +59,11 @@ public struct AsyncImage<Placeholder: View>: View {
 
   private var content: some View {
     Group {
-      if loader.image != nil {
-        image(loader.image!)
+      if let loaderImage = loader.image {
+        image(loaderImage)
       } else {
         placeholder
       }
     }
   }
-
 }

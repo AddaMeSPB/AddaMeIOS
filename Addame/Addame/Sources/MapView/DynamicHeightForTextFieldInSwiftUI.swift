@@ -4,6 +4,7 @@
 //
 import SwiftUI
 import SwiftUIExtension
+
 //
 // struct DynamicHeightTextField: UIViewRepresentable {
 //    @Binding var text: String
@@ -81,7 +82,6 @@ import SwiftUIExtension
 // }
 //
 struct ContentView: View {
-
   @State var text = ""
   @State var textHeight: CGFloat = 0
 
@@ -111,7 +111,6 @@ struct ContentView: View {
       }
 
       DynamicHeightTextField(text: $text, height: $textHeight)
-
     }
     .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
 
@@ -124,7 +123,6 @@ struct ContentView: View {
 }
 
 struct ContentView_Previews: PreviewProvider {
-
   static var previews: some View {
     ContentView()
       .environment(\.colorScheme, .dark)

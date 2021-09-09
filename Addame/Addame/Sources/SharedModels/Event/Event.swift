@@ -5,14 +5,14 @@
 //  Created by Saroar Khandoker on 26.08.2020.
 //
 
-import SwiftUI
 import CoreLocation
 import MapKit
+import SwiftUI
 
 public struct Event: Codable, Identifiable, Equatable {
   public init(
     id: String? = nil, name: String, details: String? = nil,
-    imageUrl: String? = nil, duration: Int,
+    imageUrl: String? = nil, duration: Int, distance: Double? = nil,
     categories: String, isActive: Bool, addressName: String,
     type: GeoType = .Point, sponsored: Bool? = false,
     overlay: Bool? = false, coordinates: [Double],
@@ -24,6 +24,7 @@ public struct Event: Codable, Identifiable, Equatable {
     self.details = details
     self.imageUrl = imageUrl
     self.duration = duration
+    self.distance = distance
     self.categories = categories
     self.isActive = isActive
     self.addressName = addressName
@@ -49,6 +50,7 @@ public struct Event: Codable, Identifiable, Equatable {
   public var details: String?
   public var imageUrl: String?
   public var duration: Int
+  public var distance: Double?
   public var categories: String
   public var isActive: Bool
 
@@ -68,6 +70,7 @@ public struct Event: Codable, Identifiable, Equatable {
 }
 
 // MARK: - EventResponse
+
 public struct EventResponse: Codable, Equatable {
   public static func == (lhs: EventResponse, rhs: EventResponse) -> Bool {
     return lhs.items == rhs.items && lhs.metadata == rhs.metadata
@@ -98,17 +101,18 @@ public struct EventResponse: Codable, Equatable {
 
     public init(
       id: String, name: String, categories: String,
-      imageUrl: String? = nil, duration: Int, isActive: Bool,
-      conversationsId: String, addressName: String,
+      imageUrl: String? = nil, duration: Int, distance: Double? = nil,
+      isActive: Bool, conversationsId: String, addressName: String,
       details: String? = nil, type: String, sponsored: Bool,
       overlay: Bool, coordinates: [Double], regionRadius: CLLocationDistance? = 1000,
       createdAt: Date, updatedAt: Date
     ) {
-      self._id = id
+      _id = id
       self.name = name
       self.categories = categories
       self.imageUrl = imageUrl
       self.duration = duration
+      self.distance = distance
       self.isActive = isActive
       self.conversationsId = conversationsId
       self.addressName = addressName
@@ -135,6 +139,7 @@ public struct EventResponse: Codable, Equatable {
     public var _id, name, categories: String
     public var imageUrl: String?
     public var duration: Int
+    public var distance: Double?
     public var isActive: Bool
     public var conversationsId: String
     public var addressName: String
@@ -148,10 +153,10 @@ public struct EventResponse: Codable, Equatable {
     public var createdAt: Date
     public var updatedAt: Date
   }
-
 }
 
 // MARK: - Metadata
+
 public struct Metadata: Codable, Equatable {
   public let per, total, page: Int
 
@@ -178,7 +183,7 @@ extension EventResponse.Item: MKAnnotation {
   }
 
   public var coordinateMongo: CLLocationCoordinate2D {
-    return CLLocationCoordinate2D(latitude: self.coordinate.longitude, longitude: self.coordinate.latitude)
+    return CLLocationCoordinate2D(latitude: coordinate.longitude, longitude: coordinate.latitude)
   }
 
   public var coordinatesMongoDouble: [Double] {
@@ -195,16 +200,15 @@ extension EventResponse.Item: MKAnnotation {
       currentCLLocation.distance(from: self.location)
     }
   }
-
 }
 
 extension CLLocation {
   var double: [Double] {
-    return [self.coordinate.latitude, self.coordinate.longitude]
+    return [coordinate.latitude, coordinate.longitude]
   }
 }
 
-// swiftlint:disable all
+// swiftlint:disable identifier_name
 public enum GeoType: String {
   case Point
   case LineString
@@ -223,7 +227,7 @@ extension CLLocationCoordinate2D: Equatable, Comparable {
     return lhs.latitude < rhs.latitude && lhs.longitude < rhs.longitude
   }
 
-  public static func ==(lhs: Self, rhs: Self) -> Bool {
+  public static func == (lhs: Self, rhs: Self) -> Bool {
     return lhs.latitude == rhs.latitude && lhs.longitude == rhs.longitude
   }
 }

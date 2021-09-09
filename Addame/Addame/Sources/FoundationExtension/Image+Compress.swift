@@ -11,42 +11,43 @@ import SwiftUI
 #if os(iOS)
   import UIKit
 #elseif os(OSX)
-  import Cocoa
   import AppKit
+  import Cocoa
 
   typealias UIImage = NSImage
   extension NSImage {
-      var cgImage: CGImage? {
-          var proposedRect = CGRect(origin: .zero, size: size)
+    var cgImage: CGImage? {
+      var proposedRect = CGRect(origin: .zero, size: size)
 
-          return cgImage(forProposedRect: &proposedRect,
-                         context: nil,
-                         hints: nil)
-      }
+      return cgImage(
+        forProposedRect: &proposedRect,
+        context: nil,
+        hints: nil)
+    }
 
-      convenience init?(named name: String) {
-          self.init(named: Name(name))
-      }
+    convenience init?(named name: String) {
+      self.init(named: Name(name))
+    }
   }
 
 #endif
 
-public extension UIImage {
-  enum JPEGQuality: CGFloat {
-    case lowest  = 0
-    case low     = 0.25
-    case medium  = 0.5
-    case high    = 0.75
+extension UIImage {
+  public enum JPEGQuality: CGFloat {
+    case lowest = 0
+    case low = 0.25
+    case medium = 0.5
+    case high = 0.75
     case highest = 1
   }
 
-  func compressImage(_ compressionQuality: JPEGQuality? = .medium) -> (Data?, String) {
+  public func compressImage(_ compressionQuality: JPEGQuality? = .medium) -> (Data?, String) {
     var unsuported = false
     var imageData = Data()
     var imageFormat = "jpeg"
 
     do {
-      let data = try self.heicData(compressionQuality: compressionQuality!)
+      let data = try heicData(compressionQuality: compressionQuality!)
       imageData = data
       imageFormat = "heic"
     } catch {
@@ -55,9 +56,8 @@ public extension UIImage {
     }
 
     if unsuported == true {
-
       #if os(iOS)
-        guard let data = self.jpegData(compressionQuality: compressionQuality!.rawValue) else {
+        guard let data = jpegData(compressionQuality: compressionQuality!.rawValue) else {
           return (nil, imageFormat)
         }
 
@@ -66,28 +66,26 @@ public extension UIImage {
       #elseif os(OSX)
         fatalError("Value of type 'NSImage' has no member 'jpegData'")
       #endif
-
     }
 
     return (imageData, imageFormat)
-
   }
-
 }
 
-public extension UIImage {
-  enum HEICError: Error {
+extension UIImage {
+  public enum HEICError: Error {
     case heicNotSupported
     case cgImageMissing
     case couldNotFinalize
   }
 
-  func heicData(compressionQuality: JPEGQuality) throws -> Data {
+  public func heicData(compressionQuality: JPEGQuality) throws -> Data {
     let data = NSMutableData()
-    guard let imageDestination =
-            CGImageDestinationCreateWithData(
-              data, AVFileType.heic as CFString, 1, nil
-            )
+    guard
+      let imageDestination =
+        CGImageDestinationCreateWithData(
+          data, AVFileType.heic as CFString, 1, nil
+        )
     else {
       throw HEICError.heicNotSupported
     }

@@ -6,8 +6,8 @@
 //
 
 import ComposableArchitecture
-import SwiftUI
 import MapKit
+import SwiftUI
 
 public enum LocationSearchAction: Equatable, Hashable {
   case onAppear
@@ -28,17 +28,17 @@ extension LocationSearchAction {
   static func view(_ localAction: LocationSearchView.ViewAction) -> Self {
     switch localAction {
     case .onAppear:
-      return self.onAppear
+      return onAppear
     case .onDisappear:
-      return self.onDisappear
+      return onDisappear
     case let .searchTextInputChanged(inputText):
-      return self.searchTextInputChanged(inputText)
+      return searchTextInputChanged(inputText)
     case let .textFieldHeightChanged(height):
-      return self.textFieldHeightChanged(height)
+      return textFieldHeightChanged(height)
     case let .isEditing(trigger):
-      return self.isEditing(trigger)
+      return isEditing(trigger)
     case let .locationSearchManager(action):
-      return self.locationSearchManager(action)
+      return locationSearchManager(action)
     case let .cleanSearchText(isClean):
       return .cleanSearchText(isClean)
     case let .didSelect(address: results):

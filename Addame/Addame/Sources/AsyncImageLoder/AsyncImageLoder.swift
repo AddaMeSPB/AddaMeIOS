@@ -5,12 +5,11 @@
 //  Created by Saroar Khandoker on 30.08.2020.
 //
 
-import SwiftUI
 import Combine
 import Foundation
+import SwiftUI
 
 public class ImageLoader: ObservableObject {
-
   @Published var image: UIImage?
   private let url: URL
   private var cancellable: AnyCancellable?
@@ -28,7 +27,6 @@ public class ImageLoader: ObservableObject {
   }
 
   func load() {
-
     guard !isLodaing else { return }
 
     if let image = cache?[url] {
@@ -49,9 +47,8 @@ public class ImageLoader: ObservableObject {
       .receive(on: RunLoop.main)
       .delay(for: 6, scheduler: DispatchQueue.main)
       .sink(receiveValue: { [weak self] result in
-          self?.image = result
+        self?.image = result
       })
-
   }
 
   func cancel() {
@@ -69,5 +66,4 @@ public class ImageLoader: ObservableObject {
   private func cache(_ image: UIImage?) {
     image.map { cache?[url] = $0 }
   }
-
 }

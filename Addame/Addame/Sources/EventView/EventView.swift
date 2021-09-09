@@ -1,15 +1,15 @@
+import AsyncImageLoder
+import ChatView
 import ComposableArchitecture
-import SwiftUI
-import SharedModels
+import ComposableArchitectureHelpers
+import ComposableCoreLocation
+import EventDetailsView
+import EventFormView
 import HttpRequest
 import MapKit
-import ComposableCoreLocation
-import AsyncImageLoder
+import SharedModels
+import SwiftUI
 import SwiftUIExtension
-import ComposableArchitectureHelpers
-import EventFormView
-import EventDetailsView
-import ChatView
 
 extension EventView {
   public struct ViewState: Equatable {
@@ -27,7 +27,7 @@ extension EventView {
 
     public var eventFormState: EventFormState?
     public var eventDetailsState: EventDetailsState?
-    public var isEventDetailsSheetPresented: Bool { self.eventDetailsState != nil }
+    public var isEventDetailsSheetPresented: Bool { eventDetailsState != nil }
     public var chatState: ChatState?
     public var conversation: ConversationResponse.Item?
   }
@@ -47,6 +47,8 @@ extension EventView {
     case chatView(isNavigate: Bool)
     case chat(ChatAction)
 
+    case fetchMoreEventsIfNeeded(item: EventResponse.Item?)
+
     case currentLocationButtonTapped
     case eventTapped(EventResponse.Item)
     case popupSettings
@@ -56,7 +58,6 @@ extension EventView {
 }
 
 public struct EventView: View {
-
   @Environment(\.colorScheme) var colorScheme
 
   public init(store: Store<EventsState, EventsAction>) {
@@ -69,11 +70,11 @@ public struct EventView: View {
     WithViewStore(
       self.store.scope(
         state: { $0.view },
-        action: EventsAction.view)
+        action: EventsAction.view
+      )
     ) { viewStore in
 
       ZStack(alignment: .bottomTrailing) {
-
         VStack {
           if viewStore.isEventDetailsSheetPresented && viewStore.isMovingChatRoom {
             ProgressView()
@@ -98,7 +99,6 @@ public struct EventView: View {
                     .animation(.easeOut)
 
                 } else if viewStore.waitingForUpdateLocation {
-
                   Text("Please wait we are updating your current location!")
                     .font(.body)
                     .frame(maxWidth: .infinity)
@@ -110,27 +110,27 @@ public struct EventView: View {
               .background(Color.red)
               .cornerRadius(25)
               .padding()
-
             }
 
             EventsListView(
               store: viewStore.isLoadingPage
-              ? Store(
-                initialState: EventsState.placeholderEvents,
-                reducer: .empty,
-                environment: ()
-              )
-              : self.store
+                ? Store(
+                  initialState: EventsState.placeholderEvents,
+                  reducer: .empty,
+                  environment: ()
+                )
+                : self.store
             )
             .redacted(reason: viewStore.isLoadingPage ? .placeholder : [])
-
           }
         }
-        .background(colorScheme == .dark ? Color.gray.edgesIgnoringSafeArea(.all) : nil )
+        .background(colorScheme == .dark ? Color.gray.edgesIgnoringSafeArea(.all) : nil)
 
         HStack {
           Spacer()
-          Button(action: { viewStore.send(.currentLocationButtonTapped) }) {
+          Button {
+            viewStore.send(.currentLocationButtonTapped)
+          } label: {
             Image(systemName: viewStore.state.isLocationAuthorized ? "circle" : "location")
               .foregroundColor(Color.white)
               .frame(
@@ -143,9 +143,9 @@ public struct EventView: View {
               .padding([.bottom], 26)
           }
           .animation(.easeIn)
-          .shadow(color: viewStore.state.isLocationAuthorized ? Color.green : Color.red, radius: 20, y: 5)
+          .shadow(
+            color: viewStore.state.isLocationAuthorized ? Color.green : Color.red, radius: 20, y: 5)
         }
-
       }
       .navigationBarTitleDisplayMode(.automatic)
       .toolbar {
@@ -155,11 +155,12 @@ public struct EventView: View {
       }
       .navigationTitle("Events")
       .alert(self.store.scope(state: { $0.alert }), dismiss: .alertDismissed)
-      .sheet(isPresented:
-        viewStore.binding(
-          get: { $0.isEventDetailsSheetPresented },
-          send: EventView.ViewAction.eventDetailsView(isPresented:)
-        )
+      .sheet(
+        isPresented:
+          viewStore.binding(
+            get: { $0.isEventDetailsSheetPresented },
+            send: EventView.ViewAction.eventDetailsView(isPresented:)
+          )
       ) {
         IfLetStore(
           self.store.scope(
@@ -195,43 +196,43 @@ public struct EventView: View {
   private func toolbarItemTrailingButton(
     _ viewStore: ViewStore<EventView.ViewState, EventView.ViewAction>
   ) -> some View {
-      Button(action: {
-        viewStore.send(.eventFormView(isNavigate: true))
-      }) {
-        if #available(iOS 15.0, *) {
-          Image(systemName: "plus.circle")
-            .font(.title)
-//            .foregroundColor(
-//              viewStore.state.isLocationAuthorized ? Color.black : Color.gray
-//            )
-            .foregroundColor(colorScheme == .dark ? .white : .blue )
-            .opacity(viewStore.isEventDetailsSheetPresented ? 0 : 1)
-            .overlay {
-              if viewStore.isEventDetailsSheetPresented {
-                ProgressView()
-                  .frame(width: 150.0, height: 150.0)
-                  .padding(50.0)
-              }
+    Button {
+      viewStore.send(.eventFormView(isNavigate: true))
+    } label: {
+      if #available(iOS 15.0, *) {
+        Image(systemName: "plus.circle")
+          .font(.title)
+          //            .foregroundColor(
+          //              viewStore.state.isLocationAuthorized ? Color.black : Color.gray
+          //            )
+          .foregroundColor(colorScheme == .dark ? .white : .blue)
+          .opacity(viewStore.isEventDetailsSheetPresented ? 0 : 1)
+          .overlay {
+            if viewStore.isEventDetailsSheetPresented {
+              ProgressView()
+                .frame(width: 150.0, height: 150.0)
+                .padding(50.0)
             }
-        } else {
-          Image(systemName: "plus.circle")
-            .font(.title)
-            .foregroundColor(viewStore.state.isLocationAuthorized ? Color.black : Color.gray)
-        }
+          }
+      } else {
+        Image(systemName: "plus.circle")
+          .font(.title)
+          .foregroundColor(viewStore.state.isLocationAuthorized ? Color.black : Color.gray)
       }
-      .disabled(viewStore.state.placeMark == nil)
-      .opacity(viewStore.state.placeMark == nil ? 0 : 1)
+    }
+    .disabled(viewStore.state.placeMark == nil)
+    .opacity(viewStore.state.placeMark == nil ? 0 : 1)
   }
 }
 
 struct EventView_Previews: PreviewProvider {
-
   static let environment = EventsEnvironment(
     pathMonitorClient: .satisfied,
     locationManager: .live,
     eventClient: .happyPath,
     backgroundQueue: .immediate,
-    mainQueue: .immediate
+    mainQueue: .immediate,
+    userDefaults: .noop
   )
 
   static let store = Store(
@@ -241,16 +242,16 @@ struct EventView_Previews: PreviewProvider {
   )
 
   static var previews: some View {
-//    TabView {
-//      NavigationView {
+    //    TabView {
+    //      NavigationView {
 
-//        EventView(store: store)
-//          .redacted(reason: .placeholder)
-//          .redacted(reason: EventsState.events.isLoadingPage ? .placeholder : [])
-          // .environment(\.colorScheme, .dark)
-//      }
-//    }
-//
+    //        EventView(store: store)
+    //          .redacted(reason: .placeholder)
+    //          .redacted(reason: EventsState.events.isLoadingPage ? .placeholder : [])
+    // .environment(\.colorScheme, .dark)
+    //      }
+    //    }
+    //
     Group {
       TabView {
         NavigationView {
@@ -273,20 +274,23 @@ struct EventsListView: View {
   let store: Store<EventsState, EventsAction>
 
   var body: some View {
-    WithViewStore(self.store) { viewStore in
+    WithViewStore(
+      self.store.scope(
+        state: { $0.view },
+        action: EventsAction.view
+      )
+    ) { viewStore in
       ForEachStore(
         self.store.scope(state: \.events, action: EventsAction.event)
       ) { eventStore in
         WithViewStore(eventStore) { eventViewStore in
-          Button(action: {
+          Button {
             viewStore.send(.eventTapped(eventViewStore.state))
-          }) {
+          } label: {
             EventRowView(store: eventStore, currentLocation: viewStore.state.location)
               .onAppear {
-                viewStore.send(.fetchMoreEventIfNeeded(item: eventViewStore.state) )
-//                viewStore.send(.fetchMyEvents)
+                viewStore.send(.fetchMoreEventsIfNeeded(item: eventViewStore.state))
               }
-
           }
           .buttonStyle(PlainButtonStyle())
         }
@@ -296,7 +300,6 @@ struct EventsListView: View {
 }
 
 public struct EventRowView: View {
-
   let currentLocation: Location?
   @Environment(\.colorScheme) var colorScheme
 
@@ -333,7 +336,7 @@ public struct EventRowView: View {
 
         VStack(alignment: .leading) {
           Text(viewStore.name)
-            .foregroundColor(colorScheme  == .dark ? Color.white : Color.black)
+            .foregroundColor(colorScheme == .dark ? Color.white : Color.black)
             .lineLimit(2)
             .alignmentGuide(.leading) { viewDimensions in viewDimensions[.leading] }
             .font(.system(size: 23, weight: .light, design: .rounded))
@@ -350,7 +353,7 @@ public struct EventRowView: View {
           Spacer()
           HStack {
             Spacer()
-            Text("\(distance(location: viewStore.location)) away")
+            Text(" \(viewStore.distance?.meterTOmiles ?? "0.0")")
               .lineLimit(2)
               .alignmentGuide(.leading) { viewDimensions in viewDimensions[.leading] }
               .font(.system(size: 15, weight: .light, design: .rounded))
@@ -358,26 +361,30 @@ public struct EventRowView: View {
               .padding(.bottom, 10)
           }
           .padding(.bottom, 5)
-
         }
 
         Spacer()
       }
       .background(
         RoundedRectangle(cornerRadius: 10)
-          .foregroundColor(colorScheme == .dark ? Color(#colorLiteral(red: 0, green: 0, blue: 0, alpha: 1)) : Color(#colorLiteral(red: 0.8374180198, green: 0.8374378085, blue: 0.8374271393, alpha: 0.5)) )
+          .foregroundColor(
+            colorScheme == .dark
+              ? Color(#colorLiteral(red: 0, green: 0, blue: 0, alpha: 1))
+              : Color(
+                #colorLiteral(
+                  red: 0.8374180198, green: 0.8374378085, blue: 0.8374271393, alpha: 0.5)))
       )
       .padding(10)
     }
   }
+}
 
-  func distance(location: CLLocation) -> String {
-    guard let currentCoordinate = currentLocation?.rawValue else {
-      print(#line, "Missing currentCoordinate")
-      return "Loading Coordinate"
-    }
+extension Double {
+  var meterTOkilometers: String {
+    return String(format: "%.02f km away", self / 1000)
+  }
 
-    let distance = currentCoordinate.distance(from: location) / 1000
-    return String(format: "%.02f km", distance)
+  var meterTOmiles: String {
+    return String(format: "%.02f miles away", self / 1609)
   }
 }

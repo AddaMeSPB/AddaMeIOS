@@ -1,8 +1,8 @@
-import Foundation
 import Combine
-import SwiftUI
+import Foundation
 import HttpRequest
 import SharedModels
+import SwiftUI
 
 public struct EventClient {
   public typealias EventFetchHandler = (QueryItem, String) -> AnyPublisher<EventResponse, HTTPError>

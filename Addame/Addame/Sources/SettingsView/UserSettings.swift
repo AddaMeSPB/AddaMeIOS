@@ -1,16 +1,16 @@
 //
 //  UserSettings.swift
-//  
+//
 //
 //  Created by Saroar Khandoker on 05.05.2021.
 //
 
-import UIKit
 import ComposableArchitecture
-import UserNotificationClient
 import UIApplicationClient
-import RemoteNotificationsClient
+import UIKit
+// import RemoteNotificationsClient
 import UserDefaultsClient
+import UserNotificationClient
 
 public struct UserSettings: Codable, Equatable {
   public var colorScheme: ColorScheme
@@ -38,9 +38,8 @@ public struct UserSettings: Codable, Equatable {
 
   public init(from decoder: Decoder) throws {
     let container = try decoder.container(keyedBy: CodingKeys.self)
-    self.colorScheme = (try? container.decode(ColorScheme.self, forKey: .colorScheme)) ?? .system
+    colorScheme = (try? container.decode(ColorScheme.self, forKey: .colorScheme)) ?? .system
   }
-
 }
 
 public enum SettingsAction: Equatable {
@@ -49,23 +48,68 @@ public enum SettingsAction: Equatable {
   case leaveUsAReviewButtonTapped
   case onAppear
   case onDismiss
-  case openSettingButtonTapped
   case userNotificationAuthorizationResponse(Result<Bool, NSError>)
   case userNotificationSettingsResponse(UserNotificationClient.Notification.Settings)
+  case distanceView(DistanceAction)
+}
+
+extension SettingsAction {
+  public static func view(_ localAction: SettingsView.ViewAction) -> Self {
+    switch localAction {
+    case .leaveUsAReviewButtonTapped:
+      return leaveUsAReviewButtonTapped
+    case .onAppear:
+      return onAppear
+    case .onDismiss:
+      return onDismiss
+    case let .distanceView(action):
+      return distanceView(action)
+    }
+  }
+}
+
+extension SettingsState {
+  public var view: SettingsView.ViewState {
+    SettingsView.ViewState(
+      alert: alert,
+      userNotificationSettings: userNotificationSettings,
+      userSettings: userSettings,
+      distance: distance
+    )
+  }
 }
 
 public struct SettingsState: Equatable {
+  public init(
+    alert: AlertState<SettingsAction>? = nil,
+    userNotificationSettings: UserNotificationClient.Notification.Settings? = nil,
+    userSettings: UserSettings = UserSettings(),
+    distance: DistanceState = DistanceState()
+  ) {
+    self.alert = alert
+    self.userNotificationSettings = userNotificationSettings
+    self.userSettings = userSettings
+    self.distance = distance
+  }
+
   public var alert: AlertState<SettingsAction>?
   public var userNotificationSettings: UserNotificationClient.Notification.Settings?
   public var userSettings: UserSettings
+  public var distance: DistanceState
+}
+
+extension SettingsState {
+  public static let settingsSatate = Self(
+    userSettings: .init(colorScheme: .dark),
+    distance: .disState
+  )
 }
 
 public struct SettingsEnvironment {
   public var applicationClient: UIApplicationClient
   public var backgroundQueue: AnySchedulerOf<DispatchQueue>
   public var mainQueue: AnySchedulerOf<DispatchQueue>
-  public var remoteNotifications: RemoteNotificationsClient
-  public var setUserInterfaceStyle: (UIUserInterfaceStyle) -> Effect<Never, Never>
+  //  public var remoteNotifications: RemoteNotificationsClient
   public var userDefaults: UserDefaultsClient
   public var userNotifications: UserNotificationClient
 
@@ -73,17 +117,50 @@ public struct SettingsEnvironment {
     applicationClient: UIApplicationClient,
     backgroundQueue: AnySchedulerOf<DispatchQueue>,
     mainQueue: AnySchedulerOf<DispatchQueue>,
-    remoteNotifications: RemoteNotificationsClient,
-    setUserInterfaceStyle: @escaping (UIUserInterfaceStyle) -> Effect<Never, Never>,
+    //    remoteNotifications: RemoteNotificationsClient,
     userDefaults: UserDefaultsClient,
     userNotifications: UserNotificationClient
   ) {
     self.applicationClient = applicationClient
     self.backgroundQueue = backgroundQueue
     self.mainQueue = mainQueue
-    self.remoteNotifications = remoteNotifications
-    self.setUserInterfaceStyle = setUserInterfaceStyle
+    //    self.remoteNotifications = remoteNotifications
     self.userDefaults = userDefaults
     self.userNotifications = userNotifications
   }
 }
+
+public let settingsReducer = Reducer<
+  SettingsState, SettingsAction, SettingsEnvironment
+>.combine(
+  distanceReducer.pullback(
+    state: \.distance,
+    action: /SettingsAction.distanceView,
+    environment: {
+      DistanceEnvironment(
+        mainQueue: $0.mainQueue,
+        userDefaults: .live()
+      )
+    }
+  ),
+  Reducer { _, action, _ in
+    switch action {
+    case let .binding(settingsState):
+      return .none
+    case .didBecomeActive:
+      return .none
+    case .leaveUsAReviewButtonTapped:
+      return .none
+    case .onAppear:
+      return .none
+    case .onDismiss:
+      return .none
+    case let .userNotificationAuthorizationResponse(value):
+      return .none
+    case let .userNotificationSettingsResponse(value):
+      return .none
+    case let .distanceView(action):
+      return .none
+    }
+  }
+)

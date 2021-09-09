@@ -1,18 +1,17 @@
 //
 //  ConversationState.swift
-//  
+//
 //
 //  Created by Saroar Khandoker on 19.04.2021.
 //
 
-import Foundation
-import ComposableArchitecture
-import SharedModels
 import ChatView
+import ComposableArchitecture
 import ContactsView
+import Foundation
+import SharedModels
 
 public struct ConversationsState: Equatable {
-
   public init(
     isLoadingPage: Bool = false,
     canLoadMorePages: Bool = true,
@@ -46,19 +45,18 @@ public struct ConversationsState: Equatable {
   public var chatState: ChatState?
   public var contactsState: ContactsState?
 
-  public var isSheetPresented: Bool { self.contactsState != nil }
-
+  public var isSheetPresented: Bool { contactsState != nil }
 }
 
 extension ConversationsState {
   var view: ConversationsView.ViewState {
     ConversationsView.ViewState(
-      alert: self.alert,
-      isLoadingPage: self.isLoadingPage,
-      conversations: self.conversations,
-      conversation: self.conversation,
-      chatState: self.chatState,
-      contactsState: self.contactsState
+      alert: alert,
+      isLoadingPage: isLoadingPage,
+      conversations: conversations,
+      conversation: conversation,
+      chatState: chatState,
+      contactsState: contactsState
     )
   }
 }
@@ -67,25 +65,28 @@ extension ConversationsState {
   public static let placholderConversations = Self(
     isLoadingPage: true,
     conversations: .init(uniqueElements: [
-        ConversationResponse.Item(
-          Conversation(
-            id: UUID().uuidString, title: "Walk Around 🚶🏽🚶🏼‍♀️",
-            type: .group, createdAt: Date(), updatedAt: Date()
-          )
-        ),
-        ConversationResponse.Item(
-          Conversation(
-            id: UUID().uuidString, title: "+79218821217, Alla Fake Number Update",
-            type: .oneToOne, createdAt: Date(), updatedAt: Date()
-          )
-        ),
-        ConversationResponse.Item(
-          Conversation(id: UUID().uuidString, title: "Running", type: .group, createdAt: Date(), updatedAt: Date())
+      ConversationResponse.Item(
+        Conversation(
+          id: UUID().uuidString, title: "Walk Around 🚶🏽🚶🏼‍♀️",
+          type: .group, createdAt: Date(), updatedAt: Date()
         )
+      ),
+      ConversationResponse.Item(
+        Conversation(
+          id: UUID().uuidString, title: "+79218821217, Alla Fake Number Update",
+          type: .oneToOne, createdAt: Date(), updatedAt: Date()
+        )
+      ),
+      ConversationResponse.Item(
+        Conversation(
+          id: UUID().uuidString, title: "Running", type: .group, createdAt: Date(),
+          updatedAt: Date())
+      )
     ]
     ),
     conversation: .init(
-      Conversation(id: UUID().uuidString, title: "Running", type: .group, createdAt: Date(), updatedAt: Date())
+      Conversation(
+        id: UUID().uuidString, title: "Running", type: .group, createdAt: Date(), updatedAt: Date())
     ),
     chatState: .init()
   )

@@ -1,20 +1,20 @@
 //
 //  ChatBottomView.swift
-//  
+//
 //
 //  Created by Saroar Khandoker on 18.06.2021.
 //
 
-import SwiftUI
 import ComposableArchitecture
 import SharedModels
+import SwiftUI
 
 struct ChatBottomView: View {
   public init(store: Store<ChatState, ChatAction>) {
     self.store = store
   }
 
-  @State var composedMessage: String = String.empty
+  @State var composedMessage = String.empty
   @State var isMicButtonHide = false
   @State var preWordCount: Int = 0
   @State var newLineCount = 1
@@ -42,13 +42,13 @@ struct ChatBottomView: View {
                 send: ChatAction.messageToSendChanged
               )
             )
-              .lineLimit(9)
-              .font(Font.system(size: 20, weight: .thin, design: .rounded))
-              .frame(height: 40)
-              .foregroundColor(viewStore.messageToSend == placeholderString ? .gray : .primary)
-              .padding([.trailing, .leading], 10)
-              .background(RoundedRectangle(cornerRadius: 8).stroke())
-              .background(Color.clear)
+            .lineLimit(9)
+            .font(Font.system(size: 20, weight: .thin, design: .rounded))
+            .frame(height: 40)
+            .foregroundColor(viewStore.messageToSend == placeholderString ? .gray : .primary)
+            .padding([.trailing, .leading], 10)
+            .background(RoundedRectangle(cornerRadius: 8).stroke())
+            .background(Color.clear)
 
             //          TextEditor(text: self.$chatData.composedMessage)
             //            .foregroundColor(self.chatData.composedMessage == placeholderString ? .gray : .primary)
@@ -75,9 +75,11 @@ struct ChatBottomView: View {
             //            .background(RoundedRectangle(cornerRadius: 8).stroke())
             //            .background(Color.clear)
 
-            Button(action: { viewStore.send(.sendButtonTapped) }) {
+            Button {
+              viewStore.send(.sendButtonTapped)
+            } label: {
               Image(systemName: "arrow.up")
-              // .resizable()
+                // .resizable()
                 .imageScale(.large)
                 .frame(width: 23, height: 23)
                 .padding(11)
@@ -87,18 +89,15 @@ struct ChatBottomView: View {
             }
             .disabled(viewStore.messageToSend.isEmpty)
             .foregroundColor(.gray)
-
           }
           .frame(height: 55)
           .padding(.horizontal, 15)
           .background(Color.clear)
           //        .modifier(AdaptsToSoftwareKeyboard())
-
         }
       }
     }
   }
-
 }
 
 // struct ChatBottomView_Previews: PreviewProvider {

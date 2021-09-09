@@ -1,14 +1,13 @@
-import CoreDataStore
+import Combine
 import ContactClient
 import ContactClientLive
-import Combine
-import Foundation
-import SharedModels
 import CoreData
+import CoreDataStore
+import Foundation
 import HttpRequest
+import SharedModels
 
 public final class CoreDataClient {
-
   public var contactClient: ContactClient
   public var contacts = [Contact]()
 
@@ -17,10 +16,10 @@ public final class CoreDataClient {
   }
 
   public func getContacts() -> AnyPublisher<[Contact], HTTPError> {
-    return self.contactClient.buidContacts()
+    return contactClient.buidContacts()
       .removeDuplicates()
       .mapError {
-        return  HTTPError.custom("ContactEntity Fetch data error ", $0)
+        return HTTPError.custom("ContactEntity Fetch data error ", $0)
       }
       .flatMap { contacts in
         self.registerContacts(contacts: contacts)
@@ -30,7 +29,7 @@ public final class CoreDataClient {
 
   public func registerContacts(contacts: [Contact]) -> AnyPublisher<[Contact], HTTPError> {
     var results = [Contact]()
-    return self.contactClient.getRegisterUsersFromServer(contacts)
+    return contactClient.getRegisterUsersFromServer(contacts)
       .map { users -> [Contact] in
         _ = users.map { user in
           if var contact = contacts.first(where: { $0.phoneNumber == user.phoneNumber }) {
@@ -140,5 +139,4 @@ public final class CoreDataClient {
   //    .eraseToAnyPublisher()
   //
   //  }
-
 }

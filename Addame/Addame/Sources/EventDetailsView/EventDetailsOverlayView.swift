@@ -1,22 +1,20 @@
 //
 //  EventDetailsOverlayView.swift
-//  
+//
 //
 //  Created by Saroar Khandoker on 12.07.2021.
 //
 
-import ComposableArchitecture
-import SwiftUI
-import MapKit
-
-import SharedModels
-import HttpRequest
 import AsyncImageLoder
-import SwiftUIExtension
+import ComposableArchitecture
 import ComposableArchitectureHelpers
+import HttpRequest
+import MapKit
+import SharedModels
+import SwiftUI
+import SwiftUIExtension
 
 struct EventDetailsOverlayView: View {
-
   @Environment(\.colorScheme) var colorScheme
 
   public init(store: Store<EventDetailsOverlayState, EventDetailsOverlayAction>) {
@@ -26,20 +24,25 @@ struct EventDetailsOverlayView: View {
   public let store: Store<EventDetailsOverlayState, EventDetailsOverlayAction>
 
   @ViewBuilder var body: some View {
-    WithViewStore(self.store.scope(state: { $0.view }, action: EventDetailsOverlayAction.view)) { viewStore in
+    WithViewStore(self.store.scope(state: { $0.view }, action: EventDetailsOverlayAction.view)) {
+      viewStore in
       ZStack {
         VStack(alignment: .trailing) {
-          Button(action: {
-            if viewStore.isMember {
-              viewStore.send(.startChat(true)) } else if !viewStore.isMember && !viewStore.state.isAdmin {
-              viewStore.send(.askJoinRequest(true))
+          Button(
+            action: {
+              if viewStore.isMember {
+                viewStore.send(.startChat(true))
+              } else if !viewStore.isMember, !viewStore.state.isAdmin {
+                viewStore.send(.askJoinRequest(true))
+              }
+            },
+            label: {
+              Text(!viewStore.isMember && !viewStore.state.isAdmin ? "Join" : "Start Chat")
+                .font(.system(size: 31, weight: .bold, design: .rounded))
+                .foregroundColor(Color.white)
+                .padding(20)
             }
-          }, label: {
-            Text(!viewStore.isMember && !viewStore.state.isAdmin ? "Join" : "Start Chat")
-              .font(.system(size: 31, weight: .bold, design: .rounded))
-              .foregroundColor(Color.white)
-              .padding(20)
-          })
+          )
           .frame(height: 50, alignment: .leading)
           .overlay(
             Capsule(style: .continuous).stroke(Color.white, lineWidth: 1.5)
@@ -92,10 +95,10 @@ extension EventDetailsOverlayView {
 }
 
 extension UIColor {
-    func image(_ size: CGSize = CGSize(width: 1, height: 1)) -> UIImage {
-        return UIGraphicsImageRenderer(size: size).image { rendererContext in
-            self.setFill()
-            rendererContext.fill(CGRect(origin: .zero, size: size))
-        }
+  func image(_ size: CGSize = CGSize(width: 1, height: 1)) -> UIImage {
+    return UIGraphicsImageRenderer(size: size).image { rendererContext in
+      self.setFill()
+      rendererContext.fill(CGRect(origin: .zero, size: size))
     }
+  }
 }

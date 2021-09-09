@@ -7,8 +7,8 @@
 
 import Foundation
 
-public extension String {
-  var stringToData: Data? {
+extension String {
+  public var stringToData: Data? {
     return Data(
       base64Encoded: self,
       options: Data.Base64DecodingOptions.ignoreUnknownCharacters

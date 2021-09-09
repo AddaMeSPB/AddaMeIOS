@@ -1,4 +1,5 @@
 import Combine
+import Contacts
 import Network
 
 public struct NetworkPath {
@@ -11,7 +12,7 @@ public struct NetworkPath {
 
 extension NetworkPath {
   public init(rawValue: NWPath) {
-    self.status = rawValue.status
+    status = rawValue.status
   }
 }
 
@@ -24,8 +25,6 @@ public struct PathMonitorClient {
     self.networkPathPublisher = networkPathPublisher
   }
 }
-
-import Contacts
 
 // RxContacts
 // public func requestAccess(for entityType: CNEntityType) -> Observable<Bool> {

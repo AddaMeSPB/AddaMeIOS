@@ -5,17 +5,16 @@
 //  Created by Saroar Khandoker on 28.07.2021.
 //
 
-import ComposableArchitecture
 import Combine
+import ComposableArchitecture
+import IdentifiedCollections
+import MapKit
+import Network
 import SwiftUI
 import SwiftUIExtension
-import Network
-import MapKit
-import IdentifiedCollections
 
 extension LocationSearchView {
   public struct ViewState: Equatable, Hashable {
-
     public let id: UUID
     public var searchTextInput: String = ""
     public var textFieldHeight: CGFloat = 50
@@ -38,7 +37,6 @@ extension LocationSearchView {
 }
 
 public struct LocationSearchView: View {
-
   @Environment(\.colorScheme) var colorScheme
   @Environment(\.presentationMode) var presentationMode
 
@@ -73,31 +71,30 @@ public struct LocationSearchView: View {
                 send: ViewAction.textFieldHeightChanged
               )
             )
-              .overlay(
-                HStack {
-                  Image(systemName: "magnifyingglass")
-                    .foregroundColor(.gray)
-                    .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
-                    .padding(.bottom, 6)
-                    .padding(.leading, -6)
-                    .opacity(!viewStore.state.isEditing ? 1 : 0 )
+            .overlay(
+              HStack {
+                Image(systemName: "magnifyingglass")
+                  .foregroundColor(.gray)
+                  .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
+                  .padding(.bottom, 6)
+                  .padding(.leading, -6)
+                  .opacity(!viewStore.state.isEditing ? 1 : 0)
 
-                  if viewStore.state.isEditing {
-                    Button(action: {
-                      viewStore.send(.cleanSearchText(true))
-                    }) {
-                      Image(systemName: "multiply.circle.fill")
-                        .foregroundColor(.gray)
-                        .padding(.trailing, 5)
-                    }
+                if viewStore.state.isEditing {
+                  Button {
+                    viewStore.send(.cleanSearchText(true))
+                  } label: {
+                    Image(systemName: "multiply.circle.fill")
+                      .foregroundColor(.gray)
+                      .padding(.trailing, 5)
                   }
                 }
-              )
-              .padding(EdgeInsets(top: 9, leading: 20, bottom: 0, trailing: 20) )
-              .onTapGesture {
-                viewStore.send(.isEditing(true))
               }
-
+            )
+            .padding(EdgeInsets(top: 9, leading: 20, bottom: 0, trailing: 20))
+            .onTapGesture {
+              viewStore.send(.isEditing(true))
+            }
           }
           .background(Color(.systemGray6))
           .clipShape(
@@ -114,9 +111,9 @@ public struct LocationSearchView: View {
 
           if !viewStore.state.pointsOfInterest.isEmpty {
             List(viewStore.state.pointsOfInterest) { localSearchCompletion in
-              Button(action: {
-                viewStore.send(.didSelect(address: localSearchCompletion) )
-              }) {
+              Button {
+                viewStore.send(.didSelect(address: localSearchCompletion))
+              } label: {
                 VStack(alignment: .leading) {
                   Text(localSearchCompletion.title)
                   Text(localSearchCompletion.subtitle)
@@ -138,7 +135,6 @@ public struct LocationSearchView: View {
 }
 
 struct LocationSearchView_Previews: PreviewProvider {
-
   static let store = Store(
     initialState: LocationSearchState.locationSearchPlacholder,
     reducer: locationSearchReducer,

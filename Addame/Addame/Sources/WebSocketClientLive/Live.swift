@@ -1,23 +1,23 @@
 //
 //  Live.swift
-//  
+//
 //
 //  Created by Saroar Khandoker on 03.03.2021.
 //
 
 import Combine
 import ComposableArchitecture
-import SwiftUI
 import HttpRequest
-import SharedModels
-import KeychainService
 import InfoPlist
+import KeychainService
+import SharedModels
+import SwiftUI
 import WebSocketClient
 
 func token() -> AnyPublisher<String, HTTPError> {
   guard let token: AuthTokenResponse = KeychainService.loadCodable(for: .token) else {
     print(#line, "not Authorized Token are missing")
-    return Fail(error: HTTPError.missingTokenFromIOS )
+    return Fail(error: HTTPError.missingTokenFromIOS)
       .eraseToAnyPublisher()
   }
 
@@ -30,8 +30,13 @@ extension WebSocketClient {
   public static let live = WebSocketClient(
     cancel: { id, closeCode, reason in
       .fireAndForget {
-        dependencies[id]!.task.cancel(with: closeCode, reason: reason)
-        dependencies[id]!.subscriber.send(completion: .finished)
+        guard let dependency = dependencies[id] else {
+          assertionFailure("dependency id is missing")
+          return
+        }
+
+        dependency.task.cancel(with: closeCode, reason: reason)
+        dependency.subscriber.send(completion: .finished)
         dependencies[id] = nil
       }
     },
@@ -40,7 +45,7 @@ extension WebSocketClient {
 
         guard let authToken: AuthTokenResponse = KeychainService.loadCodable(for: .token) else {
           return AnyCancellable {
-            dependencies[id]!.subscriber.send(completion: .finished)
+            dependencies[id]?.subscriber.send(completion: .finished)
             dependencies[id] = nil
           }
         }
@@ -61,7 +66,7 @@ extension WebSocketClient {
           }
         )
 
-        var request = URLRequest(url: url )
+        var request = URLRequest(url: url)
         request.addValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
 
         let session = URLSession(configuration: .default, delegate: delegate, delegateQueue: nil)
@@ -108,11 +113,17 @@ extension WebSocketClient {
     },
     sendPing: { id in
       .future { callback in
-        dependencies[id]!.task.sendPing { error in
+        guard let dependency = dependencies[id] else {
+          assertionFailure("dependency id is missing")
+          return
+        }
+
+        dependency.task.sendPing { error in
           callback(.success(error as NSError?))
         }
       }
-    })
+    }
+  )
 }
 
 private var dependencies: [AnyHashable: Dependencies] = [:]
@@ -141,27 +152,27 @@ private class WebSocketDelegate: NSObject, URLSessionWebSocketDelegate {
   }
 
   func urlSession(
-    _ session: URLSession,
-    webSocketTask: URLSessionWebSocketTask,
+    _: URLSession,
+    webSocketTask _: URLSessionWebSocketTask,
     didOpenWithProtocol protocol: String?
   ) {
-    self.didOpenWithProtocol(`protocol`)
+    didOpenWithProtocol(`protocol`)
   }
 
   func urlSession(
-    _ session: URLSession,
-    webSocketTask: URLSessionWebSocketTask,
+    _: URLSession,
+    webSocketTask _: URLSessionWebSocketTask,
     didCloseWith closeCode: URLSessionWebSocketTask.CloseCode,
     reason: Data?
   ) {
-    self.didClose(closeCode, reason)
+    didClose(closeCode, reason)
   }
 
-  func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
-    self.didCompleteWithError(error)
+  func urlSession(_: URLSession, task _: URLSessionTask, didCompleteWithError error: Error?) {
+    didCompleteWithError(error)
   }
 
-  func urlSession(_ session: URLSession, didBecomeInvalidWithError error: Error?) {
-    self.didBecomeInvalidWithError(error)
+  func urlSession(_: URLSession, didBecomeInvalidWithError error: Error?) {
+    didBecomeInvalidWithError(error)
   }
 }

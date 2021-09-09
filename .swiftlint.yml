@@ -32,6 +32,9 @@ opt_in_rules:
   - single_test_class
   - sorted_first_last
 
+analyzer_rules: # Rules run by `swiftlint analyze` (experimental)
+  - explicit_self
+
 warning_threshold: 1
 
 line_length: 120
@@ -52,3 +55,12 @@ identifier_name:
   excluded:
     - id
     - _id
+
+indentation: 2
+
+excluded:
+ - derivedData
+ - test_output
+ - fastlane
+
+reporter: "xcode" # reporter type (xcode, json, csv, checkstyle, junit, html, emoji)
