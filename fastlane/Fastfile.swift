@@ -26,7 +26,7 @@ class Fastfile: LaneFile {
   func buildLane() {
     desc("Build for testing")
     scan(workspace: "Addame.xcworkspace",
-         scheme: "Addame",
+         scheme: "AddameCI",
          derivedDataPath: "derivedData",
          buildForTesting: .userDefined(true),
          xcargs: "CI=true")
@@ -36,7 +36,7 @@ class Fastfile: LaneFile {
     desc("Run unit tests")
     scan(
       workspace: "Addame.xcworkspace",
-      scheme: "Addame",
+      scheme: "AddameCI",
       device: "iPhone 12 Pro",
       resetSimulator: false,
       onlyTesting: ["EventFormViewTests"],
