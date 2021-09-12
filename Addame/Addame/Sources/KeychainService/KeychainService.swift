@@ -106,10 +106,9 @@ public class KeychainService: NSObject {
   }
 
   private class func load(_ service: NSString) -> NSString? {
-    let kCFBooleanTrue = kCFBooleanTrue as Any
     let objects = [
       kSecClassGenericPasswordValue,
-      service, service, kCFBooleanTrue,
+      service, service, kCFBooleanTrue as Any,
       kSecMatchLimitOneValue, kSecAttrAccessibleAfterFirstUnlockValue
     ]
     let forKeys = [
