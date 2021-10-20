@@ -1,4 +1,4 @@
-name: Swift
+name: SwiftTest
 
 on:
   pull_request:
