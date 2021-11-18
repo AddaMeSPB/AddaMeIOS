@@ -26,7 +26,7 @@ class Fastfile: LaneFile {
   func buildLane() {
     desc("Build for testing")
     scan(workspace: "Addame.xcworkspace",
-         scheme: "Addame",
+         scheme: "AddameCI",
          derivedDataPath: "derivedData",
          buildForTesting: .userDefined(true),
          xcargs: "CI=true")
@@ -36,7 +36,7 @@ class Fastfile: LaneFile {
     desc("Run unit tests")
     scan(
       workspace: "Addame.xcworkspace",
-      scheme: "Addame",
+      scheme: "AddameCI",
       device: "iPhone 12 Pro",
       resetSimulator: false,
       onlyTesting: ["EventFormViewTests"],
@@ -61,10 +61,25 @@ class Fastfile: LaneFile {
     }
 
     desc("Push a new beta build to TestFlight")
-    incrementBuildNumber(xcodeproj: "Addame.xcodeproj")
-    incrementVersionNumber(bumpType: "minor", xcodeproj: "Addame.xcodeproj")
-    buildApp(workspace: "Addame.xcworkspace", scheme: "Addame")
+//    incrementBuildNumber(xcodeproj: "Addame.xcodeproj")
+    echo(message: "DumpType parameter value \(dumpType)")
+    incrementVersionNumber(bumpType: dumpType, xcodeproj: "Addame.xcodeproj")
+    buildApp(workspace: "Addame.xcworkspace", scheme: "AddamePro")
     uploadToTestflight(username: "\(appleID)", teamId: "\(teamId)")
+  }
+
+  func releaseLane() {
+//    lane :release do
+//      capture_screenshots # generate new screenshots for the App Store
+//      sync_code_signing(type: "appstore")
+// # see code signing guide for more information
+//      build_app(scheme: "MyApp")
+//      upload_to_app_store # upload your app to App Store Connect
+//      slack(message: "Successfully uploaded a new App Store build")
+//    end
+    // getPushCertificate(appIdentifier: <#String#>, username: <#String#>, p12Password: <#String#>)
+    buildApp()
+    uploadToAppStore()
   }
 
   func sandbox() {
@@ -87,52 +102,3 @@ class Fastfile: LaneFile {
     )
   }
 }
-
-// platform :ios do
-//  desc "Push a new beta build to TestFlight"
-//  lane :tf do
-//    increment_build_number(xcodeproj: "AddaMeIOS.xcodeproj")
-//    build_app(scheme: "AddaMeIOS")
-//    upload_to_testflight
-//  end
-//
-//  desc "Push a new release build"
-//  lane :release do
-//    precheck
-//    increment_build_number(xcodeproj: "AddaMeIOS.xcodeproj")
-//    snapshot
-//    frameit
-//    deliver(
-//      submit_for_review: true,
-//      automatic_release: true,
-//      force: true, # Skip HTMl report verification
-//      skip_metadata: true,
-//      skip_screenshots: false,
-//      skip_binary_upload: true
-//    )
-//  end
-//
-//  desc "Generate new localized screenshots"
-//  lane :screenshots do
-//    capture_screenshots(workspace: "AddaMeIOS.xcodeproj", scheme: "AddaMeIOSUITests")
-//  end
-//
-//  lane :sandbox do
-//    capture_screenshots
-//    frame_screenshots(white: true)
-//    frameit(path: "./fastlane/screenshots")
-//  end
-//
-//  lane :submit_review do
-//    frame_screenshots(white: true)
-//    frameit(path: "./fastlane/screenshots")
-//    deliver(
-//      submit_for_review: true,
-//      automatic_release: true,
-//      force: true, # Skip HTMl report verification
-//      skip_metadata: true,
-//      skip_screenshots: false,
-//      skip_binary_upload: true
-//    )
-//  end
-// end

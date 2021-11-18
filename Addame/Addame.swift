@@ -10,17 +10,20 @@ import AuthClient
 import AuthClientLive
 import AuthenticationView
 import ComposableArchitecture
-import ConversationsView
-import EventView
-import ProfileView
 import SwiftUI
 import TabsView
 
 @main
 struct AddameApp: App {
+  let store = Store(
+    initialState: AppState(),
+    reducer: appReducer,
+    environment: .live
+  )
+
   var body: some Scene {
     WindowGroup {
-      AppView()
+      AppView(store: store)
     }
   }
 }
