@@ -3,6 +3,22 @@ Adda2 is a free, open source, messaging app for simple private communication wit
 
 [![Available on the App Store](http://cl.ly/WouG/Download_on_the_App_Store_Badge_US-UK_135x40.svg)](https://apps.apple.com/app/id1538487173)
 
+## Technical overview
+- [The Composable Architecture (TCA)](https://github.com/pointfreeco/swift-composable-architecture)
+- Swift Package Manager
+- Unit tests
+- UI tests
+- Modularisation
+
+
+This is a project demonstrating the capabilities of [The Composable Architecture (TCA)](https://github.com/pointfreeco/swift-composable-architecture) and Swift Package Manager.
+TCA allows developers to fully encapsulate state, actions and environment to control its side effects.
+
+This allows for easier dependency management where we can have more control of what goes where when needed.
+
+Compared to other ways of building and developing applications, TCA allows for building new **Features** in parallel in a big team.
+Productivity increases while cognitive load stays at a manageable level.
+
 ### Use Adda to:
 * Discover users who live nearby
 * You can see nearby stories anonymously
