@@ -98,6 +98,7 @@ public let eventFormReducer = Reducer<
 
   case .actionSheetButtonTapped:
 
+    // menu context please
     state.actionSheet = .init(
       title: .init("Categories"),
       message: .init("Select your category."),

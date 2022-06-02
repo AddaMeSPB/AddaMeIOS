@@ -71,7 +71,7 @@ let package = Package(
 
   dependencies: [
 //    .package(name: "AWSSDKSwift", url: "https://github.com/swift-aws/aws-sdk-swift.git", from: "4.9.0"),
-    .package(url: "https://github.com/soto-project/soto.git", from: "5.0.0"),
+    .package(url: "https://github.com/soto-project/soto.git", from: "5.13.1"),
     .package(url: "https://github.com/marmelroy/PhoneNumberKit", .upToNextMajor(from: "3.3.3")),
     .package(
       url: "https://github.com/pointfreeco/swift-composable-architecture.git", from: "0.28.1"),

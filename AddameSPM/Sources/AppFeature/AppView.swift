@@ -71,6 +71,7 @@ public let appReducer = Reducer<AppState, AppAction, AppEnvironment>.combine(
     switch action {
     case .onAppear:
 
+        // this code move to login and remove onApper
       if environment.userDefaults.boolForKey(AppUserDefaults.Key.isAuthorized.rawValue) == true {
         state = .tabs(
           .init(

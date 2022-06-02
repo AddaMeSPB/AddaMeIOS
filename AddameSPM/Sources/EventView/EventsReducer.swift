@@ -17,6 +17,7 @@ import HTTPRequestKit
 import MapKit
 import SharedModels
 import SwiftUI
+import MapView
 
 struct LocationManagerId: Hashable {}
 
@@ -70,9 +71,12 @@ public let eventsReducer = Reducer<EventsState, EventsAction, EventsEnvironment>
       state.isConnected = true
       state.waitingForUpdateLocation = false
 
-      return environment.locationManager
-        .requestLocation()
-        .fireAndForget()
+        return environment.locationManager.startUpdatingLocation()
+            .fireAndForget()
+
+//        environment.locationManager
+//          .requestLocation()
+//          .fireAndForget()
 
     @unknown default:
       return .none
@@ -371,7 +375,7 @@ private let locationManagerReducer = Reducer<
 
     if state.isRequestingCurrentLocation {
       return environment.locationManager
-        .requestLocation()
+        .startUpdatingLocation()
         .fireAndForget()
     }
     return .none
