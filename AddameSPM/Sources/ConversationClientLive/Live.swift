@@ -29,6 +29,20 @@ public struct ConversationAPI {
   public static let build = Self()
   private var baseURL: URL { EnvironmentKeys.rootURL.appendingPathComponent("/conversations") }
 
+    fileprivate func handleDataType<Input: Encodable>(
+      input: Input? = nil,
+      params: [String: Any] = [:],
+      queryItems: [URLQueryItem] = []
+    ) -> HTTPRequest.DataType {
+      if !params.isEmpty {
+        return .query(with: params)
+      } else if !queryItems.isEmpty {
+        return .query(with: queryItems)
+      } else {
+        return .encodable(input: input, encoder: .init())
+      }
+    }
+
   private func tokenHandle<Input: Encodable, Output: Decodable>(
     input: Input? = nil,
     path: String,
@@ -43,12 +57,7 @@ public struct ConversationAPI {
         authType: .bearer(token: token),
         path: path,
         contentType: .json,
-        dataType: .sendData(
-          items: queryItems,
-          params: params,
-          encodable: input,
-          parameters: input
-        )
+        dataType: handleDataType(input: input, params: params, queryItems: queryItems)
       )
 
       return builder.send(scheduler: RunLoop.main)
