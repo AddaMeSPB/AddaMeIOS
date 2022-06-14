@@ -14,6 +14,8 @@ import EventClientLive
 import PathMonitorClient
 import PathMonitorClientLive
 import UserDefaultsClient
+import IDFAClient
+import IDFAClientLive
 
 public struct EventsEnvironment {
   let pathMonitorClient: PathMonitorClient
@@ -22,6 +24,7 @@ public struct EventsEnvironment {
   public var backgroundQueue: AnySchedulerOf<DispatchQueue>
   public var mainQueue: AnySchedulerOf<DispatchQueue>
   public var userDefaults: UserDefaultsClient
+  var idfaClient: IDFAClient
 
   public init(
     pathMonitorClient: PathMonitorClient,
@@ -29,7 +32,8 @@ public struct EventsEnvironment {
     eventClient: EventClient,
     backgroundQueue: AnySchedulerOf<DispatchQueue>,
     mainQueue: AnySchedulerOf<DispatchQueue>,
-    userDefaults: UserDefaultsClient
+    userDefaults: UserDefaultsClient,
+    idfaClient: IDFAClient
   ) {
     self.pathMonitorClient = pathMonitorClient
     self.locationManager = locationManager
@@ -37,6 +41,7 @@ public struct EventsEnvironment {
     self.backgroundQueue = backgroundQueue
     self.mainQueue = mainQueue
     self.userDefaults = userDefaults
+    self.idfaClient = idfaClient
   }
 
   func getPlacemark(_ location: Location) -> Effect<CLPlacemark, Never> {
@@ -70,7 +75,8 @@ extension EventsEnvironment {
     eventClient: .live(api: .build),
     backgroundQueue: .main,
     mainQueue: .main,
-    userDefaults: .live()
+    userDefaults: .live(),
+    idfaClient: .live
   )
 
   public static let happyPath: EventsEnvironment = .init(
@@ -79,6 +85,7 @@ extension EventsEnvironment {
     eventClient: .happyPath,
     backgroundQueue: .immediate,
     mainQueue: .immediate,
-    userDefaults: .noop
+    userDefaults: .noop,
+    idfaClient: .authorized
   )
 }

@@ -54,8 +54,20 @@ public let tabsReducer = Reducer<
     }
 
     switch action {
+    case let .scenePhase(phase):
+      switch phase {
+      case .background: debugPrint(#line, "background")
+        return .none
+      case .inactive: debugPrint(#line, "inactive")
+        return .none
+      case .active: debugPrint(#line, "active")
+          return getAcceccToken
+      @unknown default:
+        debugPrint(#line, "default")
+        return .none
+      }
     case .onAppear:
-      return getAcceccToken
+        return .none
 
     case let .didSelectTab(tab):
       state.selectedTab = tab
@@ -88,6 +100,7 @@ public let tabsReducer = Reducer<
         return .none
       }
 
+      state.accessToken = accessToken
       var baseURL: URL { EnvironmentKeys.webSocketURL }
 
       return .merge(

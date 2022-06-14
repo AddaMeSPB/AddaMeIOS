@@ -68,6 +68,7 @@ public let appReducer = Reducer<AppState, AppAction, AppEnvironment>.combine(
     environment: { _ in TabsEnvironment.live }
   ),
   Reducer { state, action, environment in
+
     switch action {
     case .onAppear:
 
@@ -123,6 +124,7 @@ public let appReducer = Reducer<AppState, AppAction, AppEnvironment>.combine(
 
 public struct AppView: View {
 
+  @Environment(\.scenePhase) private var scenePhase
   let store: Store<AppState, AppAction>
 
   public init(store: Store<AppState, AppAction>) {

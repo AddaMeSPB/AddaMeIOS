@@ -33,6 +33,7 @@ public struct TabsViewState: Equatable {
   public var conversations: ConversationsState
   public var profile: ProfileState
   public var isHidden = false
+  public var accessToken = ""
 }
 
 extension TabsViewState {
@@ -42,7 +43,8 @@ extension TabsViewState {
       event: event,
       conversations: conversations,
       profile: profile,
-      isHidden: isHidden
+      isHidden: isHidden,
+      accessToken: accessToken
     )
   }
 }

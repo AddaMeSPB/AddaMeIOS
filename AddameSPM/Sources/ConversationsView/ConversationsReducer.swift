@@ -131,6 +131,7 @@ public let conversationsReducer = Reducer<
     return presentChatView()
 
   case let .conversationResponse(.failure(error)):
+      print(error)
     return .none
 
   case let .contacts(.contact(id: id, action: action)):

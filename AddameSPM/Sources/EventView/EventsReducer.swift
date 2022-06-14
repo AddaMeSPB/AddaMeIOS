@@ -20,6 +20,7 @@ import SwiftUI
 import MapView
 
 struct LocationManagerId: Hashable {}
+struct IDFAStatusId: Hashable {}
 
 // swiftlint:disable superfluous_disable_command file_length
 public let eventsReducer = Reducer<EventsState, EventsAction, EventsEnvironment> {
@@ -51,7 +52,7 @@ public let eventsReducer = Reducer<EventsState, EventsAction, EventsEnvironment>
         title: .init("Please give us access to your location in settings"),
         message: .init("Please go to Settings and turn on the permissions"),
         primaryButton: .cancel(.init("Cancel"), action: .send(.alertDismissed)),
-        secondaryButton: .default(.init(""), action: .send(.popupSettings))
+        secondaryButton: .default(.init("Go to Settings"), action: .send(.popupSettings))
       )
       state.waitingForUpdateLocation = false
       return .none
@@ -61,7 +62,7 @@ public let eventsReducer = Reducer<EventsState, EventsAction, EventsEnvironment>
         title: .init("Please give us access to your location in settings"),
         message: .init("Please go to Settings and turn on the permissions"),
         primaryButton: .cancel(.init("Cancel"), action: .send(.alertDismissed)),
-        secondaryButton: .default(TextState(""), action: .send(.popupSettings))
+        secondaryButton: .default(TextState("Go to Settings"), action: .send(.popupSettings))
       )
       state.waitingForUpdateLocation = false
       return .none
@@ -145,6 +146,7 @@ public let eventsReducer = Reducer<EventsState, EventsAction, EventsEnvironment>
   }
 
   switch action {
+
   case .onAppear:
 
     return .merge(
@@ -152,8 +154,17 @@ public let eventsReducer = Reducer<EventsState, EventsAction, EventsEnvironment>
         .map(EventsAction.locationManager)
         .cancellable(id: LocationManagerId()),
 
-      currentLocationButtonTapped
+      currentLocationButtonTapped,
+      environment.idfaClient.requestAuthorization()
+        .map(EventsAction.idfaAuthorizationStatus)
+        .cancellable(id: IDFAStatusId())
     )
+  case .fetchEventOnAppear:
+      if state.isLocationAuthorized && state.isIDFAAuthorized {
+          return fetchEvents
+      }
+
+    return .none
 
   case .dismissEvent:
     return .none
@@ -209,6 +220,7 @@ public let eventsReducer = Reducer<EventsState, EventsAction, EventsEnvironment>
     return .none
 
   case let .eventPlacemarkResponse(.success(placemark)):
+
     let formatter = CNPostalAddressFormatter()
     guard let postalAddress = placemark.postalAddress else {
       // handle error here
@@ -221,12 +233,14 @@ public let eventsReducer = Reducer<EventsState, EventsAction, EventsEnvironment>
     return .none
 
   case let .locationManager(.didUpdateLocations(locations)):
-    state.isLoadingPage = true
+
     guard state.isConnected, let location = locations.first else { return .none }
     state.location = location
 
     return .merge(
-      fetchEvents,
+        Effect(value: .fetchEventOnAppear)
+            .receive(on: environment.mainQueue)
+            .eraseToEffect(),
       getPlacemark(location)
     )
 
@@ -237,10 +251,7 @@ public let eventsReducer = Reducer<EventsState, EventsAction, EventsEnvironment>
     return currentLocationButtonTapped
 
   case .popupSettings:
-    //    @available(iOSApplicationExtension, unavailable)
-    //    if let url = URL(string: UIApplication.openSettingsURLString), UIApplication.shared.canOpenURL(url) {
-    //      UIApplication.shared.open(url, options: [:], completionHandler: nil)
-    //    }
+      UIApplication.shared.open(URL(string: UIApplication.openSettingsURLString)!)
 
     return .none
 
@@ -333,6 +344,9 @@ public let eventsReducer = Reducer<EventsState, EventsAction, EventsEnvironment>
   case let .chatView(isNavigate: isNavigate):
     state.chatState = isNavigate ? ChatState(conversation: state.conversation) : nil
     return .none
+  case .idfaAuthorizationStatus(let status):
+      state.isIDFAAuthorized = state.isIDFAAuthorization(status)
+      return .none
   }
 }
 .combined(
@@ -391,7 +405,7 @@ private let locationManagerReducer = Reducer<
       title: TextState("Please give us access to your location so you can use our full features"),
       message: TextState("Please go to Settings and turn on the permissions"),
       primaryButton: .cancel(.init("Cancel"), action: .send(.alertDismissed)),
-      secondaryButton: .default(.init("Go Settings"), action: .send(.popupSettings))
+      secondaryButton: .default(.init("Go to Settings"), action: .send(.popupSettings))
     )
     return .none
 

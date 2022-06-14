@@ -47,6 +47,8 @@ let package = Package(
     .library(name: "WebSocketClient", targets: ["WebSocketClient"]),
     .library(name: "WebSocketClientLive", targets: ["WebSocketClientLive"]),
     .library(name: "LocationSearchClient", targets: ["LocationSearchClient"]),
+    .library(name: "IDFAClient", targets: ["IDFAClient"]),
+    .library(name: "IDFAClientLive", targets: ["IDFAClientLive"]),
 
     // Views
     .library(name: "AuthenticationView", targets: ["AuthenticationView"]),
@@ -74,7 +76,7 @@ let package = Package(
     .package(url: "https://github.com/soto-project/soto.git", from: "5.13.1"),
     .package(url: "https://github.com/marmelroy/PhoneNumberKit", .upToNextMajor(from: "3.3.3")),
     .package(
-      url: "https://github.com/pointfreeco/swift-composable-architecture.git", from: "0.28.1"),
+      url: "https://github.com/pointfreeco/swift-composable-architecture.git", from: "0.36.0"),
     .package(url: "https://github.com/pointfreeco/composable-core-location.git", .branch("main")),
     .package(url: "https://github.com/pointfreeco/xctest-dynamic-overlay", from: "0.1.0"),
     .package(url: "https://github.com/AddaMeSPB/CombineContacts.git", from: "1.0.0"),
@@ -202,7 +204,18 @@ let package = Package(
       name: "ContactClientLive",
       dependencies: ["ContactClient", "CoreDataStore"]
     ),
-
+    .target(
+        name: "IDFAClient",
+        dependencies: [
+            .product(name: "ComposableArchitecture", package: "swift-composable-architecture")
+        ]
+    ),
+    .target(
+        name: "IDFAClientLive",
+        dependencies: [
+        .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
+        "IDFAClient"
+        ]),
     .target(
       name: "ConversationClient",
       dependencies: ["FoundationExtension", "HTTPRequestKit", "SharedModels"]
@@ -337,7 +350,8 @@ let package = Package(
         "HTTPRequestKit", "KeychainService", "ChatClient", "ChatView",
         "PathMonitorClientLive", "EventClientLive",
         "EventDetailsView", "ConversationClient", "ConversationClientLive",
-        "UserDefaultsClient", "ComposableArchitectureHelpers"
+        "UserDefaultsClient", "ComposableArchitectureHelpers",
+        "IDFAClient", "IDFAClientLive"
       ]
     ),
     .testTarget(

@@ -12,6 +12,7 @@ import EventDetailsView
 import EventFormView
 import MapKit
 import SharedModels
+import AppTrackingTransparency
 
 public struct EventsState: Equatable {
 
@@ -24,6 +25,7 @@ public struct EventsState: Equatable {
   public var canLoadMorePages = true
   public var isMovingChatRoom: Bool = false
   public var isEFromNavigationActive = false
+  public var isIDFAAuthorized = false
 
   public var currentPage = 1
   public var currentAddress = ""
@@ -46,6 +48,7 @@ public struct EventsState: Equatable {
     waitingForUpdateLocation: Bool = true,
     isMovingChatRoom: Bool = false,
     isEFromNavigationActive: Bool = false,
+    isIDFAAuthorized: Bool = false,
     isLoadingPage: Bool = false,
     canLoadMorePages: Bool = true, currentPage: Int = 1,
     currentAddress: String = "", placeMark: CLPlacemark? = nil,
@@ -64,6 +67,7 @@ public struct EventsState: Equatable {
     self.canLoadMorePages = canLoadMorePages
     self.isMovingChatRoom = isMovingChatRoom
     self.isEFromNavigationActive = isEFromNavigationActive
+    self.isIDFAAuthorized = isIDFAAuthorized
     self.currentPage = currentPage
     self.currentAddress = currentAddress
     self.placeMark = placeMark
@@ -79,12 +83,25 @@ public struct EventsState: Equatable {
 }
 
 extension EventsState {
+    func isIDFAAuthorization(_ status: ATTrackingManager.AuthorizationStatus) -> Bool {
+        switch status {
+        case .notDetermined, .restricted, .denied: return false
+        case .authorized: return true
+        @unknown default: return false
+        }
+    }
+
+}
+
+extension EventsState {
   var view: EventView.ViewState {
     EventView.ViewState(
       alert: alert, isConnected: isConnected,
       isLocationAuthorized: isLocationAuthorized,
       waitingForUpdateLocation: waitingForUpdateLocation,
-      isLoadingPage: isLoadingPage, isMovingChatRoom: isMovingChatRoom,
+      isLoadingPage: isLoadingPage,
+      isMovingChatRoom: isMovingChatRoom,
+      isIDFAAuthorized: isIDFAAuthorized,
       location: location,
       events: events, myEvents: myEvents,
       event: event,

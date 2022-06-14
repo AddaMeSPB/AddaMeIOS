@@ -30,7 +30,6 @@ public struct TabsEnvironment {
 
   public func getAccessToken() -> AnyPublisher<String, HTTPRequest.HRError> {
     guard let token: AuthTokenResponse = KeychainService.loadCodable(for: .token) else {
-//      assertionFailure("Authorized Token are missing")
       return Fail(error: HTTPRequest.HRError.missingTokenFromIOS)
         .eraseToAnyPublisher()
     }

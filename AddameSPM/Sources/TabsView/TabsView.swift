@@ -20,13 +20,15 @@ public struct TabsView: View {
       event: EventsState,
       conversations: ConversationsState,
       profile: ProfileState,
-      isHidden: Bool
+      isHidden: Bool,
+      accessToken: String
     ) {
       self.selectedTab = selectedTab
       self.event = event
       self.conversations = conversations
       self.profile = profile
       self.isHidden = isHidden
+      self.accessToken = accessToken
     }
 
     public var selectedTab: Tab
@@ -34,6 +36,7 @@ public struct TabsView: View {
     public var conversations: ConversationsState
     public var profile: ProfileState
     public var isHidden = false
+    public var accessToken: String
   }
 
   public enum ViewAction: Equatable {
@@ -45,6 +48,7 @@ public struct TabsView: View {
     case tabViewIsHidden(Bool)
   }
 
+  @Environment(\.scenePhase) private var scenePhase
   let store: Store<TabsViewState, TabsAction>
 
   public init(store: Store<TabsViewState, TabsAction>) {
@@ -125,6 +129,9 @@ public struct TabsView: View {
       }
       .onAppear {
         viewStore.send(.onAppear)
+      }
+      .onChange(of: scenePhase) { phase in
+        ViewStore(store.stateless).send(.scenePhase(phase))
       }
     }
   }

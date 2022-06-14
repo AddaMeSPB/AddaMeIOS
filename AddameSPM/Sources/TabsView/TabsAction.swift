@@ -11,6 +11,7 @@ import ProfileView
 import Foundation
 import HTTPRequestKit
 import WebSocketClient
+import SwiftUI
 
 public enum TabsAction: Equatable {
   case onAppear
@@ -24,6 +25,7 @@ public enum TabsAction: Equatable {
   case receivedSocketMessage(Result<WebSocketClient.Message, NSError>)
   case sendResponse(NSError?)
   case tabViewIsHidden(Bool)
+  case scenePhase(ScenePhase)
 }
 
 extension TabsAction {

@@ -14,6 +14,8 @@ import Foundation
 import HTTPRequestKit
 import MapKit
 import SharedModels
+import AdSupport
+import AppTrackingTransparency
 
 public enum EventAction: Equatable {}
 
@@ -32,6 +34,7 @@ public enum EventsAction: Equatable {
   case chatView(isNavigate: Bool)
   case chat(ChatAction)
 
+  case fetchEventOnAppear
   case fetchMoreEventsIfNeeded(item: EventResponse.Item?)
   case addressResponse(Result<String, Never>)
 
@@ -40,6 +43,8 @@ public enum EventsAction: Equatable {
   case eventsResponse(Result<EventResponse, HTTPRequest.HRError>)
   case eventPlacemarkResponse(Result<CLPlacemark, Never>)
   case eventTapped(EventResponse.Item)
+
+  case idfaAuthorizationStatus(ATTrackingManager.AuthorizationStatus)
 
   case popupSettings
   case dismissEvent
@@ -73,6 +78,8 @@ extension EventsAction {
       return popupSettings
     case .dismissEvent:
       return .dismissEvent
+    case .fetchEventOnAppear:
+        return .fetchEventOnAppear
     case .onAppear:
       return .onAppear
     case let .eventDetailsView(isPresented: isPresented):
@@ -81,6 +88,8 @@ extension EventsAction {
       return .eventDetails(action)
     case let .fetchMoreEventsIfNeeded(item: item):
       return .fetchMoreEventsIfNeeded(item: item)
+    case .idfaAuthorizationStatus(let status):
+        return .idfaAuthorizationStatus(status)
     }
   }
 }

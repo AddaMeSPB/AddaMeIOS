@@ -11,6 +11,8 @@ import MapKit
 import SharedModels
 import SwiftUI
 import SwiftUIExtension
+import AdSupport
+import AppTrackingTransparency
 
 extension EventView {
   public struct ViewState: Equatable {
@@ -21,6 +23,7 @@ extension EventView {
     public var isLoadingPage = false
     public var isMovingChatRoom: Bool = false
     public var isEFromNavigationActive: Bool = false
+    public var isIDFAAuthorized = false
     public var location: Location?
     public var events: IdentifiedArrayOf<EventResponse.Item> = []
     public var myEvents: IdentifiedArrayOf<EventResponse.Item> = []
@@ -40,6 +43,7 @@ extension EventView {
 
     case event(index: EventResponse.Item.ID, action: EventAction)
 
+    case fetchEventOnAppear
     case eventFormView(isNavigate: Bool)
     case eventForm(EventFormAction)
 
@@ -53,6 +57,8 @@ extension EventView {
 
     case currentLocationButtonTapped
     case eventTapped(EventResponse.Item)
+
+    case idfaAuthorizationStatus(ATTrackingManager.AuthorizationStatus)
     case popupSettings
     case dismissEvent
     case onAppear
@@ -114,6 +120,36 @@ public struct EventView: View {
               .cornerRadius(25)
               .padding()
             }
+
+              if !viewStore.isIDFAAuthorized {
+                  VStack {
+                        Text("""
+                            App can't work without your data Permission.
+                            We don't use your data for marketing purpose or send any 3rd party.
+                            You cant change permission anytime from app settings
+                            """
+                        ).font(.body)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .padding(.bottom, 10)
+                        .animation(.easeIn)
+
+                      Button {
+                        viewStore.send(.popupSettings)
+                      } label: {
+
+                           Label("Go to settings", systemImage: "gear")
+                          .padding(10.0)
+                              .overlay(
+                                  RoundedRectangle(cornerRadius: 10.0)
+                                      .stroke(lineWidth: 2.0)
+                              )
+                              .foregroundColor(.red)
+                      }
+
+                  }
+
+              }
 
             EventsListView(
               store: viewStore.isLoadingPage
@@ -218,8 +254,8 @@ public struct EventView: View {
           .foregroundColor(viewStore.state.isLocationAuthorized ? Color.black : Color.gray)
       }
     }
-    .disabled(viewStore.state.placeMark == nil)
-    .opacity(viewStore.state.placeMark == nil ? 0 : 1)
+    .disabled(viewStore.state.placeMark == nil || !viewStore.isIDFAAuthorized )
+    .opacity(viewStore.state.placeMark == nil || !viewStore.isIDFAAuthorized  ? 0 : 1)
   }
 }
 

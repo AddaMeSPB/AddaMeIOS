@@ -9,13 +9,13 @@ import SwiftUI
 public struct WebSocketClient {
   public init(
     cancel: @escaping (String, URLSessionWebSocketTask.CloseCode, Data?) -> Effect<Never, Never>,
-    open: @escaping (String, URL, String, [String]) -> Effect<WebSocketClient.Action, Never>,
+    `open`: @escaping (AnyHashable, URL, String, [String]) -> Effect<WebSocketClient.Action, Never>,
     receive: @escaping (String) -> Effect<WebSocketClient.Message, NSError>,
     send: @escaping (String, URLSessionWebSocketTask.Message) -> Effect<NSError?, Never>,
     sendPing: @escaping (String) -> Effect<NSError?, Never>
   ) {
     self.cancel = cancel
-    self.open = open
+    self.open = `open`
     self.receive = receive
     self.send = send
     self.sendPing = sendPing
@@ -56,7 +56,7 @@ public struct WebSocketClient {
   }
 
   public var cancel: (String, URLSessionWebSocketTask.CloseCode, Data?) -> Effect<Never, Never>
-  public var open: (String, URL, String, [String]) -> Effect<Action, Never>
+  public var `open`: (AnyHashable, URL, String, [String]) -> Effect<Action, Never>
   public var receive: (String) -> Effect<Message, NSError>
   public var send: (String, URLSessionWebSocketTask.Message) -> Effect<NSError?, Never>
   public var sendPing: (String) -> Effect<NSError?, Never>
