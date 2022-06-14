@@ -19,9 +19,9 @@
 	<key>CFBundlePackageType</key>
 	<string>$(PRODUCT_BUNDLE_PACKAGE_TYPE)</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.1.0</string>
+	<string>$(MARKETING_VERSION)</string>
 	<key>CFBundleVersion</key>
-	<string>2</string>
+	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSAppTransportSecurity</key>
@@ -35,6 +35,8 @@
 	<string>We dont share your location with anyone, with share your locatuon you can create and see other user events/hangouts nearby you and other user can see your.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>We dont share your location with anyone, with share your locatuon you can create and see other user events/hangouts nearby you and other user can see your.</string>
+	<key>NSUserTrackingUsageDescription</key>
+	<string>Without track your data we cant show current user event which is main feature of our App and we dont send any 3rd party your data.</string>
 	<key>ROOT_URL</key>
 	<string>$(ROOT_URL)</string>
 	<key>SECRET_ACCESS_KEY</key>
