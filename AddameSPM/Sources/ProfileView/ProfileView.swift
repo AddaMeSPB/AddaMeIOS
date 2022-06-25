@@ -10,6 +10,7 @@ import SwiftUI
 import SwiftUIExtension
 import UserClient
 import ImagePicker
+import MyEventsView
 
 extension ProfileView {
 
@@ -22,10 +23,7 @@ extension ProfileView {
     public var moveToAuthView: Bool = false
     public var user = User.draff
     public var isUserHaveAvatarLink: Bool = false
-    public var myEvents: IdentifiedArrayOf<EventResponse.Item> = []
-    public var isLoadingPage = false
-    public var canLoadMorePages = true
-    public var currentPage = 1
+    public var myEventsState: MyEventsState
     public var index = 0
     public var settingsState: SettingsState?
     public var imagePickerState: ImagePickerState?
@@ -47,7 +45,7 @@ extension ProfileView {
 
     case userResponse(Result<User, HTTPRequest.HRError>)
     case attacmentResponse(Result<Attachment, HTTPRequest.HRError>)
-    case event(index: EventResponse.Item.ID, action: MyEventAction)
+    case myEvents(MyEventsAction)
     case settings(SettingsAction)
     case imagePicker(action: ImagePickerAction)
 
@@ -127,7 +125,8 @@ public struct ProfileView: View {
         }
 
         VStack {
-          MyEventListView(store: self.store)
+//          MyEventsListView(store: self.store)
+            MyEventsListView(store: self.store.scope(state: \.myEventsState, action: ProfileAction.myEvents))
         }
         .padding(.top, 90)
       }
@@ -312,70 +311,3 @@ public struct ProfileImageOverlay: View {
 //    ProfileImageOverlay(store: store)
 //  }
 // }
-
-public struct MyEventListView: View {
-  let store: Store<ProfileState, ProfileAction>
-
-  public var body: some View {
-
-    WithViewStore(self.store) { _ in
-      VStack {
-        Text("My Events").font(.title)
-        ForEachStore(
-          self.store.scope(state: \.myEvents, action: ProfileAction.event)
-        ) { eventStore in
-          WithViewStore(eventStore) { _ in
-            // Button(action: { viewStore.send(.eventTapped(eventViewStore.state)) }) {
-            EventRowView(store: eventStore)
-            // }
-            // .buttonStyle(PlainButtonStyle())
-          }
-  //        .padding([.leading, .trailing], 30)
-        }
-      }
-    }
-  }
-}
-
-public struct EventRowView: View {
-  @Environment(\.colorScheme) var colorScheme
-
-  public init(store: Store<EventResponse.Item, MyEventAction>) {
-    self.store = store
-  }
-
-  public let store: Store<EventResponse.Item, MyEventAction>
-
-  public var body: some View {
-    WithViewStore(self.store) { viewStore in
-      VStack(alignment: .leading) {
-        Group {
-          Text(viewStore.name)
-            .font(.system(.title, design: .rounded))
-            .lineLimit(2)
-            .padding(.top, 8)
-            .padding(.bottom, 3)
-
-          Text(viewStore.addressName)
-            .font(.system(.body, design: .rounded))
-            .foregroundColor(.blue)
-            .padding(.bottom, 16)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.horizontal, 16)
-      }
-      .background(
-        RoundedRectangle(cornerRadius: 10)
-          .foregroundColor(
-            colorScheme == .dark
-              ? Color(
-                #colorLiteral(red: 0.2605174184, green: 0.2605243921, blue: 0.260520637, alpha: 1))
-              : Color(
-                #colorLiteral(
-                  red: 0.8374180198, green: 0.8374378085, blue: 0.8374271393, alpha: 0.5)))
-      )
-      .padding([.leading, .trailing], 16)
-      .padding([.top, .bottom], 5)
-    }
-  }
-}

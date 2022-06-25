@@ -11,6 +11,7 @@ import SettingsView
 import SharedModels
 import SwiftUI
 import ImagePicker
+import MyEventsView
 
 public struct ProfileState: Equatable {
   public static func == (lhs: ProfileState, rhs: ProfileState) -> Bool {
@@ -28,15 +29,10 @@ public struct ProfileState: Equatable {
   public var moveToAuthView: Bool = false
   public var user: User = .draff
   public var isUserHaveAvatarLink: Bool = false
-  public var myEvents: IdentifiedArrayOf<EventResponse.Item> = []
+  public var myEventsState = MyEventsState()
   public var settingsState: SettingsState?
   public var imagePickerState: ImagePickerState?
   public var imageURLs: [String] = []
-
-  public var isLoadingPage = false
-  public var canLoadMorePages = true
-  public var currentPage = 1
-  public var index = 0
 
   public init(
     alert: AlertState<ProfileAction>? = nil,
@@ -47,7 +43,7 @@ public struct ProfileState: Equatable {
     moveToAuthView: Bool = false,
     user: User = .draff,
     isUserHaveAvatarLink: Bool = false,
-    myEvents: IdentifiedArrayOf<EventResponse.Item> = [],
+    myEventsState: MyEventsState = MyEventsState(),
     settingsState: SettingsState? = nil,
     imagePickerState: ImagePickerState? = nil,
     imageURLs: [String] = [],
@@ -63,13 +59,10 @@ public struct ProfileState: Equatable {
     self.moveToAuthView = moveToAuthView
     self.user = user
     self.isUserHaveAvatarLink = isUserHaveAvatarLink
-    self.myEvents = myEvents
+    self.myEventsState = myEventsState
     self.settingsState = settingsState
     self.imagePickerState = imagePickerState
     self.imageURLs = imageURLs
-    self.isLoadingPage = isLoadingPage
-    self.canLoadMorePages = canLoadMorePages
-    self.currentPage = currentPage
   }
 }
 
@@ -84,10 +77,7 @@ extension ProfileState {
       moveToAuthView: moveToAuthView,
       user: user,
       isUserHaveAvatarLink: isUserHaveAvatarLink,
-      myEvents: myEvents,
-      isLoadingPage: isLoadingPage,
-      canLoadMorePages: canLoadMorePages,
-      currentPage: currentPage,
+      myEventsState: myEventsState,
       settingsState: settingsState,
       imagePickerState: imagePickerState,
       imageURLs: imageURLs
@@ -190,7 +180,6 @@ extension ProfileState {
   public static let profileStateWithUserWithAvatar = Self(
     alert: nil,
     user: userWithAvatar,
-    myEvents: events,
     imageURLs: [
       "https://adda.nyc3.digitaloceanspaces.com/uploads/images/5fabb05d2470c17919b3c0e2/1607338279849.heic",
       "https://adda.nyc3.digitaloceanspaces.com/uploads/images/5fabb05d2470c17919b3c0e2/1607338304864.heic",
@@ -203,7 +192,6 @@ extension ProfileState {
 
   public static let profileStateWithUserWithoutAvatar = Self(
     alert: nil,
-    user: userWithoutAvatar,
-    myEvents: events
+    user: userWithoutAvatar
   )
 }

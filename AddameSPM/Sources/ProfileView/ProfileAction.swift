@@ -10,6 +10,7 @@ import SettingsView
 import SharedModels
 import SwiftUI
 import ImagePicker
+import MyEventsView
 
 public enum ProfileAction: Equatable {
   case onAppear
@@ -27,15 +28,12 @@ public enum ProfileAction: Equatable {
   case imageUploadResponse(Result<String, HTTPRequest.HRError>)
   case userResponse(Result<User, HTTPRequest.HRError>)
   case attacmentResponse(Result<Attachment, HTTPRequest.HRError>)
-  case myEventsResponse(Result<EventResponse, HTTPRequest.HRError>)
-  case event(index: EventResponse.Item.ID, action: MyEventAction)
+  case myEvents(MyEventsAction)
   case settings(SettingsAction)
   case imagePicker(action: ImagePickerAction)
 
   case resetAuthData
 }
-
-public enum MyEventAction: Equatable {}
 
 extension ProfileAction {
   // swiftlint:disable:next cyclomatic_complexity
@@ -66,8 +64,8 @@ extension ProfileAction {
       return .userResponse(res)
     case let .attacmentResponse(res):
       return .attacmentResponse(res)
-    case let .event(index, action):
-      return .event(index: index, action: action)
+    case let .myEvents(action):
+      return .myEvents(action)
     case let .settings(action):
       return .settings(action)
     case let .imagePicker(action: action):

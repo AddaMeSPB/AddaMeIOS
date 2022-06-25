@@ -20,6 +20,7 @@ import SwiftUI
 import UIKit
 import UserClient
 import ImagePicker
+import MyEventsView
 
 public func getUserFromKeychain() -> Effect<User, HTTPRequest.HRError> {
   return Effect<User, HTTPRequest.HRError>.future { callBack in
@@ -35,23 +36,13 @@ public func getUserFromKeychain() -> Effect<User, HTTPRequest.HRError> {
 public let profileReducer = Reducer<
   ProfileState,
   ProfileAction,
-  ProfileEnvironment
-> {
-  state, action, environment in
-
-  func fetchMoreMyEvents() -> Effect<ProfileAction, Never> {
-    guard !state.isLoadingPage, state.canLoadMorePages else { return .none }
-
-    state.isLoadingPage = true
-
-    let query = QueryItem(page: "\(state.currentPage)", per: "10")
-
-    return environment.eventClient.events(query, "my")
-      .retry(3)
-      .receive(on: environment.mainQueue)
-      .removeDuplicates()
-      .catchToEffect(ProfileAction.myEventsResponse)
-  }
+  ProfileEnvironment>.combine(
+    myEventsReducer.pullback(
+        state: \.myEventsState,
+        action: /ProfileAction.myEvents,
+        environment: { _ in MyEventsEnvironment.live }
+ ),
+  Reducer {state, action, environment in
 
   switch action {
   case .onAppear:
@@ -60,8 +51,7 @@ public let profileReducer = Reducer<
       getUserFromKeychain()
         .flatMap { environment.userClient.userMeHandler($0.id, "\($0.id)") }
         .receive(on: environment.mainQueue)
-        .catchToEffect(ProfileAction.userResponse),
-      fetchMoreMyEvents()
+        .catchToEffect(ProfileAction.userResponse)
     )
 
   case .alertDismissed:
@@ -152,24 +142,6 @@ public let profileReducer = Reducer<
     state.alert = .init(title: TextState("\(#line) \(error.description)"))
     return .none
 
-  case let .myEventsResponse(.success(events)):
-
-    state.canLoadMorePages = state.myEvents.count < events.metadata.total
-    state.isLoadingPage = false
-    state.currentPage += 1
-
-    state.myEvents = .init(uniqueElements: events.items)
-
-    return .none
-
-  case let .myEventsResponse(.failure(error)):
-
-    state.alert = .init(
-      title: TextState("fetch my event error")
-    )
-
-    return .none
-
   case let .settings(action):
     return .none
 
@@ -213,8 +185,10 @@ public let profileReducer = Reducer<
 
   case .imagePicker(_):
     return .none
+  case .myEvents(let action):
+      return .none
   }
-}
+  })
 // .binding()
 .debug()
 .presenting(
