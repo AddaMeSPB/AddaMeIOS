@@ -62,6 +62,7 @@ let package = Package(
     .library(name: "TabsView", targets: ["TabsView"]),
     .library(name: "SettingsView", targets: ["SettingsView"]),
     .library(name: "MapView", targets: ["MapView"]),
+    .library(name: "MyEventsView", targets: ["MyEventsView"]),
 
     // Helpers
     .library(name: "NotificationHelpers", targets: ["NotificationHelpers"]),
@@ -391,6 +392,16 @@ let package = Package(
     ),
 
     .target(
+        name: "MyEventsView",
+        dependencies: [
+        .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
+        "SharedModels", "EventClient", "InfoPlist",
+        "SwiftUIExtension", "FoundationExtension", "AsyncImageLoder",
+        "HTTPRequestKit", "KeychainService"
+        ]
+    ),
+
+    .target(
       name: "EventDetailsView",
       dependencies: [
         .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
@@ -415,7 +426,7 @@ let package = Package(
         "HTTPRequestKit", "KeychainService", "AuthenticationView",
         "AttachmentClientLive", "AuthClientLive", "UserClientLive",
         "EventClientLive", "SettingsView", "ComposableArchitectureHelpers",
-        "ImagePicker"
+        "ImagePicker", "MyEventsView"
       ]
       // resources: [.process("Images")]
     ),

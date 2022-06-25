@@ -18,6 +18,7 @@ import MapKit
 import SharedModels
 import SwiftUI
 import MapView
+import MyEventsView
 
 struct LocationManagerId: Hashable {}
 struct IDFAStatusId: Hashable {}
@@ -48,23 +49,11 @@ public let eventsReducer = Reducer<EventsState, EventsAction, EventsEnvironment>
       #endif
 
     case .restricted:
-      state.alert = .init(
-        title: .init("Please give us access to your location in settings"),
-        message: .init("Please go to Settings and turn on the permissions"),
-        primaryButton: .cancel(.init("Cancel"), action: .send(.alertDismissed)),
-        secondaryButton: .default(.init("Go to Settings"), action: .send(.popupSettings))
-      )
-      state.waitingForUpdateLocation = false
+        state.isLocationAuthorized = false
       return .none
 
     case .denied:
-      state.alert = .init(
-        title: .init("Please give us access to your location in settings"),
-        message: .init("Please go to Settings and turn on the permissions"),
-        primaryButton: .cancel(.init("Cancel"), action: .send(.alertDismissed)),
-        secondaryButton: .default(TextState("Go to Settings"), action: .send(.popupSettings))
-      )
-      state.waitingForUpdateLocation = false
+        state.isLocationAuthorized = false
       return .none
 
     case .authorizedAlways, .authorizedWhenInUse:
@@ -75,14 +64,22 @@ public let eventsReducer = Reducer<EventsState, EventsAction, EventsEnvironment>
         return environment.locationManager.startUpdatingLocation()
             .fireAndForget()
 
-//        environment.locationManager
-//          .requestLocation()
-//          .fireAndForget()
-
     @unknown default:
       return .none
     }
   }
+
+    var fetchMyEvents: Effect<EventsAction, Never> {
+
+      state.isLoadingMyEvent = true
+
+      let query = QueryItem(page: "1", per: "1")
+
+      return environment.eventClient.events(query, "my")
+        .retry(3)
+        .receive(on: environment.mainQueue)
+        .catchToEffect(EventsAction.myEventsResponse)
+    }
 
   var fetchEvents: Effect<EventsAction, Never> {
     guard state.isConnected && state.canLoadMorePages,
@@ -150,6 +147,8 @@ public let eventsReducer = Reducer<EventsState, EventsAction, EventsEnvironment>
   case .onAppear:
 
     return .merge(
+      fetchMyEvents,
+
       environment.locationManager.delegate()
         .map(EventsAction.locationManager)
         .cancellable(id: LocationManagerId()),
@@ -157,10 +156,13 @@ public let eventsReducer = Reducer<EventsState, EventsAction, EventsEnvironment>
       currentLocationButtonTapped,
       environment.idfaClient.requestAuthorization()
         .map(EventsAction.idfaAuthorizationStatus)
-        .cancellable(id: IDFAStatusId())
+        .cancellable(id: IDFAStatusId()),
+
+      fetchMyEvents
     )
+
   case .fetchEventOnAppear:
-      if state.isLocationAuthorized && state.isIDFAAuthorized {
+      if state.isLocationAuthorized {
           return fetchEvents
       }
 
@@ -215,6 +217,15 @@ public let eventsReducer = Reducer<EventsState, EventsAction, EventsEnvironment>
     return Effect(value: EventsAction.eventDetailsView(isPresented: true))
       .receive(on: environment.mainQueue)
       .eraseToEffect()
+
+  case let .myEventsResponse(.success(myEventsResponse)):
+      state.myEvent = myEventsResponse.items.last
+      state.isLoadingMyEvent = false
+      return .none
+
+  case let .myEventsResponse(.failure(error)):
+      state.isLoadingMyEvent = false
+      return .none
 
   case let .addressResponse(.success(address)):
     return .none
@@ -349,6 +360,14 @@ public let eventsReducer = Reducer<EventsState, EventsAction, EventsEnvironment>
       return .none
   }
 }
+
+// .combine(myEventsReducer
+//       .optional()
+//       .pullback(
+//      state: \.myEvent,
+//      action: /EventsAction.myEventAction),
+//      environment: { _ in MyEventsEnvironment.live }
+// )
 .combined(
   with: locationManagerReducer
     .pullback(state: \.self, action: /EventsAction.locationManager, environment: { $0 })
@@ -400,13 +419,6 @@ private let locationManagerReducer = Reducer<
     state.waitingForUpdateLocation = false
     state.isLocationAuthorized = false
     state.isConnected = false
-
-    state.alert = .init(
-      title: TextState("Please give us access to your location so you can use our full features"),
-      message: TextState("Please go to Settings and turn on the permissions"),
-      primaryButton: .cancel(.init("Cancel"), action: .send(.alertDismissed)),
-      secondaryButton: .default(.init("Go to Settings"), action: .send(.popupSettings))
-    )
     return .none
 
   case let .didUpdateLocations(locations):
