@@ -53,7 +53,7 @@ extension EventFormView {
 
     public var isSheetPresented: Bool { locationSearchState != nil }
     public var isAllFeildsAreValid: Bool {
-      return !title.isEmpty && title.count > 4
+      return !title.isEmpty && title.count > 2
         && !eventAddress.isEmpty
         && !durationRawValue.isEmpty
         && !categoryRawValue.isEmpty
@@ -156,7 +156,6 @@ public struct EventFormView: View {
                 get: \.selectedDutaionButtons,
                 send: ViewAction.selectedDurations
               ).animation()
-
             ) {
               ForEach(DurationButtons.allCases, id: \.self) { button in
                 Text(button.rawValue).tag(button)
@@ -278,8 +277,8 @@ public struct EventFormView: View {
       .background(viewStore.state.isAllFeildsAreValid ? Color.blue : Color.red)
       .clipShape(viewStore.state.isAllFeildsAreValid ? AnyShape(Capsule()) : AnyShape(Circle()))
       .animation(.default)
-      .disabled(!viewStore.state.isAllFeildsAreValid && viewStore.isPostRequestOnFly)
-      .opacity(viewStore.isPostRequestOnFly ? 0 : 1)
+      .disabled(!viewStore.state.isAllFeildsAreValid)
+      .opacity(!viewStore.state.isAllFeildsAreValid && !viewStore.isPostRequestOnFly ? 0 : 1)
       .overlay(
         ActivityIndicator()
           .frame(maxWidth: .infinity)

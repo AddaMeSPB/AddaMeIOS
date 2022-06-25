@@ -67,6 +67,7 @@ public let eventFormReducer = Reducer<
     return .none
 
   case .submitButtonTapped:
+
     guard let coordinate = state.eventCoordinate else {
       // alert action for valid form notification
       state.alert = .init(title: TextState("Invalid address please valid address please"))
