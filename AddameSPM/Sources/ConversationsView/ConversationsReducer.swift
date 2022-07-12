@@ -40,6 +40,7 @@ public let conversationsReducer = Reducer<
       return .none
     }
 
+    print(#line, "createConversation", createConversation)
     return environment.conversationClient.create(createConversation, "")
       .retry(3)
       .subscribe(on: environment.backgroundQueue)
@@ -81,6 +82,7 @@ public let conversationsReducer = Reducer<
 
   case let .chatView(isPresented: present):
 
+      print(#line, state.conversation)
     state.chatState = present ? ChatState(conversation: state.conversation) : nil
     return .none
 
@@ -127,7 +129,7 @@ public let conversationsReducer = Reducer<
   case let .conversationResponse(.success(response)):
     state.contactsState = nil
     state.conversation = response
-
+    print(#line, "conversationResponse", response)
     return presentChatView()
 
   case let .conversationResponse(.failure(error)):
@@ -140,9 +142,9 @@ public let conversationsReducer = Reducer<
       print(#line, bool)
       return .none
     case let .chatWith(name: name, phoneNumber: phoneNumber):
-
+        print(#line, name, phoneNumber)
       state.createConversation = CreateConversation(
-        title: "currenUser + \(name)",
+        title: name,
         type: .oneToOne,
         opponentPhoneNumber: phoneNumber
       )

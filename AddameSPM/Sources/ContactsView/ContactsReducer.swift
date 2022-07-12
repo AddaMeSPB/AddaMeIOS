@@ -44,7 +44,6 @@ public let contactsReducer: Reducer<ContactsState, ContactsAction, ContactsEnvir
     case let .contactsResponse(.success(contacts)):
       print(#line, contacts)
       state.isLoading = false
-
       let contactRowStates = contacts.map { ContactRowState(contact: $0) }
       state.contacts = .init(uniqueElements: contactRowStates)
       return .none
@@ -54,37 +53,32 @@ public let contactsReducer: Reducer<ContactsState, ContactsAction, ContactsEnvir
         title: TextState("Something went worng please try again \(error.description)"))
       return .none
 
-    case .contactsAuthorizationStatus(.notDetermined):
-      state.alert = .init(title: TextState("Permission notDetermined"))
-      return .none
+    case let .contactsAuthorizationStatus(status):
+        switch status {
+        case .authorized:
+            return environment.coreDataClient.getContacts()
+              .subscribe(on: environment.backgroundQueue)
+              .receive(on: environment.mainQueue)
+              .catchToEffect()
+              .map(ContactsAction.contactsResponse)
+        case .notDetermined:
+            state.alert = .init(title: TextState("Permission notDetermined"))
+            return .none
+        case .denied:
+            state.alert = .init(title: TextState("Permission denied"))
+            return .none
+        case .restricted:
+            state.alert = .init(title: TextState("Permission restricted"))
+            return .none
+        @unknown default:
+            state.alert = .init(title: TextState("Permission unknow"))
+            return .none
+        }
 
-    case .contactsAuthorizationStatus(.denied):
-      state.alert = .init(title: TextState("Permission denied"))
-      return .none
+    case let .contact(id: id, action: action): return .none
+    case let .moveToChatRoom(present): return .none
+    case let .chatWith(name: name, phoneNumber: phoneNumber): return .none
 
-    case .contactsAuthorizationStatus(.restricted):
-      state.alert = .init(title: TextState("Permission restricted"))
-
-      return .none
-
-    case .contactsAuthorizationStatus(.authorized):
-      return environment.coreDataClient.getContacts()
-        .subscribe(on: environment.backgroundQueue)
-        .receive(on: environment.mainQueue)
-        .catchToEffect()
-        .map(ContactsAction.contactsResponse)
-
-    case .contactsAuthorizationStatus:
-      return .none
-
-    case let .contact(id: id, action: action):
-      return .none
-
-    case let .moveToChatRoom(present):
-      return .none
-
-    case let .chatWith(name: name, phoneNumber: phoneNumber):
-      return .none
     }
   }
 )

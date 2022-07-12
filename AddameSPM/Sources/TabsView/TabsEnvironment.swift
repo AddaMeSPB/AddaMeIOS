@@ -12,20 +12,24 @@ import InfoPlist
 import KeychainService
 import SharedModels
 import WebSocketClient
+import DeviceClient
 
 public struct TabsEnvironment {
   public var backgroundQueue: AnySchedulerOf<DispatchQueue>
   public var mainQueue: AnySchedulerOf<DispatchQueue>
   public let webSocketClient: WebSocketClient
+  public var deviceClient: DeviceClient
 
   public init(
     backgroundQueue: AnySchedulerOf<DispatchQueue>,
     mainQueue: AnySchedulerOf<DispatchQueue>,
-    webSocketClient: WebSocketClient
+    webSocketClient: WebSocketClient,
+    devicClient: DeviceClient
   ) {
     self.backgroundQueue = backgroundQueue
     self.mainQueue = mainQueue
     self.webSocketClient = webSocketClient
+    self.deviceClient = devicClient
   }
 
   public func getAccessToken() -> AnyPublisher<String, HTTPRequest.HRError> {
@@ -53,6 +57,7 @@ extension TabsEnvironment {
   public static let live: TabsEnvironment = .init(
     backgroundQueue: .main,
     mainQueue: .main,
-    webSocketClient: .live
+    webSocketClient: .live,
+    devicClient: .live(api: .build)
   )
 }

@@ -12,6 +12,8 @@ import Foundation
 import HTTPRequestKit
 import WebSocketClient
 import SwiftUI
+import SharedModels
+import AppDelegate
 
 public enum TabsAction: Equatable {
   case onAppear
@@ -19,10 +21,12 @@ public enum TabsAction: Equatable {
   case event(EventsAction)
   case conversation(ConversationsAction)
   case profile(ProfileAction)
+  case appDelegate(AppDelegateAction)
 
   case webSocket(WebSocketClient.Action)
   case getAccessToketFromKeyChain(Result<String, HTTPRequest.HRError>)
   case receivedSocketMessage(Result<WebSocketClient.Message, NSError>)
+  case deviceResponse(Result<Device, HTTPRequest.HRError>)
   case sendResponse(NSError?)
   case tabViewIsHidden(Bool)
   case scenePhase(ScenePhase)

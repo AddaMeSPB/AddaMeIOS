@@ -13,6 +13,9 @@ import InfoPlist
 import KeychainService
 import ProfileView
 import SharedModels
+import DeviceClient
+import AppDelegate
+import UIKit
 
 public let tabsReducer = Reducer<
   TabsViewState,
@@ -33,6 +36,12 @@ public let tabsReducer = Reducer<
     state: \.profile,
     action: /TabsAction.profile,
     environment: { _ in ProfileEnvironment.live }
+  ),
+
+  appDelegateReducer.pullback(
+    state: \.appDelegate,
+    action: /TabsAction.appDelegate,
+    environment: { _ in AppDelegateEnvironment.live }
   ),
 
   Reducer { state, action, environment in
@@ -67,7 +76,12 @@ public let tabsReducer = Reducer<
         return .none
       }
     case .onAppear:
+
         return .none
+//        environment.deviceClient.dcu(device, "")
+//            .subscribe(on: environment.backgroundQueue)
+//            .catchToEffect()
+//            .map(TabsAction.deviceResponse)
 
     case let .didSelectTab(tab):
       state.selectedTab = tab
@@ -183,7 +197,52 @@ public let tabsReducer = Reducer<
         print(#line, "decode error")
         return receiveSocketMessageEffect
       }
+    case let .deviceResponse(.success(response)):
+        print("deviceResponse", response)
+        return .none
+    case let .deviceResponse(.failure(error)):
+        print("deviceErro", error)
+        return .none
+    case .appDelegate(_):
+        return .none
     }
   }
 )
 .debug()
+
+public final class AppDelegate: NSObject, UIApplicationDelegate {
+  public let store = Store(
+    initialState: .live,
+    reducer: tabsReducer,
+    environment: .live
+  )
+
+  public lazy var viewStore = ViewStore(
+    self.store.scope(state: { _ in () }),
+    removeDuplicates: ==
+  )
+
+  public  func application(
+      _ application: UIApplication,
+      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
+    ) -> Bool {
+      self.viewStore.send(.appDelegate(.didFinishLaunching))
+      return true
+    }
+
+   public func application(
+      _ application: UIApplication,
+      didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data
+    ) {
+      self.viewStore.send(.appDelegate(.didRegisterForRemoteNotifications(.success(deviceToken))))
+    }
+
+   public func application(
+      _ application: UIApplication,
+      didFailToRegisterForRemoteNotificationsWithError error: Error
+    ) {
+      self.viewStore.send(
+        .appDelegate(.didRegisterForRemoteNotifications(.failure(error as NSError)))
+      )
+    }
+}

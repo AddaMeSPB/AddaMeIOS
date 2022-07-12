@@ -11,6 +11,8 @@ import EventView
 import ProfileView
 import SwiftUI
 import SwiftUIExtension
+import AppDelegate
+import UIKit
 
 public struct TabsView: View {
 
@@ -21,7 +23,8 @@ public struct TabsView: View {
       conversations: ConversationsState,
       profile: ProfileState,
       isHidden: Bool,
-      accessToken: String
+      accessToken: String,
+      appDelegate: AppDelegateState
     ) {
       self.selectedTab = selectedTab
       self.event = event
@@ -29,6 +32,7 @@ public struct TabsView: View {
       self.profile = profile
       self.isHidden = isHidden
       self.accessToken = accessToken
+      self.appDelegate = appDelegate
     }
 
     public var selectedTab: Tab
@@ -37,6 +41,7 @@ public struct TabsView: View {
     public var profile: ProfileState
     public var isHidden = false
     public var accessToken: String
+    public var appDelegate: AppDelegateState
   }
 
   public enum ViewAction: Equatable {
@@ -48,6 +53,7 @@ public struct TabsView: View {
     case tabViewIsHidden(Bool)
   }
 
+  @UIApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
   @Environment(\.scenePhase) private var scenePhase
   let store: Store<TabsViewState, TabsAction>
 
@@ -129,9 +135,10 @@ public struct TabsView: View {
       }
       .onAppear {
         viewStore.send(.onAppear)
+          self.appDelegate.viewStore.send(.appDelegate(.didFinishLaunching))
       }
-      .onChange(of: scenePhase) { phase in
-        ViewStore(store.stateless).send(.scenePhase(phase))
+      .onChange(of: self.scenePhase) {
+          ViewStore(store.stateless).send(.scenePhase($0))
       }
     }
   }

@@ -8,6 +8,7 @@
 import ConversationsView
 import EventView
 import ProfileView
+import AppDelegate
 
 public enum Tab: Equatable {
   case event
@@ -15,25 +16,39 @@ public enum Tab: Equatable {
   case profile
 }
 
+extension TabsViewState {
+    public static var live: TabsViewState = .init(
+          selectedTab: .event,
+          event: EventsState(),
+          conversations: ConversationsState(),
+          profile: ProfileState(),
+          appDelegate: AppDelegateState()
+        )
+}
+
 public struct TabsViewState: Equatable {
+    public var selectedTab: Tab = .event
+    public var event: EventsState
+    public var conversations: ConversationsState
+    public var profile: ProfileState
+    public var isHidden = false
+    public var accessToken = ""
+    public var appDelegate: AppDelegateState = .init()
+
   public init(
     selectedTab: Tab,
     event: EventsState,
     conversations: ConversationsState,
-    profile: ProfileState
+    profile: ProfileState,
+    appDelegate: AppDelegateState = .init()
   ) {
     self.selectedTab = selectedTab
     self.event = event
     self.conversations = conversations
     self.profile = profile
+    self.appDelegate = appDelegate
   }
 
-  public var selectedTab: Tab = .event
-  public var event: EventsState
-  public var conversations: ConversationsState
-  public var profile: ProfileState
-  public var isHidden = false
-  public var accessToken = ""
 }
 
 extension TabsViewState {
@@ -44,7 +59,8 @@ extension TabsViewState {
       conversations: conversations,
       profile: profile,
       isHidden: isHidden,
-      accessToken: accessToken
+      accessToken: accessToken,
+      appDelegate: appDelegate
     )
   }
 }

@@ -16,6 +16,7 @@ import MapKit
 import SharedModels
 import AdSupport
 import AppTrackingTransparency
+import MyEventsView
 
 public enum EventAction: Equatable {}
 
@@ -30,6 +31,7 @@ public enum EventsAction: Equatable {
 
   case eventDetailsView(isPresented: Bool)
   case eventDetails(EventDetailsAction)
+  case myEventAction(MyEventAction)
 
   case chatView(isNavigate: Bool)
   case chat(ChatAction)
@@ -43,6 +45,7 @@ public enum EventsAction: Equatable {
   case eventsResponse(Result<EventResponse, HTTPRequest.HRError>)
   case eventPlacemarkResponse(Result<CLPlacemark, Never>)
   case eventTapped(EventResponse.Item)
+  case myEventsResponse(Result<EventResponse, HTTPRequest.HRError>)
 
   case idfaAuthorizationStatus(ATTrackingManager.AuthorizationStatus)
 
@@ -64,6 +67,8 @@ extension EventsAction {
       return self.eventFormView(isNavigate: active)
     case let .eventForm(eventFormAction):
       return self.eventForm(eventFormAction)
+    case let .myEventAction(action):
+        return self.myEventAction(action)
     case let .chatView(isNavigate: bool):
       return .chatView(isNavigate: bool)
     case let .chat(action):

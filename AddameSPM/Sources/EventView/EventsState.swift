@@ -22,6 +22,7 @@ public struct EventsState: Equatable {
   public var isRequestingCurrentLocation = false
   public var waitingForUpdateLocation = true
   public var isLoadingPage = false
+  public var isLoadingMyEvent = false
   public var canLoadMorePages = true
   public var isMovingChatRoom: Bool = false
   public var isEFromNavigationActive = false
@@ -32,7 +33,7 @@ public struct EventsState: Equatable {
   public var placeMark: CLPlacemark?
   public var location: Location?
   public var events: IdentifiedArrayOf<EventResponse.Item> = []
-  public var myEvents: IdentifiedArrayOf<EventResponse.Item> = []
+  public var myEvent: EventResponse.Item?
   public var event: EventResponse.Item?
   public var conversation: ConversationResponse.Item?
 
@@ -50,10 +51,11 @@ public struct EventsState: Equatable {
     isEFromNavigationActive: Bool = false,
     isIDFAAuthorized: Bool = false,
     isLoadingPage: Bool = false,
+    isLoadingMyEvent: Bool = false,
     canLoadMorePages: Bool = true, currentPage: Int = 1,
     currentAddress: String = "", placeMark: CLPlacemark? = nil,
     location: Location? = nil, events: IdentifiedArrayOf<EventResponse.Item> = [],
-    myEvents: IdentifiedArrayOf<EventResponse.Item> = [], event: EventResponse.Item? = nil,
+    myEvent: EventResponse.Item? = nil, event: EventResponse.Item? = nil,
     eventFormState: EventFormState? = nil,
     eventDetailsState: EventDetailsState? = nil,
     chatState: ChatState? = nil
@@ -64,6 +66,7 @@ public struct EventsState: Equatable {
     self.isRequestingCurrentLocation = isRequestingCurrentLocation
     self.waitingForUpdateLocation = waitingForUpdateLocation
     self.isLoadingPage = isLoadingPage
+    self.isLoadingMyEvent = isLoadingMyEvent
     self.canLoadMorePages = canLoadMorePages
     self.isMovingChatRoom = isMovingChatRoom
     self.isEFromNavigationActive = isEFromNavigationActive
@@ -73,7 +76,7 @@ public struct EventsState: Equatable {
     self.placeMark = placeMark
     self.location = location
     self.events = events
-    self.myEvents = myEvents
+    self.myEvent = myEvent
     self.event = event
     self.eventFormState = eventFormState
     self.eventDetailsState = eventDetailsState
@@ -100,10 +103,11 @@ extension EventsState {
       isLocationAuthorized: isLocationAuthorized,
       waitingForUpdateLocation: waitingForUpdateLocation,
       isLoadingPage: isLoadingPage,
+      isLoadingMyEvent: isLoadingMyEvent,
       isMovingChatRoom: isMovingChatRoom,
       isIDFAAuthorized: isIDFAAuthorized,
       location: location,
-      events: events, myEvents: myEvents,
+      events: events, myEvent: myEvent,
       event: event,
       placeMark: placeMark,
       eventFormState: eventFormState,

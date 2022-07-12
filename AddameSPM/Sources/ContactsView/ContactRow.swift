@@ -48,20 +48,23 @@ public struct ContactRow: View {
         }
 
         VStack(alignment: .leading, spacing: 5) {
-          Text(viewStore.contact.phoneNumber)
-            .lineLimit(1)
-            .font(.system(size: 18, weight: .semibold, design: .rounded))
-            .foregroundColor(Color(.systemBlue))
 
           if viewStore.contact.fullName != nil {
-            Text(viewStore.contact.fullName ?? "unknown").lineLimit(1)
+            Text(viewStore.contact.fullName ?? "unknown")
+                  .lineLimit(1)
+                  .font(.system(size: 18, weight: .semibold, design: .rounded))
           }
+
+          Text(viewStore.contact.phoneNumber)
+           .lineLimit(1)
+           .font(.system(size: 14, weight: .light, design: .rounded))
+           .foregroundColor(Color(.systemBlue))
         }
         .padding(5)
 
         Spacer()
         Button {
-          viewStore.send(.moveToChatRoom(true))
+//          viewStore.send(.moveToChatRoom(true))
           viewStore.send(
             .chatWith(
               name: viewStore.contact.fullName ?? "unknow",

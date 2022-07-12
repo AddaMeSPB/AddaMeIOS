@@ -13,6 +13,7 @@ let package = Package(
   ],
   products: [
     .library(name: "AppFeature", targets: ["AppFeature"]),
+    .library(name: "AppDelegate", targets: ["AppDelegate"]),
     .library(name: "AsyncImageLoder", targets: ["AsyncImageLoder"]),
     .library(name: "SwiftUIExtension", targets: ["SwiftUIExtension"]),
     .library(name: "InfoPlist", targets: ["InfoPlist"]),
@@ -38,6 +39,7 @@ let package = Package(
     .library(name: "ConversationClient", targets: ["ConversationClient"]),
     .library(name: "ConversationClientLive", targets: ["ConversationClientLive"]),
     .library(name: "CoreDataClient", targets: ["CoreDataClient"]),
+    .library(name: "DeviceClient", targets: ["DeviceClient"]),
     .library(name: "EventClient", targets: ["EventClient"]),
     .library(name: "EventClientLive", targets: ["EventClientLive"]),
     .library(name: "PathMonitorClient", targets: ["PathMonitorClient"]),
@@ -77,7 +79,7 @@ let package = Package(
     .package(url: "https://github.com/soto-project/soto.git", from: "5.13.1"),
     .package(url: "https://github.com/marmelroy/PhoneNumberKit", .upToNextMajor(from: "3.3.3")),
     .package(
-      url: "https://github.com/pointfreeco/swift-composable-architecture.git", from: "0.36.0"),
+      url: "https://github.com/pointfreeco/swift-composable-architecture.git", from: "0.38.2"),
     .package(url: "https://github.com/pointfreeco/composable-core-location.git", .branch("main")),
     .package(url: "https://github.com/pointfreeco/xctest-dynamic-overlay", from: "0.1.0"),
     .package(url: "https://github.com/AddaMeSPB/CombineContacts.git", from: "1.0.0"),
@@ -96,7 +98,7 @@ let package = Package(
         "ConversationClient", "EventClient", "UserClient", "WebSocketClient",
         "EventView", "ConversationsView", "ProfileView", "TabsView",
         "AuthenticationView", "SettingsView", "ContactClient", "UserDefaultsClient",
-        "KeychainService"
+        "KeychainService", "AppDelegate"
       ]
     ),
 
@@ -105,6 +107,15 @@ let package = Package(
       dependencies: ["AppFeature"]
     ),
 
+    .target(
+        name: "AppDelegate",
+        dependencies: [
+            .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
+            "SharedModels", "KeychainService", "FoundationExtension",
+            "HTTPRequestKit", "InfoPlist", "DeviceClient", "SharedModels", "CombineHelpers",
+            "RemoteNotificationsClient", "NotificationHelpers"
+        ]
+    ),
     // Core
     .target(name: "AsyncImageLoder"),
     .target(name: "SwiftUIExtension"),
@@ -163,6 +174,13 @@ let package = Package(
       dependencies: [
         "CoreDataStore", "ContactClient", "ContactClientLive", "SharedModels"
       ]
+    ),
+
+    .target(
+        name: "DeviceClient",
+        dependencies: [
+        "SharedModels", "KeychainService", "FoundationExtension",
+        "HTTPRequestKit", "InfoPlist"]
     ),
 
     .target(
@@ -296,7 +314,8 @@ let package = Package(
         "PathMonitorClient", "PathMonitorClientLive", "ConversationClient",
         "ConversationClientLive",
         "EventView", "ConversationsView", "ProfileView",
-        "SwiftUIExtension", "WebSocketClient", "WebSocketClientLive"
+        "SwiftUIExtension", "WebSocketClient", "WebSocketClientLive",
+        "DeviceClient", "CombineHelpers"
       ]
     ),
 

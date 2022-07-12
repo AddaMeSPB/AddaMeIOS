@@ -18,13 +18,12 @@ import SwiftUI
 public struct ContactRowEnvironment {}
 
 public let contactRowReducer = Reducer<ContactRowState, ContactRowAction, ContactRowEnvironment> {
-  state, action, _ in
+  _, action, _ in
 
   switch action {
-  case let .moveToChatRoom(present):
-    state.isMoving = true
-    return .none
-  case let .chatWith(name: name, phoneNumber: phoneNumber):
-    return .none
+
+  case let .moveToChatRoom(present): return .none
+  case let .chatWith(name: name, phoneNumber: phoneNumber): return .none
+
   }
 }

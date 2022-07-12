@@ -13,6 +13,7 @@ import SwiftUI
 import SwiftUIExtension
 import AdSupport
 import AppTrackingTransparency
+import MyEventsView
 
 extension EventView {
   public struct ViewState: Equatable {
@@ -21,12 +22,13 @@ extension EventView {
     public var isLocationAuthorized = false
     public var waitingForUpdateLocation = true
     public var isLoadingPage = false
+    public var isLoadingMyEvent: Bool = false
     public var isMovingChatRoom: Bool = false
     public var isEFromNavigationActive: Bool = false
     public var isIDFAAuthorized = false
     public var location: Location?
     public var events: IdentifiedArrayOf<EventResponse.Item> = []
-    public var myEvents: IdentifiedArrayOf<EventResponse.Item> = []
+    public var myEvent: EventResponse.Item?
     public var event: EventResponse.Item?
     public var placeMark: CLPlacemark?
 
@@ -46,6 +48,7 @@ extension EventView {
     case fetchEventOnAppear
     case eventFormView(isNavigate: Bool)
     case eventForm(EventFormAction)
+    case myEventAction(MyEventAction)
 
     case eventDetailsView(isPresented: Bool)
     case eventDetails(EventDetailsAction)
@@ -74,7 +77,70 @@ public struct EventView: View {
 
   public let store: Store<EventsState, EventsAction>
 
-  public var body: some View {
+    public func locationAndLoadingStatus(
+        viewStore: ViewStore<EventView.ViewState, EventView.ViewAction>
+    ) -> some View {
+
+            return HStack {
+                ActivityIndicator()
+                    .padding(.leading, 5)
+
+                if viewStore.isLoadingPage {
+                    Text("Now fetching near by Hanghouts!")
+                        .font(.system(.body, design: .rounded))
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding()
+                        .animation(.easeOut)
+                        .layoutPriority(1)
+                }
+
+                if viewStore.waitingForUpdateLocation {
+                    Text("Please wait we are updating your current location!")
+                        .font(.body)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .padding(.bottom, 10)
+                        .animation(.easeIn)
+                }
+            }
+            .background(Color.red)
+            .cornerRadius(25)
+            .padding()
+
+    }
+
+    public func isLocationAuthorizedView(
+        viewStore: ViewStore<EventView.ViewState, EventView.ViewAction>
+    ) -> some View {
+
+           return VStack {
+                  Text("""
+                      This feature does not work with get your current location so active it to see this feature,
+                      You can change your permission anytime from app settings.
+                      """
+                  ).font(.body)
+                  .frame(maxWidth: .infinity)
+                  .padding()
+                  .padding(.bottom, 10)
+                  .animation(.easeIn)
+
+                Button {
+                  viewStore.send(.popupSettings)
+                } label: {
+                     Label("Go to settings", systemImage: "gear")
+                    .padding(10.0)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 10.0)
+                                .stroke(lineWidth: 2.0)
+                        )
+                        .foregroundColor(.red)
+                }
+
+           }
+
+    }
+
+    public var body: some View {
     WithViewStore(
       self.store.scope(
         state: { $0.view },
@@ -93,63 +159,13 @@ public struct EventView: View {
 
         ScrollView {
           LazyVStack {
-            if viewStore.waitingForUpdateLocation {
-              HStack {
-                ActivityIndicator()
-                  .padding(.leading, 5)
 
-                if viewStore.isLoadingPage {
-                  Text("Now fetching near by Hanghouts!")
-                    .font(.system(.body, design: .rounded))
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding()
-                    .animation(.easeOut)
-                    .layoutPriority(1)
-                }
+              if viewStore.waitingForUpdateLocation { locationAndLoadingStatus(viewStore: viewStore) }
+              if !viewStore.isLocationAuthorized { isLocationAuthorizedView(viewStore: viewStore) }
 
-                if viewStore.waitingForUpdateLocation {
-                  Text("Please wait we are updating your current location!")
-                    .font(.body)
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .padding(.bottom, 10)
-                    .animation(.easeIn)
-                }
-              }
-              .background(Color.red)
-              .cornerRadius(25)
-              .padding()
-            }
-
-              if !viewStore.isIDFAAuthorized {
-                  VStack {
-                        Text("""
-                            App can't work without your data Permission.
-                            We don't use your data for marketing purpose or send any 3rd party.
-                            You cant change permission anytime from app settings
-                            """
-                        ).font(.body)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .padding(.bottom, 10)
-                        .animation(.easeIn)
-
-                      Button {
-                        viewStore.send(.popupSettings)
-                      } label: {
-
-                           Label("Go to settings", systemImage: "gear")
-                          .padding(10.0)
-                              .overlay(
-                                  RoundedRectangle(cornerRadius: 10.0)
-                                      .stroke(lineWidth: 2.0)
-                              )
-                              .foregroundColor(.red)
-                      }
-
-                  }
-
-              }
+//              MyEventRowView(
+//                store: Store(initialState: viewStore.myEvent, reducer: .empty, environment: ())
+//              )
 
             EventsListView(
               store: viewStore.isLoadingPage
@@ -254,8 +270,8 @@ public struct EventView: View {
           .foregroundColor(viewStore.state.isLocationAuthorized ? Color.black : Color.gray)
       }
     }
-    .disabled(viewStore.state.placeMark == nil || !viewStore.isIDFAAuthorized )
-    .opacity(viewStore.state.placeMark == nil || !viewStore.isIDFAAuthorized  ? 0 : 1)
+    .disabled(viewStore.state.placeMark == nil )
+    .opacity(viewStore.state.placeMark == nil ? 0 : 1)
   }
 }
 

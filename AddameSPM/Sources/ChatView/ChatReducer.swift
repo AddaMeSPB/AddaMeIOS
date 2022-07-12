@@ -52,6 +52,7 @@ public let chatReducer = Reducer<ChatState, ChatAction, ChatEnvironment> {
 
   switch action {
   case .onAppear:
+      print(#line, state.conversation?.title)
 
     return fetchMoreMessages
 
