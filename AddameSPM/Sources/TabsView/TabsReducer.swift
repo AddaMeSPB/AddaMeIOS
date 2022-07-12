@@ -16,6 +16,7 @@ import SharedModels
 import DeviceClient
 import AppDelegate
 import UIKit
+import NotificationHelpers
 
 public let tabsReducer = Reducer<
   TabsViewState,

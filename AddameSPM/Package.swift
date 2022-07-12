@@ -315,7 +315,7 @@ let package = Package(
         "ConversationClientLive",
         "EventView", "ConversationsView", "ProfileView",
         "SwiftUIExtension", "WebSocketClient", "WebSocketClientLive",
-        "DeviceClient", "CombineHelpers"
+        "DeviceClient", "CombineHelpers", "NotificationHelpers"
       ]
     ),
 

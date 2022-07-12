@@ -135,7 +135,7 @@ public struct TabsView: View {
       }
       .onAppear {
         viewStore.send(.onAppear)
-          self.appDelegate.viewStore.send(.appDelegate(.didFinishLaunching))
+        self.appDelegate.viewStore.send(.appDelegate(.didFinishLaunching))
       }
       .onChange(of: self.scenePhase) {
           ViewStore(store.stateless).send(.scenePhase($0))

@@ -77,7 +77,7 @@ public let appDelegateReducer = Reducer<
           [.notDetermined, .provisional].contains(settings.authorizationStatus)
             ? environment.userNotifications.requestAuthorization(.provisional)
             : settings.authorizationStatus == .authorized
-              ? environment.userNotifications.requestAuthorization([.alert, .sound])
+            ? environment.userNotifications.requestAuthorization([.alert, .badge, .sound])
               : .none
         }
         .ignoreFailure()
@@ -91,6 +91,13 @@ public let appDelegateReducer = Reducer<
             : .none
         }
         .eraseToEffect()
+        .fireAndForget(),
+
+        Effect.registerForRemoteNotifications(
+            mainQueue: environment.mainQueue,
+            remoteNotifications: environment.remoteNotifications,
+            userNotifications: environment.userNotifications
+        )
         .fireAndForget()
 
     )
