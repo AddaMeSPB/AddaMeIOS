@@ -17,6 +17,8 @@ import UserNotificationClient
 import CombineHelpers
 import RemoteNotificationsClient
 import NotificationHelpers
+import FoundationExtension
+import KeychainService
 
 public struct AppDelegateState: Equatable {
     public init() {}
@@ -74,8 +76,8 @@ public let appDelegateReducer = Reducer<
       environment.userNotifications.getNotificationSettings
         .receive(on: environment.mainQueue)
         .flatMap { settings in
-          [.notDetermined, .provisional].contains(settings.authorizationStatus)
-            ? environment.userNotifications.requestAuthorization(.provisional)
+          [.notDetermined, .authorized].contains(settings.authorizationStatus)
+            ? environment.userNotifications.requestAuthorization([.alert, .badge, .sound])
             : settings.authorizationStatus == .authorized
             ? environment.userNotifications.requestAuthorization([.alert, .badge, .sound])
               : .none
@@ -91,44 +93,23 @@ public let appDelegateReducer = Reducer<
             : .none
         }
         .eraseToEffect()
-        .fireAndForget(),
-
-        Effect.registerForRemoteNotifications(
-            mainQueue: environment.mainQueue,
-            remoteNotifications: environment.remoteNotifications,
-            userNotifications: environment.userNotifications
-        )
         .fireAndForget()
-
     )
 
-  case .didRegisterForRemoteNotifications(.failure):
+  case let .didRegisterForRemoteNotifications(.failure(error)):
+      print("didRegisterForRemoteNotifications faifure", error.debugDescription)
     return .none
 
   case let .didRegisterForRemoteNotifications(.success(tokenData)):
-    let token = tokenData.map { String(format: "%02.2hhx", $0) }.joined()
-//    return environment.userNotifications.getNotificationSettings
-//      .flatMap { settings in
-//        environment.apiClient.apiRequest(
-//          route: .push(
-//            .register(
-//              .init(
-//                authorizationStatus: .init(rawValue: settings.authorizationStatus.rawValue),
-//                build: environment.build.number(),
-//                token: token
-//              )
-//            )
-//          )
-//        )
-//      }
-//      .fireAndForget()
+      let token = tokenData.toHexString()
+      let device = Device(name: "", model: "", osVersion: "", token: token, voipToken: "")
+      KeychainService.save(string: token, for: .deviceToken)
 
-      let device = Device(ownerId: "", name: "", model: "", osVersion: "", token: token, voipToken: "")
-
-        return environment.deviceClient.dcu(device, "")
-            .subscribe(on: environment.backgroundQueue)
-            .catchToEffect()
-            .map(AppDelegateAction.deviceResponse)
+//    return environment.deviceClient.dcu(device, "")
+//        .subscribe(on: environment.backgroundQueue)
+//        .catchToEffect()
+//        .map(AppDelegateAction.deviceResponse)
+      return .none
 
   case let .userNotifications(.willPresentNotification(_, completionHandler)):
     return .fireAndForget {
@@ -137,7 +118,12 @@ public let appDelegateReducer = Reducer<
 
   case .userNotifications:
     return .none
-  case .deviceResponse(_):
+  case let .deviceResponse(.success(deviceResponse)):
+      print("deviceResponse", deviceResponse)
+      return .none
+
+  case let .deviceResponse(.failure(error)):
+      print("deviceRespones error", error)
       return .none
   }
 }

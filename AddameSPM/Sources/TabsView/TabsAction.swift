@@ -21,7 +21,6 @@ public enum TabsAction: Equatable {
   case event(EventsAction)
   case conversation(ConversationsAction)
   case profile(ProfileAction)
-  case appDelegate(AppDelegateAction)
 
   case webSocket(WebSocketClient.Action)
   case getAccessToketFromKeyChain(Result<String, HTTPRequest.HRError>)

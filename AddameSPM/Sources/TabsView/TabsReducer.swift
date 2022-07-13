@@ -39,12 +39,6 @@ public let tabsReducer = Reducer<
     environment: { _ in ProfileEnvironment.live }
   ),
 
-  appDelegateReducer.pullback(
-    state: \.appDelegate,
-    action: /TabsAction.appDelegate,
-    environment: { _ in AppDelegateEnvironment.live }
-  ),
-
   Reducer { state, action, environment in
 
     var getAcceccToken: Effect<TabsAction, Never> {
@@ -204,46 +198,7 @@ public let tabsReducer = Reducer<
     case let .deviceResponse(.failure(error)):
         print("deviceErro", error)
         return .none
-    case .appDelegate(_):
-        return .none
     }
   }
 )
 .debug()
-
-public final class AppDelegate: NSObject, UIApplicationDelegate {
-  public let store = Store(
-    initialState: .live,
-    reducer: tabsReducer,
-    environment: .live
-  )
-
-  public lazy var viewStore = ViewStore(
-    self.store.scope(state: { _ in () }),
-    removeDuplicates: ==
-  )
-
-  public  func application(
-      _ application: UIApplication,
-      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
-    ) -> Bool {
-      self.viewStore.send(.appDelegate(.didFinishLaunching))
-      return true
-    }
-
-   public func application(
-      _ application: UIApplication,
-      didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data
-    ) {
-      self.viewStore.send(.appDelegate(.didRegisterForRemoteNotifications(.success(deviceToken))))
-    }
-
-   public func application(
-      _ application: UIApplication,
-      didFailToRegisterForRemoteNotificationsWithError error: Error
-    ) {
-      self.viewStore.send(
-        .appDelegate(.didRegisterForRemoteNotifications(.failure(error as NSError)))
-      )
-    }
-}

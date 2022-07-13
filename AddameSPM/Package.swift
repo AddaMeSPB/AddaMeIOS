@@ -113,7 +113,8 @@ let package = Package(
             .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
             "SharedModels", "KeychainService", "FoundationExtension",
             "HTTPRequestKit", "InfoPlist", "DeviceClient", "SharedModels", "CombineHelpers",
-            "RemoteNotificationsClient", "NotificationHelpers"
+            "RemoteNotificationsClient", "NotificationHelpers", "FoundationExtension",
+            "KeychainService"
         ]
     ),
     // Core

@@ -53,7 +53,6 @@ public struct TabsView: View {
     case tabViewIsHidden(Bool)
   }
 
-  @UIApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
   @Environment(\.scenePhase) private var scenePhase
   let store: Store<TabsViewState, TabsAction>
 
@@ -135,7 +134,6 @@ public struct TabsView: View {
       }
       .onAppear {
         viewStore.send(.onAppear)
-        self.appDelegate.viewStore.send(.appDelegate(.didFinishLaunching))
       }
       .onChange(of: self.scenePhase) {
           ViewStore(store.stateless).send(.scenePhase($0))

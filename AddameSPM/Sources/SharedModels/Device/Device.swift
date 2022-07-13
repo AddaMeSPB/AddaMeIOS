@@ -1,6 +1,6 @@
 public struct Device: Codable, Equatable {
     public var id: String?
-    public var ownerId: String
+    public var ownerId: String?
     public var name: String
     public var model: String?
     public var osVersion: String?
@@ -10,7 +10,7 @@ public struct Device: Codable, Equatable {
 
     public init(
         id: String? = nil,
-        ownerId: String,
+        ownerId: String? = nil,
         name: String,
         model: String? = nil,
         osVersion: String? = nil,

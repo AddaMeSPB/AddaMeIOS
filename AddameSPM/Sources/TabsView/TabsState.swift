@@ -36,10 +36,10 @@ public struct TabsViewState: Equatable {
     public var appDelegate: AppDelegateState = .init()
 
   public init(
-    selectedTab: Tab,
-    event: EventsState,
-    conversations: ConversationsState,
-    profile: ProfileState,
+    selectedTab: Tab = .event,
+    event: EventsState = .init(),
+    conversations: ConversationsState = .init(),
+    profile: ProfileState = .init(),
     appDelegate: AppDelegateState = .init()
   ) {
     self.selectedTab = selectedTab

@@ -17,12 +17,20 @@ import TabsView
 import UserDefaultsClient
 import KeychainService
 import SharedModels
+import AppDelegate
+import Network
 
-public enum AppState: Equatable {
-  case login(LoginState)
-  case tabs(TabsViewState)
+public struct AppState: Equatable {
+    public init(
+        loginState: LoginState? = .init(),
+        tabsState: TabsViewState = .init()
+    ) {
+        self.loginState = loginState
+        self.tabsState = tabsState
+    }
 
-  public init() { self = .login(.init()) }
+    public var loginState: LoginState?
+    public var tabsState: TabsViewState
 }
 
 public enum AppAction: Equatable {
@@ -30,6 +38,8 @@ public enum AppAction: Equatable {
   case login(LoginAction)
   case tabs(TabsAction)
   case logout
+  case appDelegate(AppDelegateAction)
+  case didChangeScenePhase(ScenePhase)
 }
 
 public struct AppEnvironment {
@@ -57,30 +67,42 @@ extension AppEnvironment {
 }
 
 public let appReducer = Reducer<AppState, AppAction, AppEnvironment>.combine(
-  loginReducer.pullback(
-    state: /AppState.login,
+  loginReducer
+    .optional()
+    .pullback(
+    state: \.loginState,
     action: /AppAction.login,
     environment: { _ in AuthenticationEnvironment.live }
   ),
+
   tabsReducer.pullback(
-    state: /AppState.tabs,
+    state: \.tabsState,
     action: /AppAction.tabs,
     environment: { _ in TabsEnvironment.live }
   ),
+
+  appDelegateReducer.pullback(
+    state: \.tabsState.appDelegate,
+    action: /AppAction.appDelegate,
+    environment: { _ in AppDelegateEnvironment.live }
+  ),
+
   Reducer { state, action, environment in
 
     switch action {
     case .onAppear:
         // this code move to login and remove onApper
+        state.loginState = nil
       if environment.userDefaults.boolForKey(AppUserDefaults.Key.isAuthorized.rawValue) == true {
-          state = .tabs(.live)
+          state.tabsState = .init()
+      } else {
+          state.loginState = .init()
       }
       return .none
 
     case let .login(.verificationResponse(.success(loginRes))):
-//      where environment.userDefaults.boolForKey(AppUserDefaults.Key.isAuthorized.rawValue):
-
-        state = .tabs(.live)
+        state.loginState = nil
+        state.tabsState = .init()
       return .none
 
     case .login:
@@ -92,7 +114,7 @@ public let appReducer = Reducer<AppState, AppAction, AppEnvironment>.combine(
       KeychainService.logout()
       AppUserDefaults.erase()
 
-      state = .login(.init())
+      state.loginState = .init()
       return environment
         .userDefaults
         .remove(AppUserDefaults.Key.isAuthorized.rawValue)
@@ -103,13 +125,17 @@ public let appReducer = Reducer<AppState, AppAction, AppEnvironment>.combine(
 
     case .logout:
       return .none
+
+    case .appDelegate(_):
+        return .none
+    case .didChangeScenePhase(_):
+        return .none
     }
   }
 )
 
 public struct AppView: View {
 
-  @Environment(\.scenePhase) private var scenePhase
   let store: Store<AppState, AppAction>
 
   public init(store: Store<AppState, AppAction>) {
@@ -117,16 +143,21 @@ public struct AppView: View {
   }
 
   public var body: some View {
-    SwitchStore(self.store) {
-      CaseLet(state: /AppState.login, action: AppAction.login) { store in
-        AuthenticationView(store: store)
+      WithViewStore(store) { _ in
+          IfLetStore(store.scope(state: { $0.loginState },
+                                 action: AppAction.login)) { loginStore in
+
+              AuthenticationView(store: loginStore)
+          } else: {
+
+              TabsView(store: store.scope(state: { $0.tabsState },
+                                    action: AppAction.tabs) )
+
+          }
       }
-      CaseLet(state: /AppState.tabs, action: AppAction.tabs) { store in
-          TabsView(store: store)
+      .onAppear {
+        ViewStore(store.stateless).send(.onAppear)
       }
-    }
-    .onAppear {
-      ViewStore(store.stateless).send(.onAppear)
-    }
+
   }
 }
