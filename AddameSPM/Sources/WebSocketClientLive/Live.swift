@@ -10,21 +10,9 @@ import ComposableArchitecture
 import HTTPRequestKit
 import InfoPlist
 import KeychainService
-import SharedModels
+import AddaSharedModels
 import SwiftUI
 import WebSocketClient
-
-func token() -> AnyPublisher<String, HTTPRequest.HRError> {
-  guard let token: AuthTokenResponse = KeychainService.loadCodable(for: .token) else {
-    print(#line, "not Authorized Token are missing")
-    return Fail(error: HTTPRequest.HRError.missingTokenFromIOS)
-      .eraseToAnyPublisher()
-  }
-
-  return Just(token.accessToken)
-    .setFailureType(to: HTTPRequest.HRError.self)
-    .eraseToAnyPublisher()
-}
 
 extension WebSocketClient {
   public static let live = WebSocketClient(
@@ -42,13 +30,6 @@ extension WebSocketClient {
     },
     open: { id, url, accessToken, _ in
       Effect.run { subscriber in
-
-        guard let authToken: AuthTokenResponse = KeychainService.loadCodable(for: .token) else {
-          return AnyCancellable {
-            dependencies[id]?.subscriber.send(completion: .finished)
-            dependencies[id] = nil
-          }
-        }
 
         let delegate = WebSocketDelegate(
           didBecomeInvalidWithError: {

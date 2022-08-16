@@ -16,18 +16,18 @@ import HTTPRequestKit
 import KeychainService
 import MapKit
 import MapView
-import SharedModels
+import AddaSharedModels
 import SwiftUI
 import SwiftUIExtension
+import BSON
 
 extension EventFormView {
   public struct ViewState: Equatable {
     public var title = ""
     public var textFieldHeight: CGFloat = 30
-    public var durationRawValue: String = DurationButtons.FourHours.rawValue
-    public var categoryRawValue: String = Categories.General.rawValue
-    public var selectedCateforyIndex: Int = 0
+    public var durationRawValue: String = DurationButtons.Four_Hours.rawValue
     public var selectedDurationIndex: Int = 0
+    public var selectedCateforyID: ObjectId?
     public var showCategorySheet = false
     public var liveLocationToggleisOn = true
     public var moveMapView = false
@@ -41,25 +41,25 @@ extension EventFormView {
     public var showSuccessActionSheet = false
     public var placeMark: CLPlacemark?
 
-    public var selectedPlace: EventResponse.Item?
-    public var currentPlace: EventResponse.Item?
+    public var selectedPlace: EventResponse?
+    public var currentPlace: EventResponse?
     public var eventAddress: String = ""
-    public var selectedDutaionButtons: DurationButtons = .FourHours
+    public var selectedDutaionButtons: DurationButtons = .Four_Hours
     public var actionSheet: ConfirmationDialogState<EventFormAction>?
     public var alert: AlertState<EventFormAction>?
     public var locationSearchState: LocationSearchState?
     public var isPostRequestOnFly: Bool = false
     public var isEventCreatedSuccessfully: Bool = false
+    public var category: String = ""
 
     public var isSheetPresented: Bool { locationSearchState != nil }
     public var isAllFeildsAreValid: Bool {
       return !title.isEmpty && title.count > 2
         && !eventAddress.isEmpty
         && !durationRawValue.isEmpty
-        && !categoryRawValue.isEmpty
     }
 
-    public var currentUser: User = .draff
+    public var currentUser: UserOutput = .withFirstName
   }
 
   public enum ViewAction: Equatable {
@@ -68,8 +68,8 @@ extension EventFormView {
     case titleChanged(String)
     case textFieldHeightChanged(CGFloat)
     case selectedDurations(DurationButtons)
-    case selectedCategories(Categories)
     case selectedDurationIndex(Int)
+    case selectedCategory(AddaSharedModels.CategoryResponse)
     case showCategorySheet(Bool)
     case liveLocationToggleChanged(Bool)
     case isSearchSheet(isPresented: Bool)
@@ -173,17 +173,17 @@ public struct EventFormView: View {
                   Text("Categoris")
                 }
                 Spacer()
-                Text("⇡ \(viewStore.categoryRawValue)")
-                  .font(.title)
-                  .foregroundColor(
-                    Color(
-                      #colorLiteral(
-                        red: 0.9154241085,
-                        green: 0.2969468832,
-                        blue: 0.2259359956,
-                        alpha: 1)
-                    )
-                  )
+                Text("⇡ \(viewStore.category)")
+//                  .font(.title)
+//                  .foregroundColor(
+//                    Color(
+//                      #colorLiteral(
+//                        red: 0.9154241085,
+//                        green: 0.2969468832,
+//                        blue: 0.2259359956,
+//                        alpha: 1)
+//                    )
+//                  )
               }
               .padding(.vertical)
             }

@@ -19,7 +19,7 @@ import CoreDataClient
 import CoreDataStore
 import Foundation
 import HTTPRequestKit
-import SharedModels
+import AddaSharedModels
 import SwiftUI
 import SwiftUIExtension
 

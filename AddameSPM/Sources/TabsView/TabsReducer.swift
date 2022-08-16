@@ -12,48 +12,49 @@ import EventView
 import InfoPlist
 import KeychainService
 import ProfileView
-import SharedModels
+import AddaSharedModels
 import DeviceClient
 import AppDelegate
 import UIKit
 import NotificationHelpers
+import BSON
 
 public let tabsReducer = Reducer<
-  TabsViewState,
-  TabsAction,
+  TabState,
+  TabAction,
   TabsEnvironment
 >.combine(
   eventsReducer.pullback(
     state: \.event,
-    action: /TabsAction.event,
+    action: /TabAction.event,
     environment: { _ in EventsEnvironment.live }
   ),
   conversationsReducer.pullback(
     state: \.conversations,
-    action: /TabsAction.conversation,
+    action: /TabAction.conversation,
     environment: { _ in ConversationEnvironment.live }
   ),
   profileReducer.pullback(
     state: \.profile,
-    action: /TabsAction.profile,
+    action: /TabAction.profile,
     environment: { _ in ProfileEnvironment.live }
   ),
 
   Reducer { state, action, environment in
 
-    var getAcceccToken: Effect<TabsAction, Never> {
+    var getAcceccToken: Effect<TabAction, Never> {
       return environment.getAccessToken()
         .receive(on: environment.mainQueue)
         .catchToEffect()
-        .map(TabsAction.getAccessToketFromKeyChain)
+        .map(TabAction.getAccessToketFromKeyChain)
     }
 
-    var receiveSocketMessageEffect: Effect<TabsAction, Never> {
-      return environment.webSocketClient.receive(environment.currentUser.id)
+    var receiveSocketMessageEffect: Effect<TabAction, Never> {
+        return environment.webSocketClient.receive(environment.currentUser.id!.hexString)
         .subscribe(on: environment.backgroundQueue)
         .receive(on: environment.mainQueue)
         .catchToEffect()
-        .map(TabsAction.receivedSocketMessage)
+        .map(TabAction.receivedSocketMessage)
         .cancellable(id: environment.currentUser.id)
     }
 
@@ -71,27 +72,16 @@ public let tabsReducer = Reducer<
         return .none
       }
     case .onAppear:
-
-        return .none
-//        environment.deviceClient.dcu(device, "")
-//            .subscribe(on: environment.backgroundQueue)
-//            .catchToEffect()
-//            .map(TabsAction.deviceResponse)
+        return getAcceccToken
 
     case let .didSelectTab(tab):
       state.selectedTab = tab
-
       return .none
 
-    case .event:
-      return .none
+    case .event: return .none
+    case .conversation: return .none
+    case .profile: return .none
 
-    case .conversation:
-      return .none
-
-    case .profile:
-
-      return .none
     case let .tabViewIsHidden(value):
 //      let tab = state.selectedTab
 //      if value == true {
@@ -104,27 +94,35 @@ public let tabsReducer = Reducer<
 
     case let .getAccessToketFromKeyChain(.success(accessToken)):
 
-      guard let onconnect = ChatOutGoingEvent.connect(environment.currentUser).jsonString else {
+      guard let onconnect = ChatOutGoingEvent
+        .connect(environment.currentUser)
+        .jsonString else {
         // alert :)
         return .none
       }
 
+        guard let id = environment.currentUser.id else {
+           debugPrint("currentUserMissing")
+           return .none
+        }
+
       state.accessToken = accessToken
+      accessTokenTemp = accessToken
       var baseURL: URL { EnvironmentKeys.webSocketURL }
 
       return .merge(
-        environment.webSocketClient.open(environment.currentUser.id, baseURL, accessToken, [])
+        environment.webSocketClient.open(id.hexString, baseURL, accessToken, [])
           .subscribe(on: environment.backgroundQueue)
           .receive(on: environment.mainQueue)
-          .map(TabsAction.webSocket)
+          .map(TabAction.webSocket)
           .eraseToEffect()
           .cancellable(id: environment.currentUser.id),
 
-        environment.webSocketClient.send(environment.currentUser.id, .string(onconnect))
+        environment.webSocketClient.send(environment.currentUser.id!.hexString, .string(onconnect))
           .subscribe(on: environment.backgroundQueue)
           .receive(on: environment.mainQueue)
           .eraseToEffect()
-          .map(TabsAction.sendResponse)
+          .map(TabAction.sendResponse)
       )
 
     case let .getAccessToketFromKeyChain(.failure(error)):
@@ -160,14 +158,15 @@ public let tabsReducer = Reducer<
         return receiveSocketMessageEffect
       case .disconnect:
         return receiveSocketMessageEffect
-      case let .conversation(message):
+      case let .conversation(messageResponse):
+          print(#line, messageResponse.conversationId)
+          return
+              .merge(
+                .task { .conversation(.updateLastConversation(messageResponse)) },
+                receiveSocketMessageEffect
+              )
 
-        state.conversations.conversations[id: message.conversationId]?
-          .lastMessage = message
-
-        state.conversations.conversations.sort()
-
-        return receiveSocketMessageEffect
+//        return  receiveSocketMessageEffect
 
       case let .message(message):
         guard

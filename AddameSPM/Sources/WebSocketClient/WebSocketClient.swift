@@ -3,7 +3,7 @@ import ComposableArchitecture
 import HTTPRequestKit
 import InfoPlist
 import KeychainService
-import SharedModels
+import AddaSharedModels
 import SwiftUI
 
 public struct WebSocketClient {

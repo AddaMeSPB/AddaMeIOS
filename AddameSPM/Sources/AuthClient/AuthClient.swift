@@ -1,11 +1,23 @@
 import Combine
 import Foundation
-import HTTPRequestKit
-import SharedModels
+import AddaSharedModels
+import URLRouting
+import InfoPlist
 
 public struct AuthClient {
-  public typealias LoginHandler = (AuthResponse) -> AnyPublisher<AuthResponse, HTTPRequest.HRError>
-  public typealias VerificationHandler = (AuthResponse) -> AnyPublisher<LoginRes, HTTPRequest.HRError>
+
+    static public let apiClient: URLRoutingClient<SiteRoute> = .live(
+        router: siteRouter.baseRequestData(
+            .init(
+                scheme: EnvironmentKeys.rootURL.scheme,
+                host: EnvironmentKeys.rootURL.host,
+                port: EnvironmentKeys.setPort()
+            )
+        )
+    )
+
+  public typealias LoginHandler = @Sendable (VerifySMSInOutput) async throws -> VerifySMSInOutput
+  public typealias VerificationHandler = @Sendable (VerifySMSInOutput) async throws -> LoginResponse
 
   public var login: LoginHandler
   public var verification: VerificationHandler

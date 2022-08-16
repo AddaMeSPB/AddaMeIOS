@@ -5,12 +5,18 @@ import ComposablePresentation
 import HTTPRequestKit
 import KeychainService
 import SettingsView
-import SharedModels
+import AddaSharedModels
 import SwiftUI
 import SwiftUIExtension
 import UserClient
 import ImagePicker
 import MyEventsView
+
+extension String {
+    var url: URL? {
+        return URL(string: self)
+    }
+}
 
 extension ProfileView {
 
@@ -21,7 +27,7 @@ extension ProfileView {
     public var inputImage: UIImage?
     public var moveToSettingsView = false
     public var moveToAuthView: Bool = false
-    public var user = User.draff
+    public var user = UserOutput.withFirstName
     public var isUserHaveAvatarLink: Bool = false
     public var myEventsState: MyEventsState
     public var index = 0
@@ -31,7 +37,6 @@ extension ProfileView {
   }
 
   public enum ViewAction: Equatable {
-    case onAppear
     case alertDismissed
     case isUploadingImage
     case isImagePicker(isPresented: Bool)
@@ -41,11 +46,9 @@ extension ProfileView {
     case fetchMyData
     case uploadAvatar(_ image: UIImage)
     case updateUserName(String, String)
-    case createAttachment(_ attachment: Attachment)
+    case createAttachment(_ attachment: AttachmentInOutPut)
 
-    case userResponse(Result<User, HTTPRequest.HRError>)
-    case attacmentResponse(Result<Attachment, HTTPRequest.HRError>)
-    case myEvents(MyEventsAction)
+    case userResponse(Result<UserOutput, HTTPRequest.HRError>)
     case settings(SettingsAction)
     case imagePicker(action: ImagePickerAction)
 
@@ -82,7 +85,7 @@ public struct ProfileView: View {
           ) {
               ForEach(viewStore.state.imageURLs, id: \.self) { url in
                 AsyncImage(
-                  urlString: url,
+                  url: URL(string: url)!,
                   placeholder: {
                     HUDProgressView(
                       placeHolder: "Image is loading...",
@@ -130,7 +133,6 @@ public struct ProfileView: View {
         }
         .padding(.top, 90)
       }
-      .onAppear { viewStore.send(.onAppear) }
       .navigationBarTitle("Profile", displayMode: .inline)
       .toolbar {
         ToolbarItem(placement: .navigationBarTrailing) {
@@ -147,9 +149,6 @@ public struct ProfileView: View {
         }
       }
       .alert(self.store.scope(state: { $0.alert }), dismiss: .alertDismissed)
-    }
-    .onAppear {
-      ViewStore(store.stateless).send(.onAppear)
     }
     .navigationViewStyle(StackNavigationViewStyle())
     .sheet(

@@ -7,16 +7,16 @@
 
 import SwiftUI
 import ComposableArchitecture
-import SharedModels
+import AddaSharedModels
 
 public struct MyEventRowView: View {
   @Environment(\.colorScheme) var colorScheme
 
-  public init(store: Store<EventResponse.Item, MyEventAction>) {
+  public init(store: Store<EventResponse, MyEventAction>) {
     self.store = store
   }
 
-  public let store: Store<EventResponse.Item, MyEventAction>
+  public let store: Store<EventResponse, MyEventAction>
 
   public var body: some View {
     WithViewStore(self.store) { viewStore in

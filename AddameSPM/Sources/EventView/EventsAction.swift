@@ -13,10 +13,9 @@ import EventFormView
 import Foundation
 import HTTPRequestKit
 import MapKit
-import SharedModels
+import AddaSharedModels
 import AdSupport
 import AppTrackingTransparency
-import MyEventsView
 
 public enum EventAction: Equatable {}
 
@@ -24,34 +23,35 @@ public enum EventsAction: Equatable {
   case alertDismissed
   case dismissEventDetails
 
-  case event(index: EventResponse.Item.ID, action: EventAction)
+  case event(index: EventResponse.ID, action: EventAction)
 
   case eventFormView(isNavigate: Bool)
   case eventForm(EventFormAction)
 
   case eventDetailsView(isPresented: Bool)
   case eventDetails(EventDetailsAction)
-  case myEventAction(MyEventAction)
 
   case chatView(isNavigate: Bool)
   case chat(ChatAction)
 
   case fetchEventOnAppear
-  case fetchMoreEventsIfNeeded(item: EventResponse.Item?)
+  case fetchMoreEventsIfNeeded(item: EventResponse?)
   case addressResponse(Result<String, Never>)
 
   case currentLocationButtonTapped
   case locationManager(LocationManager.Action)
-  case eventsResponse(Result<EventResponse, HTTPRequest.HRError>)
+  case eventsResponse(EventsResponse)
+  case eventsResponseError(HTTPRequest.HRError)
   case eventPlacemarkResponse(Result<CLPlacemark, Never>)
-  case eventTapped(EventResponse.Item)
-  case myEventsResponse(Result<EventResponse, HTTPRequest.HRError>)
+  case eventTapped(EventResponse)
+  case myEventsResponse(Result<EventsResponse, HTTPRequest.HRError>)
 
   case idfaAuthorizationStatus(ATTrackingManager.AuthorizationStatus)
 
   case popupSettings
   case dismissEvent
   case onAppear
+  case onDisAppear
 }
 
 // swiftlint:disable:next superfluous_disable_command
@@ -67,8 +67,6 @@ extension EventsAction {
       return self.eventFormView(isNavigate: active)
     case let .eventForm(eventFormAction):
       return self.eventForm(eventFormAction)
-    case let .myEventAction(action):
-        return self.myEventAction(action)
     case let .chatView(isNavigate: bool):
       return .chatView(isNavigate: bool)
     case let .chat(action):
@@ -87,6 +85,8 @@ extension EventsAction {
         return .fetchEventOnAppear
     case .onAppear:
       return .onAppear
+    case .onDisAppear:
+        return .onDisAppear
     case let .eventDetailsView(isPresented: isPresented):
       return .eventDetailsView(isPresented: isPresented)
     case let .eventDetails(action):

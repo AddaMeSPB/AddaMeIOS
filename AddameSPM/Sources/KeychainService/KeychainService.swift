@@ -8,6 +8,9 @@
 import Foundation
 import Security
 
+/// have to remove every time we close app
+public var accessTokenTemp: String = ""
+
 let kSecClassValue = NSString(format: kSecClass)
 let kSecAttrAccountValue = NSString(format: kSecAttrAccount)
 let kSecValueDataValue = NSString(format: kSecValueData)

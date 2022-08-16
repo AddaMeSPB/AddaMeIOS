@@ -9,6 +9,24 @@ import Foundation
 
 // let settingsURL = Bundle.module.url(forResource: "settings", withExtension: "plist")
 
+enum Environment: String {
+    case production
+    case testing
+    case development
+}
+
+extension EnvironmentKeys {
+    #if DEBUG
+        static public let current = "development"
+    #else
+        static public let current = ""
+    #endif
+
+    static public func setPort() -> Int? {
+        EnvironmentKeys.current == "development" ? 8080 : nil
+    }
+}
+
 public enum EnvironmentKeys {
   // MARK: - Keys
 

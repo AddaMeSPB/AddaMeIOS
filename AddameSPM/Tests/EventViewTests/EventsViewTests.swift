@@ -10,7 +10,7 @@ import ComposableArchitecture
 import ComposableCoreLocation
 import HTTPRequestKit
 import KeychainService
-import SharedModels
+import AddaSharedModels
 import PathMonitorClient
 import Combine
 import CoreLocation

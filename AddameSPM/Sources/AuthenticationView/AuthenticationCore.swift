@@ -5,7 +5,7 @@ import ComposableArchitecture
 import HTTPRequestKit
 import KeychainService
 import PhoneNumberKit
-import SharedModels
+import AddaSharedModels
 import SwiftUI
 import UserDefaultsClient
 
@@ -18,7 +18,8 @@ public struct LoginState: Equatable {
   }
 
   public var alert: AlertState<LoginAction>?
-  public var authResponse: AuthResponse = .draff
+  public var code: String = ""
+  public var authResponse: VerifySMSInOutput = .draff
   public var isValidationCodeIsSend = false
   public var isLoginRequestInFlight = false
   public var isAuthorized: Bool = false
@@ -33,9 +34,9 @@ public enum LoginAction: Equatable {
   case showTermsSheet
   case showPrivacySheet
   case sendPhoneNumberButtonTapped(String)
-  case verificationRequest(String)
-  case loninResponse(Result<AuthResponse, HTTPRequest.HRError>)
-  case verificationResponse(Result<LoginRes, HTTPRequest.HRError>)
+  case codeChanged(String)
+  case loninResponse(TaskResult<VerifySMSInOutput>)
+  case verificationResponse(TaskResult<LoginResponse>)
 }
 
 public struct AuthenticationEnvironment {
@@ -56,11 +57,13 @@ public struct AuthenticationEnvironment {
 
 extension AuthenticationEnvironment {
   public static let live: AuthenticationEnvironment = .init(
-    authClient: .live(api: .build),
+    authClient: .live,
     userDefaults: .live(),
     mainQueue: .main
   )
 }
+
+public enum VerificationCodeCanceable {}
 
 public let loginReducer = Reducer<LoginState, LoginAction, AuthenticationEnvironment> {
   state, action, environment in
@@ -98,22 +101,36 @@ public let loginReducer = Reducer<LoginState, LoginAction, AuthenticationEnviron
       return .none
     }
 
-    return environment.authClient
-      .login(state.authResponse)
-      .receive(on: environment.mainQueue)
-      .catchToEffect()
-      .map(LoginAction.loninResponse)
+      return .task {  [authResponse = state.authResponse] in
+        return .loninResponse(
+            await TaskResult {
+                try await environment.authClient.login(authResponse)
+            }
+        )
+      }
 
-  case let .verificationRequest(code):
+  case let .codeChanged(code):
+      print(#line, code)
+      state.code = code
+
     if code.count == 6 {
       state.isLoginRequestInFlight = true
       state.authResponse.code = code
 
-      return environment.authClient
-        .verification(state.authResponse)
-        .receive(on: environment.mainQueue)
-        .catchToEffect()
-        .map(LoginAction.verificationResponse)
+        return .task {  [authResponse = state.authResponse] in
+             .verificationResponse(
+                await TaskResult {
+                    try await environment.authClient.verification(
+                        VerifySMSInOutput(
+                            phoneNumber: authResponse.phoneNumber,
+                            attemptId: authResponse.attemptId,
+                            code: authResponse.code
+                        )
+                    )
+                }
+            )
+        }
+        .cancellable(id: VerificationCodeCanceable.self)
     }
 
     return .none
@@ -127,7 +144,7 @@ public let loginReducer = Reducer<LoginState, LoginAction, AuthenticationEnviron
   case let .loninResponse(.failure(error)):
     state.isLoginRequestInFlight = false
     state.isValidationCodeIsSend = false
-    state.alert = .init(title: TextState(error.description))
+//    state.alert = .init(title: TextState(error))
 
     return .none
 
@@ -144,7 +161,7 @@ public let loginReducer = Reducer<LoginState, LoginAction, AuthenticationEnviron
         .fireAndForget(),
 
       environment.userDefaults
-        .setBool(loginRes.user.firstName == nil ? false : true, AppUserDefaults.Key.isUserFirstNameEmpty.rawValue)
+        .setBool(loginRes.user?.firstName == nil ? false : true, AppUserDefaults.Key.isUserFirstNameEmpty.rawValue)
         .fireAndForget()
     )
 
@@ -163,4 +180,4 @@ public let loginReducer = Reducer<LoginState, LoginAction, AuthenticationEnviron
     state.showPrivacySheet = true
     return .none
   }
-}.debug()
+}

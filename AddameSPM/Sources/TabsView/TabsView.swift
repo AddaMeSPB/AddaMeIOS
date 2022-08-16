@@ -16,60 +16,36 @@ import UIKit
 
 public struct TabsView: View {
 
-  public struct ViewState: Equatable {
-    public init(
-      selectedTab: Tab,
-      event: EventsState,
-      conversations: ConversationsState,
-      profile: ProfileState,
-      isHidden: Bool,
-      accessToken: String,
-      appDelegate: AppDelegateState
-    ) {
-      self.selectedTab = selectedTab
-      self.event = event
-      self.conversations = conversations
-      self.profile = profile
-      self.isHidden = isHidden
-      self.accessToken = accessToken
-      self.appDelegate = appDelegate
-    }
+    public struct ViewState: Equatable {
+        public init(state: TabState) {
+            self.selectedTab = state.selectedTab
+            self.isHidden = state.isHidden
+            self.unreadMessageCount = state.unreadMessageCount
+        }
 
-    public var selectedTab: Tab
-    public var event: EventsState
-    public var conversations: ConversationsState
-    public var profile: ProfileState
-    public var isHidden = false
-    public var accessToken: String
-    public var appDelegate: AppDelegateState
+      public var selectedTab: TabState.Tab
+      public var isHidden = false
+      public var unreadMessageCount: Int
   }
 
   public enum ViewAction: Equatable {
     case onAppear
-    case didSelectTab(Tab)
-    case event(EventsAction)
-    case conversation(ConversationsAction)
-    case profile(ProfileAction)
+    case didSelectTab(TabState.Tab)
     case tabViewIsHidden(Bool)
   }
 
   @Environment(\.scenePhase) private var scenePhase
-  let store: Store<TabsViewState, TabsAction>
+  let store: Store<TabState, TabAction>
 
-  public init(store: Store<TabsViewState, TabsAction>) {
+  public init(store: Store<TabState, TabAction>) {
     self.store = store
   }
 
   @State var isHidden = false
-  @State var tab: Tab = .event
+  @State var tab: TabState.Tab = .event
 
   public var body: some View {
-    WithViewStore(
-      self.store.scope(
-        state: { $0.view },
-        action: TabsAction.view
-      )
-    ) { viewStore in
+      WithViewStore(self.store, observe: ViewState.init, send: TabAction.init) { viewStore in
 
       HidableTabView(
         isHidden: viewStore.binding(get: { $0.isHidden }, send: ViewAction.tabViewIsHidden),
@@ -77,7 +53,7 @@ public struct TabsView: View {
       ) {
         NavigationView {
           EventView(
-            store: store.scope(state: \.event, action: TabsAction.event)
+            store: store.scope(state: \.event, action: TabAction.event)
           )
           .onAppear {
             ViewStore(store.stateless).send(.event(.onAppear))
@@ -88,48 +64,48 @@ public struct TabsView: View {
           Image(systemName: "list.bullet.below.rectangle")
           Text("Event")
         }
-        .tag(Tab.event)
+        .tag(TabState.Tab.event)
 
         NavigationView {
           ConversationsView(
-            store: store.scope(state: \.conversations, action: TabsAction.conversation)
+            store: store.scope(state: \.conversations, action: TabAction.conversation)
           )
           .onAppear {
             self.isHidden = false
-            print("### \(self.isHidden) ConversationsView onAppear")
+            print("\(#line) \(self.isHidden) ConversationsView onAppear")
             print("### \(self.tab) ConversationsView onAppear")
 //            viewStore.send(.tabViewIsHidden)
             ViewStore(store.stateless).send(.conversation(.onAppear))
           }
           .onDisappear {
 //            self.isHidden.toggle()
-            print("### \(self.isHidden) ConversationsView onDisAppear")
-            viewStore.send(.tabViewIsHidden(true))
+              print("### \(self.isHidden) ConversationsView onDisAppear")
+              ViewStore(store.stateless).send(.tabViewIsHidden(true))
           }
         }
         .tabItem {
           Image(systemName: "bubble.left.and.bubble.right")
           Text("Chat")
         }
-        .tag(Tab.conversation)
+        .tag(TabState.Tab.conversation)
 
         NavigationView {
           ProfileView(
-            store: store.scope(state: \.profile, action: TabsAction.profile)
+            store: store.scope(state: \.profile, action: TabAction.profile)
           )
           .onAppear {
 //            viewStore.send(.tabViewIsHidden)
             ViewStore(store.stateless).send(.profile(.onAppear))
           }
           .onDisappear {
-            viewStore.send(.tabViewIsHidden(true))
+              ViewStore(store.stateless).send(.tabViewIsHidden(true))
           }
         }
         .tabItem {
           Image(systemName: "person")
           Text("Profile")
         }
-        .tag(Tab.profile)
+        .tag(TabState.Tab.profile)
 
       }
       .onAppear {
@@ -138,7 +114,7 @@ public struct TabsView: View {
       .onChange(of: self.scenePhase) {
           ViewStore(store.stateless).send(.scenePhase($0))
       }
-    }
+      }
   }
 }
 

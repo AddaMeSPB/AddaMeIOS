@@ -13,7 +13,7 @@ import HTTPRequestKit
 import KeychainService
 import MapKit
 import MapView
-import SharedModels
+import AddaSharedModels
 import SwiftUI
 
 public let eventDetailsReducer = Reducer<
@@ -25,7 +25,7 @@ public let eventDetailsReducer = Reducer<
       action: /EventDetailsAction.eventDetailsOverlay,
       environment: {
         EventDetailsEnvironment(
-          conversationClient: ConversationClient.live(api: .build),
+          conversationClient: .live,
           mainQueue: $0.mainQueue
         )
       }
@@ -74,22 +74,18 @@ public let eventDetailsReducer = Reducer<
         return .none
       case let .conversationResponse(.success(conversationItem)):
 
-        guard let currentUSER: User = KeychainService.loadCodable(for: .user) else {
-          return .none
-        }
-
         state.conversation = conversationItem
-        state.chatMembers = conversationItem.members?.count ?? 0
 
-        state.eventDetailsOverlayState.isMember =
-          conversationItem.members?.contains(
-            where: { $0.id == currentUSER.id }
-          ) ?? false
+        if let currentUSER: UserOutput = KeychainService.loadCodable(for: .user) {
+            if let members = conversationItem.members {
+                state.chatMembers = members.count
+                state.eventDetailsOverlayState.isMember = members.contains(where: { $0.id == currentUSER.id })
+            }
 
-        state.eventDetailsOverlayState.isAdmin =
-          conversationItem.admins?.contains(
-            where: { $0.id == currentUSER.id }
-          ) ?? false
+            if let admins = conversationItem.admins {
+                state.eventDetailsOverlayState.isAdmin = admins.contains(where: { $0.id == currentUSER.id })
+            }
+        }
 
         return .none
 

@@ -11,18 +11,19 @@ import ComposableArchitecture
 import ComposableArchitectureHelpers
 import ComposableCoreLocation
 import MapKit
-import SharedModels
+import AddaSharedModels
 import SwiftUI
 import SwiftUIExtension
+import FoundationExtension
 
 public struct EventRowView: View {
   let currentLocation: Location?
   @Environment(\.colorScheme) var colorScheme
 
-  public let store: Store<EventResponse.Item, EventAction>
+  public let store: Store<EventResponse, EventAction>
 
   public init(
-    store: Store<EventResponse.Item, EventAction>,
+    store: Store<EventResponse, EventAction>,
     currentLocation: Location?
   ) {
     self.currentLocation = currentLocation
@@ -34,7 +35,7 @@ public struct EventRowView: View {
       HStack {
         if viewStore.imageUrl != nil {
           AsyncImage(
-            urlString: viewStore.imageUrl,
+            url: viewStore.imageUrl!.url,
             placeholder: { Text("Loading...").frame(width: 100, height: 100, alignment: .center) },
             image: {
               Image(uiImage: $0).resizable()
@@ -111,7 +112,7 @@ extension Double {
 
 // struct EventRowView_Previews: PreviewProvider {
 //
-//  static let store: Store<EventResponse.Item, EventAction> = .init(
+//  static let store: Store<EventResponse., EventAction> = .init(
 //    initialState: EventsState.event,
 //    reducer: eventsReducer,
 //    environment: EventsEnvironment.happyPath

@@ -1,20 +1,38 @@
 import Combine
 import Foundation
-import HTTPRequestKit
-import SharedModels
+import AddaSharedModels
+import URLRouting
+import InfoPlist
+import KeychainService
 
 public struct UserClient {
-  public typealias UserMeHandler = (String, String) -> AnyPublisher<User, HTTPRequest.HRError>
-  public typealias UserUpdateHandler = (User, String) -> AnyPublisher<User, HTTPRequest.HRError>
 
-  public let userMeHandler: UserMeHandler
-  public let update: UserUpdateHandler
+    static public let apiClient: URLRoutingClient<SiteRoute> = .live(
+      router: siteRouter.baseRequestData(
+          .init(
+              scheme: EnvironmentKeys.rootURL.scheme,
+              host: EnvironmentKeys.rootURL.host,
+              port: EnvironmentKeys.setPort(),
+              headers: ["Authorization": ["Bearer \(accessTokenTemp)"]]
+          )
+      )
+    )
 
-  public init(
-    userMeHandler: @escaping UserMeHandler,
-    update: @escaping UserUpdateHandler
-  ) {
-    self.userMeHandler = userMeHandler
-    self.update = update
-  }
+    public typealias UserMeHandler = @Sendable (String) async throws -> UserOutput
+    public typealias UserUpdateHandler = @Sendable (UserOutput) async throws -> UserOutput
+    public typealias UserDeleteHandler = @Sendable (String) async throws -> Bool
+
+    public let userMeHandler: UserMeHandler
+    public let update: UserUpdateHandler
+    public let delete: UserDeleteHandler
+
+    public init(
+        userMeHandler: @escaping UserMeHandler,
+        update: @escaping UserUpdateHandler,
+        delete: @escaping UserDeleteHandler
+    ) {
+        self.userMeHandler = userMeHandler
+        self.update = update
+        self.delete = delete
+    }
 }

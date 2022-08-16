@@ -1,7 +1,7 @@
 import ComposableArchitecture
 import Foundation
 import HTTPRequestKit
-import SharedModels
+import AddaSharedModels
 import SwiftUI
 import WebSocketClient
 
@@ -9,15 +9,15 @@ extension ChatView {
   public struct ViewState: Equatable {
     public var isLoadingPage = false
     public var alert: AlertState<ChatAction>?
-    public var conversation: ConversationResponse.Item?
-    public var messages: IdentifiedArrayOf<ChatMessageResponse.Item> = []
+    public var conversation: ConversationOutPut?
+    public var messages: IdentifiedArrayOf<MessageItem> = []
     public var messageToSend = ""
 
     public init(
       isLoadingPage: Bool = false,
       alert: AlertState<ChatAction>? = nil,
-      conversation: ConversationResponse.Item? = nil,
-      messages: IdentifiedArrayOf<ChatMessageResponse.Item> = [],
+      conversation: ConversationOutPut? = nil,
+      messages: IdentifiedArrayOf<MessageItem> = [],
       messageToSend: String = ""
     ) {
       self.isLoadingPage = isLoadingPage
@@ -31,11 +31,10 @@ extension ChatView {
   public enum ViewAction: Equatable {
     case onAppear
     case alertDismissed
-    case conversation(ConversationResponse.Item?)
-    case messages(Result<ChatMessageResponse, HTTPRequest.HRError>)
-    case fetchMoreMessageIfNeeded(currentItem: ChatMessageResponse.Item?)
-    case fetchMoreMessage(currentItem: ChatMessageResponse.Item)
-    case message(index: ChatMessageResponse.Item.ID, action: MessageAction)
+    case conversation(ConversationOutPut?)
+    case fetchMoreMessageIfNeeded(currentItem: MessageItem?)
+    case fetchMoreMessage(currentItem: MessageItem)
+    case message(index: MessageItem.ID, action: MessageAction)
     case sendResponse(NSError?)
     case webSocket(WebSocketClient.Action)
     case pingResponse(NSError?)

@@ -16,6 +16,8 @@ import PathMonitorClientLive
 import UserDefaultsClient
 import IDFAClient
 import IDFAClientLive
+import URLRouting
+import AddaSharedModels
 
 public struct EventsEnvironment {
   let pathMonitorClient: PathMonitorClient
@@ -66,13 +68,14 @@ public struct EventsEnvironment {
       }
     }
   }
+
 }
 
 extension EventsEnvironment {
   public static let live: EventsEnvironment = .init(
     pathMonitorClient: .live(queue: .main),
     locationManager: .live,
-    eventClient: .live(api: .build),
+    eventClient: .live,
     backgroundQueue: .main,
     mainQueue: .main,
     userDefaults: .live(),

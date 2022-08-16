@@ -18,7 +18,6 @@ let package = Package(
     .library(name: "SwiftUIExtension", targets: ["SwiftUIExtension"]),
     .library(name: "InfoPlist", targets: ["InfoPlist"]),
     .library(name: "KeychainService", targets: ["KeychainService"]),
-    .library(name: "SharedModels", targets: ["SharedModels"]),
     .library(name: "CoreDataStore", targets: ["CoreDataStore"]),
     .library(name: "FoundationExtension", targets: ["FoundationExtension"]),
 
@@ -76,16 +75,16 @@ let package = Package(
 
   dependencies: [
 //    .package(name: "AWSSDKSwift", url: "https://github.com/swift-aws/aws-sdk-swift.git", from: "4.9.0"),
+    .package(url: "https://github.com/AddaMeSPB/adda-shared-models", .branch("route")),
     .package(url: "https://github.com/soto-project/soto.git", from: "5.13.1"),
     .package(url: "https://github.com/marmelroy/PhoneNumberKit", .upToNextMajor(from: "3.3.3")),
     .package(
-      url: "https://github.com/pointfreeco/swift-composable-architecture.git", from: "0.38.2"),
+        url: "https://github.com/pointfreeco/swift-composable-architecture.git", from: "0.40.2"),
     .package(url: "https://github.com/pointfreeco/composable-core-location.git", .branch("main")),
     .package(url: "https://github.com/pointfreeco/xctest-dynamic-overlay", from: "0.1.0"),
-    .package(url: "https://github.com/AddaMeSPB/CombineContacts.git", from: "1.0.0"),
-//    .package(path: "../../HTTPRequestKit"),
+    .package(url: "https://github.com/AddaMeSPB/CombineContacts.git", .branch("async")),
     .package(url: "https://github.com/AddaMeSPB/HTTPRequestKit.git", from: "3.0.0"),
-    .package(url: "https://github.com/darrarski/swift-composable-presentation.git", from: "0.3.0")
+    .package(url: "https://github.com/saroar/swift-composable-presentation.git", .branch("foundation"))
   ],
 
   targets: [
@@ -95,10 +94,10 @@ let package = Package(
         .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
         "UserNotificationClient", "RemoteNotificationsClient", "NotificationHelpers",
         "AuthClient", "AuthClientLive", "AttachmentClient", "ChatClient",
-        "ConversationClient", "EventClient", "UserClient", "WebSocketClient",
+        "ConversationClient", "EventClient", "WebSocketClient",
         "EventView", "ConversationsView", "ProfileView", "TabsView",
         "AuthenticationView", "SettingsView", "ContactClient", "UserDefaultsClient",
-        "KeychainService", "AppDelegate"
+        "KeychainService", "AppDelegate", "UserClient", "UserClientLive"
       ]
     ),
 
@@ -111,10 +110,10 @@ let package = Package(
         name: "AppDelegate",
         dependencies: [
             .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
-            "SharedModels", "KeychainService", "FoundationExtension",
-            "HTTPRequestKit", "InfoPlist", "DeviceClient", "SharedModels", "CombineHelpers",
-            "RemoteNotificationsClient", "NotificationHelpers", "FoundationExtension",
-            "KeychainService"
+            .product(name: "AddaSharedModels", package: "adda-shared-models"),
+            "KeychainService", "FoundationExtension",
+            "HTTPRequestKit", "InfoPlist", "DeviceClient", "CombineHelpers",
+            "RemoteNotificationsClient", "NotificationHelpers"
         ]
     ),
     // Core
@@ -126,15 +125,10 @@ let package = Package(
     ),
     .target(name: "KeychainService"),
     .target(
-      name: "SharedModels",
-      dependencies: [
-        "KeychainService", "FoundationExtension"
-      ]
-    ),
-    .target(
       name: "CoreDataStore",
       dependencies: [
-        "SharedModels", "FoundationExtension"
+        .product(name: "AddaSharedModels", package: "adda-shared-models"),
+        "FoundationExtension"
       ]
     ),
     .target(name: "FoundationExtension"),
@@ -173,15 +167,17 @@ let package = Package(
     .target(
       name: "CoreDataClient",
       dependencies: [
-        "CoreDataStore", "ContactClient", "ContactClientLive", "SharedModels"
+        .product(name: "AddaSharedModels", package: "adda-shared-models"),
+        "CoreDataStore", "ContactClient", "ContactClientLive"
       ]
     ),
 
     .target(
         name: "DeviceClient",
         dependencies: [
-        "SharedModels", "KeychainService", "FoundationExtension",
-        "HTTPRequestKit", "InfoPlist"]
+            .product(name: "AddaSharedModels", package: "adda-shared-models"),
+            "KeychainService", "FoundationExtension", "InfoPlist"
+        ]
     ),
 
     .target(
@@ -189,7 +185,8 @@ let package = Package(
       dependencies: [
 //        .product(name: "S3", package: "AWSSDKSwift"),
         .product(name: "SotoS3", package: "soto"),
-        "SharedModels", "KeychainService", "FoundationExtension",
+        .product(name: "AddaSharedModels", package: "adda-shared-models"),
+        "KeychainService", "FoundationExtension",
         "HTTPRequestKit", "InfoPlist"
       ]
     ),
@@ -198,8 +195,8 @@ let package = Package(
     .target(
       name: "AuthClient",
       dependencies: [
-        "SharedModels", "InfoPlist", "FoundationExtension",
-        "HTTPRequestKit", "PhoneNumberKit"
+        .product(name: "AddaSharedModels", package: "adda-shared-models"),
+        "InfoPlist", "FoundationExtension", "PhoneNumberKit"
       ]
     ),
     .target(name: "AuthClientLive", dependencies: ["AuthClient"]),
@@ -207,7 +204,8 @@ let package = Package(
     .target(
       name: "ChatClient",
       dependencies: [
-        "SharedModels", "FoundationExtension", "HTTPRequestKit",
+        .product(name: "AddaSharedModels", package: "adda-shared-models"),
+        "FoundationExtension", "HTTPRequestKit",
         "InfoPlist", "KeychainService"
       ]
     ),
@@ -216,13 +214,14 @@ let package = Package(
     .target(
       name: "ContactClient",
       dependencies: [
-        "SharedModels", "InfoPlist", "FoundationExtension",
+        .product(name: "AddaSharedModels", package: "adda-shared-models"),
+        "InfoPlist", "FoundationExtension",
         "HTTPRequestKit", "PhoneNumberKit", "CombineContacts"
       ]
     ),
     .target(
       name: "ContactClientLive",
-      dependencies: ["ContactClient", "CoreDataStore"]
+      dependencies: ["ContactClient", "CoreDataStore", "KeychainService"]
     ),
     .target(
         name: "IDFAClient",
@@ -238,20 +237,26 @@ let package = Package(
         ]),
     .target(
       name: "ConversationClient",
-      dependencies: ["FoundationExtension", "HTTPRequestKit", "SharedModels"]
+      dependencies: [
+        .product(name: "AddaSharedModels", package: "adda-shared-models"),
+        "FoundationExtension", "HTTPRequestKit", "KeychainService", "InfoPlist"
+      ]
     ),
     .target(
       name: "ConversationClientLive",
-      dependencies: ["ConversationClient", "KeychainService", "InfoPlist"]
+      dependencies: ["ConversationClient"]
     ),
 
     .target(
       name: "EventClient",
-      dependencies: ["SharedModels", "HTTPRequestKit", "InfoPlist"]
+      dependencies: [
+        .product(name: "AddaSharedModels", package: "adda-shared-models"),
+        "HTTPRequestKit", "InfoPlist", "KeychainService", "FoundationExtension"
+      ]
     ),
     .target(
       name: "EventClientLive",
-      dependencies: ["EventClient", "KeychainService"]
+      dependencies: ["EventClient"]
     ),
 
     .target(name: "PathMonitorClient"),
@@ -259,7 +264,10 @@ let package = Package(
 
     .target(
       name: "UserClient",
-      dependencies: ["SharedModels", "HTTPRequestKit", "KeychainService", "InfoPlist"]
+      dependencies: [
+        .product(name: "AddaSharedModels", package: "adda-shared-models"),
+        "HTTPRequestKit", "KeychainService", "InfoPlist"
+      ]
     ),
     .target(name: "UserClientLive", dependencies: ["UserClient"]),
 
@@ -267,7 +275,8 @@ let package = Package(
       name: "WebSocketClient",
       dependencies: [
         .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
-        "FoundationExtension", "HTTPRequestKit", "SharedModels", "InfoPlist", "KeychainService"
+        .product(name: "AddaSharedModels", package: "adda-shared-models"),
+        "FoundationExtension", "HTTPRequestKit", "InfoPlist", "KeychainService"
       ]
     ),
     .target(
@@ -290,7 +299,8 @@ let package = Package(
       name: "AuthenticationView",
       dependencies: [
         .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
-        "PhoneNumberKit", "SharedModels", "AuthClient", "KeychainService",
+        .product(name: "AddaSharedModels", package: "adda-shared-models"),
+        "PhoneNumberKit", "AuthClient", "KeychainService",
         "HTTPRequestKit", "AuthClientLive", "UserDefaultsClient"
       ],
       resources: [
@@ -300,8 +310,9 @@ let package = Package(
     .testTarget(
       name: "AuthenticationViewTests",
       dependencies: [
+        .product(name: "AddaSharedModels", package: "adda-shared-models"),
         "AuthenticationView",
-        "PhoneNumberKit", "SharedModels", "AuthClient", "KeychainService",
+        "PhoneNumberKit", "AuthClient", "KeychainService",
         "HTTPRequestKit", "AuthClientLive"
       ]
     ),
@@ -324,7 +335,8 @@ let package = Package(
       name: "ChatView",
       dependencies: [
         .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
-        "SharedModels", "InfoPlist", "KeychainService",
+        .product(name: "AddaSharedModels", package: "adda-shared-models"),
+        "InfoPlist", "KeychainService",
         "WebSocketClient", "ConversationClient", "ChatClient",
         "SwiftUIExtension", "FoundationExtension", "AsyncImageLoder",
         "HTTPRequestKit", "ChatClientLive", "ConversationClientLive",
@@ -337,7 +349,8 @@ let package = Package(
       dependencies: [
         .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
         .product(name: "ComposablePresentation", package: "swift-composable-presentation"),
-        "SharedModels", "InfoPlist", "KeychainService",
+        .product(name: "AddaSharedModels", package: "adda-shared-models"),
+        "InfoPlist", "KeychainService",
         "WebSocketClient", "ChatClient", "ChatClientLive",
         "SwiftUIExtension", "FoundationExtension", "AsyncImageLoder",
         "HTTPRequestKit", "ConversationClient", "ConversationClientLive",
@@ -351,11 +364,24 @@ let package = Package(
       dependencies: [
         .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
         .product(name: "ComposablePresentation", package: "swift-composable-presentation"),
-        "SharedModels", "AsyncImageLoder", "HTTPRequestKit",
+        .product(name: "AddaSharedModels", package: "adda-shared-models"),
+        "AsyncImageLoder", "HTTPRequestKit",
         "ContactClient", "ContactClientLive", "WebSocketClient",
         "WebSocketClientLive", "ChatClient", "ChatClientLive",
         "CoreDataStore", "CoreDataClient",
         "ChatView", "ComposableArchitectureHelpers"
+      ]
+    ),
+
+    .testTarget(
+      name: "ContactsViewTests",
+      dependencies: [
+        .product(name: "AddaSharedModels", package: "adda-shared-models"),
+        "AsyncImageLoder", "HTTPRequestKit",
+        "ContactClient", "ContactClientLive", "WebSocketClient",
+        "WebSocketClientLive", "ChatClient", "ChatClientLive",
+        "CoreDataStore", "CoreDataClient",
+        "ChatView", "ComposableArchitectureHelpers", "ContactsView"
       ]
     ),
 
@@ -365,7 +391,8 @@ let package = Package(
         .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
         .product(name: "ComposableCoreLocation", package: "composable-core-location"),
         .product(name: "ComposablePresentation", package: "swift-composable-presentation"),
-        "SharedModels", "EventClient", "InfoPlist", "EventFormView",
+        .product(name: "AddaSharedModels", package: "adda-shared-models"),
+        "EventClient", "InfoPlist", "EventFormView",
         "PathMonitorClient", "WebSocketClient", "WebSocketClientLive",
         "SwiftUIExtension", "FoundationExtension", "AsyncImageLoder",
         "HTTPRequestKit", "KeychainService", "ChatClient", "ChatView",
@@ -378,13 +405,9 @@ let package = Package(
     .testTarget(
       name: "EventViewTests",
       dependencies: [
-        "EventView",
-        "HTTPRequestKit",
-        "KeychainService",
-        "SharedModels",
-        "PathMonitorClient",
-        "PathMonitorClientLive",
-        "UserDefaultsClient"
+        .product(name: "AddaSharedModels", package: "adda-shared-models"),
+        "EventView", "HTTPRequestKit", "KeychainService",
+        "PathMonitorClient", "PathMonitorClientLive", "UserDefaultsClient"
       ]
     ),
 
@@ -394,28 +417,29 @@ let package = Package(
         .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
         .product(name: "ComposableCoreLocation", package: "composable-core-location"),
         .product(name: "ComposablePresentation", package: "swift-composable-presentation"),
-        "SharedModels", "EventClient", "InfoPlist",
+        .product(name: "AddaSharedModels", package: "adda-shared-models"),
+        "EventClient", "InfoPlist",
         "PathMonitorClient", "ConversationClient",
         "SwiftUIExtension", "FoundationExtension", "AsyncImageLoder",
         "HTTPRequestKit", "KeychainService", "ChatClient", "EventClientLive",
         "PathMonitorClientLive", "MapView", "ComposableArchitectureHelpers"
       ]
     ),
-    .testTarget(
-      name: "EventFormViewTests",
-      dependencies: [
-        "EventFormView",
-        "HTTPRequestKit",
-        "KeychainService",
-        "SharedModels"
-      ]
-    ),
+
+//    .testTarget(
+//      name: "EventFormViewTests",
+//      dependencies: [
+//        .product(name: "AddaSharedModels", package: "adda-shared-models"),
+//        "EventFormView", "HTTPRequestKit", "KeychainService",
+//      ]
+//    ),
 
     .target(
         name: "MyEventsView",
         dependencies: [
         .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
-        "SharedModels", "EventClient", "InfoPlist",
+        .product(name: "AddaSharedModels", package: "adda-shared-models"),
+        "EventClient", "EventClientLive", "InfoPlist",
         "SwiftUIExtension", "FoundationExtension", "AsyncImageLoder",
         "HTTPRequestKit", "KeychainService"
         ]
@@ -427,7 +451,8 @@ let package = Package(
         .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
         .product(name: "ComposableCoreLocation", package: "composable-core-location"),
         .product(name: "ComposablePresentation", package: "swift-composable-presentation"),
-        "SharedModels", "EventClient", "InfoPlist",
+        .product(name: "AddaSharedModels", package: "adda-shared-models"),
+        "EventClient", "InfoPlist",
         "AsyncImageLoder", "SwiftUIExtension", "FoundationExtension",
         "HTTPRequestKit", "KeychainService", "ChatClient",
         "PathMonitorClient", "PathMonitorClientLive", "MapView", "ChatView",
@@ -440,8 +465,9 @@ let package = Package(
       dependencies: [
         .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
         .product(name: "ComposablePresentation", package: "swift-composable-presentation"),
+        .product(name: "AddaSharedModels", package: "adda-shared-models"),
         "AuthClient", "EventClient", "AttachmentClient",
-        "InfoPlist", "UserClient", "SharedModels",
+        "InfoPlist", "UserClient",
         "SwiftUIExtension", "FoundationExtension", "AsyncImageLoder",
         "HTTPRequestKit", "KeychainService", "AuthenticationView",
         "AttachmentClientLive", "AuthClientLive", "UserClientLive",
@@ -457,8 +483,9 @@ let package = Package(
         .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
         .product(name: "XCTestDynamicOverlay", package: "xctest-dynamic-overlay"),
         .product(name: "ComposablePresentation", package: "swift-composable-presentation"),
+        .product(name: "AddaSharedModels", package: "adda-shared-models"),
         "UserNotificationClient", "UIApplicationClient", "UserDefaultsClient",
-        "KeychainService", "SharedModels", "AuthenticationView"
+        "KeychainService", "AuthenticationView"
       ]
     ),
 
@@ -468,7 +495,8 @@ let package = Package(
         .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
         .product(name: "XCTestDynamicOverlay", package: "xctest-dynamic-overlay"),
         .product(name: "ComposablePresentation", package: "swift-composable-presentation"),
-        "SwiftUIExtension", "SharedModels", "ComposableArchitectureHelpers"
+        .product(name: "AddaSharedModels", package: "adda-shared-models"),
+        "SwiftUIExtension", "ComposableArchitectureHelpers"
       ]
     ),
     .testTarget(

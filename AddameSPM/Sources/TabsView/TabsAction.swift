@@ -1,5 +1,5 @@
 //
-//  TabsAction.swift
+//  TabAction.swift
 //
 //
 //  Created by Saroar Khandoker on 05.04.2021.
@@ -12,40 +12,34 @@ import Foundation
 import HTTPRequestKit
 import WebSocketClient
 import SwiftUI
-import SharedModels
+import AddaSharedModels
 import AppDelegate
 
-public enum TabsAction: Equatable {
-  case onAppear
-  case didSelectTab(Tab)
-  case event(EventsAction)
-  case conversation(ConversationsAction)
-  case profile(ProfileAction)
+public enum TabAction: Equatable {
+    case onAppear
+    case didSelectTab(TabState.Tab)
+    case event(EventsAction)
+    case conversation(ConversationsAction)
+    case profile(ProfileAction)
 
-  case webSocket(WebSocketClient.Action)
-  case getAccessToketFromKeyChain(Result<String, HTTPRequest.HRError>)
-  case receivedSocketMessage(Result<WebSocketClient.Message, NSError>)
-  case deviceResponse(Result<Device, HTTPRequest.HRError>)
-  case sendResponse(NSError?)
-  case tabViewIsHidden(Bool)
-  case scenePhase(ScenePhase)
+    case webSocket(WebSocketClient.Action)
+    case getAccessToketFromKeyChain(Result<String, HTTPRequest.HRError>)
+    case receivedSocketMessage(Result<WebSocketClient.Message, NSError>)
+    case deviceResponse(Result<DeviceInOutPut, HTTPRequest.HRError>)
+    case sendResponse(NSError?)
+    case tabViewIsHidden(Bool)
+    case scenePhase(ScenePhase)
 }
 
-extension TabsAction {
-  static func view(_ localAction: TabsView.ViewAction) -> Self {
-    switch localAction {
+extension TabAction {
+  init(_ action: TabsView.ViewAction) {
+    switch action {
     case .onAppear:
-      return .onAppear
+      self = .onAppear
     case let .didSelectTab(tab):
-      return .didSelectTab(tab)
-    case let .event(action):
-      return .event(action)
-    case let .conversation(action):
-      return .conversation(action)
-    case let .profile(action):
-      return .profile(action)
+      self = .didSelectTab(tab)
     case let .tabViewIsHidden(value):
-      return .tabViewIsHidden(value)
+      self = .tabViewIsHidden(value)
     }
   }
 }

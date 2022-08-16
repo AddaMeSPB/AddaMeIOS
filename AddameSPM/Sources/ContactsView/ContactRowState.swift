@@ -9,13 +9,13 @@ import ChatView
 import ComposableArchitecture
 import Contacts
 import HTTPRequestKit
-import SharedModels
+import AddaSharedModels
 
 public struct ContactRowState: Equatable, Identifiable {
   public init(
     id: String? = UUID().uuidString,
     isMoving: Bool = false,
-    contact: Contact
+    contact: ContactOutPut
   ) {
     self.id = id
     self.isMoving = isMoving
@@ -24,5 +24,5 @@ public struct ContactRowState: Equatable, Identifiable {
 
   public var id: String?
   public var isMoving: Bool = false
-  public var contact: Contact
+  public var contact: ContactOutPut
 }

@@ -8,6 +8,7 @@
 import ComposableArchitecture
 import ConversationClient
 import ConversationClientLive
+import Foundation
 
 public struct EventDetailsEnvironment {
   public init(
@@ -24,7 +25,7 @@ public struct EventDetailsEnvironment {
 
 extension EventDetailsEnvironment {
   public static let live: EventDetailsEnvironment = .init(
-    conversationClient: .live(api: .build),
+    conversationClient: .live,
     mainQueue: .main
   )
 }

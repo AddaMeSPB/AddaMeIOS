@@ -8,7 +8,7 @@
 import ChatView
 import Contacts
 import HTTPRequestKit
-import SharedModels
+import AddaSharedModels
 
 // public enum ChatAction: Equatable {}
 
@@ -17,7 +17,7 @@ public enum ContactsAction: Equatable {
   case alertDismissed
   case contact(id: String?, action: ContactRowAction)
   case contactsAuthorizationStatus(CNAuthorizationStatus)
-  case contactsResponse(Result<[Contact], HTTPRequest.HRError>)
+  case contactsResponse(Result<[ContactOutPut], HTTPRequest.HRError>)
 
   case moveToChatRoom(Bool)
   case chatWith(name: String, phoneNumber: String)

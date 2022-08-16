@@ -10,9 +10,10 @@ import ComposableArchitecture
 import HTTPRequestKit
 import InfoPlist
 import KeychainService
-import SharedModels
+import AddaSharedModels
 import WebSocketClient
 import DeviceClient
+import Foundation
 
 public struct TabsEnvironment {
   public var backgroundQueue: AnySchedulerOf<DispatchQueue>
@@ -33,7 +34,7 @@ public struct TabsEnvironment {
   }
 
   public func getAccessToken() -> AnyPublisher<String, HTTPRequest.HRError> {
-    guard let token: AuthTokenResponse = KeychainService.loadCodable(for: .token) else {
+    guard let token: RefreshTokenResponse = KeychainService.loadCodable(for: .token) else {
       return Fail(error: HTTPRequest.HRError.missingTokenFromIOS)
         .eraseToAnyPublisher()
     }
@@ -43,10 +44,10 @@ public struct TabsEnvironment {
       .eraseToAnyPublisher()
   }
 
-  public var currentUser: User {
-    guard let currentUSER: User = KeychainService.loadCodable(for: .user) else {
+  public var currentUser: UserOutput {
+    guard let currentUSER: UserOutput = KeychainService.loadCodable(for: .user) else {
       assertionFailure("current user is missing")
-      return User.draff
+      return UserOutput.withFirstName
     }
 
     return currentUSER
@@ -58,6 +59,6 @@ extension TabsEnvironment {
     backgroundQueue: .main,
     mainQueue: .main,
     webSocketClient: .live,
-    devicClient: .live(api: .build)
+    devicClient: .live
   )
 }

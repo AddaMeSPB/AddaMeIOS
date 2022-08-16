@@ -10,7 +10,7 @@ import ConversationClient
 import HTTPRequestKit
 import KeychainService
 import MapView
-import SharedModels
+import AddaSharedModels
 
 public enum EventDetailsAction: Equatable {
   case onAppear

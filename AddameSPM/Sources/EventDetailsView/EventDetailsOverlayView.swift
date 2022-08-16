@@ -10,7 +10,7 @@ import ComposableArchitecture
 import ComposableArchitectureHelpers
 import HTTPRequestKit
 import MapKit
-import SharedModels
+import AddaSharedModels
 import SwiftUI
 import SwiftUIExtension
 
@@ -76,8 +76,8 @@ struct EventDetailsOverlayView: View {
 extension EventDetailsOverlayView {
   public struct ViewState: Equatable {
     public var alert: AlertState<EventDetailsOverlayAction>?
-    public var event: EventResponse.Item
-    public var conversation: ConversationResponse.Item?
+    public var event: EventResponse
+    public var conversation: ConversationOutPut?
     public var conversationOwnerName: String = ""
     public var isMember: Bool = false
     public var isAdmin: Bool = false
@@ -89,8 +89,8 @@ extension EventDetailsOverlayView {
     case alertDismissed
     case startChat(Bool)
     case askJoinRequest(Bool)
-    case joinToEvent(Result<ConversationResponse.UserAdd, HTTPRequest.HRError>)
-    case conversationResponse(Result<ConversationResponse.Item, HTTPRequest.HRError>)
+    case joinToEvent(Result<AddUser, HTTPRequest.HRError>)
+    case conversationResponse(Result<ConversationOutPut, HTTPRequest.HRError>)
   }
 }
 

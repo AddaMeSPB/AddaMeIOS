@@ -5,34 +5,39 @@
 //  Created by Saroar Khandoker on 06.04.2021.
 //
 
+import Foundation
 import ComposableArchitecture
 import FoundationExtension
 import InfoPlist
 import KeychainService
-import SharedModels
+import AddaSharedModels
+import HTTPRequestKit
+import BSON
 
 public let chatReducer = Reducer<ChatState, ChatAction, ChatEnvironment> {
   state, action, environment in
 
   var fetchMoreMessages: Effect<ChatAction, Never> {
-    guard let conversationsID = state.conversation?.id else {
+      guard let conversationsID = state.conversation?.id.hexString else {
       print(#line, "Conversation id missing")
       return .none
     }
 
-    let query = QueryItem(page: "\(state.currentPage)", per: "10")
+    let query = QueryItem(page: state.currentPage, per: 10)
 
-    return environment.chatClient
-      .messages(query, conversationsID, "/by/conversations/\(conversationsID)")
-      .retry(3)
-      .subscribe(on: environment.backgroundQueue)
-      .receive(on: environment.mainQueue)
-      .catchToEffect()
-      .map(ChatAction.messages)
+      return .task {
+          do {
+              let messages = try await environment.chatClient.messages(query, conversationsID)
+              return ChatAction.messagesResponse(messages)
+          } catch {
+             return ChatAction.messagesResponseError(HTTPRequest.HRError.networkError(error))
+          }
+      }
+
   }
 
   var receiveSocketMessageEffect: Effect<ChatAction, Never> {
-    return environment.websocketClient.receive(environment.currentUser.id)
+      return environment.websocketClient.receive(environment.currentUser.id!.hexString)
       .subscribe(on: environment.backgroundQueue)
       .receive(on: environment.mainQueue)
       .catchToEffect()
@@ -41,7 +46,7 @@ public let chatReducer = Reducer<ChatState, ChatAction, ChatEnvironment> {
   }
 
   var sendPingEffect: Effect<ChatAction, Never> {
-    return environment.websocketClient.sendPing(environment.currentUser.id)
+      return environment.websocketClient.sendPing(environment.currentUser.id!.hexString)
       .subscribe(on: environment.backgroundQueue)
       .receive(on: environment.mainQueue)
       .delay(for: 10, scheduler: environment.mainQueue)
@@ -52,7 +57,7 @@ public let chatReducer = Reducer<ChatState, ChatAction, ChatEnvironment> {
 
   switch action {
   case .onAppear:
-      print(#line, state.conversation?.title)
+      // print(#line, state.conversation?.title)
 
     return fetchMoreMessages
 
@@ -64,23 +69,29 @@ public let chatReducer = Reducer<ChatState, ChatAction, ChatEnvironment> {
     state.conversation = converstion
     return fetchMoreMessages
 
-  case let .messages(.success(response)):
-    state.canLoadMorePages = state.messages.count < response.metadata.total
+  case let .messagesResponse(response):
+
     state.isLoadingPage = false
-    state.currentPage += 1
 
-//    response.items.forEach {
-//      if !state.messages.contains($0) {
-//        state.messages.append($0)
-//      }
-//    }
+      response.items.forEach {
+          if state.messages[id: $0.id] != $0 {
+              state.messages.append($0)
+          } else if state.messages.isEmpty {
+              state.messages.append(contentsOf: response.items)
+          }
+      }
 
-    let combineMessageResults = (response.items + state.messages).uniqElemets().sorted()
-    state.messages = .init(uniqueElements: combineMessageResults)
+      _ = state.messages
+          .sorted(by: { $0.createdAt?.compare($1.createdAt ?? Date()) == .orderedDescending })
+
+      state.canLoadMorePages = state.messages.count < response.metadata.total
+      if state.canLoadMorePages {
+        state.currentPage += 1
+      }
 
     return .none
 
-  case let .messages(.failure(error)):
+  case let .messagesResponseError(error):
     state.alert = .init(title: TextState("\(error.description)"))
     return .none
 
@@ -104,11 +115,14 @@ public let chatReducer = Reducer<ChatState, ChatAction, ChatEnvironment> {
     return .none
 
   case let .sendResponse(error):
+      if error != nil {
+        state.alert = .init(title: .init("Could not send socket message. Try again."))
+      }
 
-    if error != nil {
-      state.alert = .init(title: .init("Could not send socket message. Try again."))
-    }
-    return .none
+      return .merge(
+        receiveSocketMessageEffect,
+        sendPingEffect
+      )
 
   case let .webSocket(.didClose(code, _)):
     // state.connectivityState = .disconnected
@@ -151,22 +165,33 @@ public let chatReducer = Reducer<ChatState, ChatAction, ChatEnvironment> {
       return .none
     }
 
-    let localMessage = ChatMessageResponse.Item(
-      id: ObjectIdGenerator.shared.generate(), conversationId: conversationsID,
-      messageBody: composedMessage, sender: environment.currentUser, recipient: nil,
-      messageType: .text, isRead: false,
-      isDelivered: false, createdAt: nil, updatedAt: nil
-    )
+      guard let currentUserID = environment.currentUser.id?.hexString else {
+        print(#line, "currentUser id missing")
+        return .none
+      }
+
+      let localMessage = MessageItem(
+        id: ObjectId(),
+        conversationId: conversationsID,
+        messageBody: composedMessage,
+        messageType: .text,
+        isRead: false,
+        isDelivered: false,
+        sender: environment.currentUser,
+        recipient: nil,
+        createdAt: nil, updatedAt: nil, deletedAt: nil
+      )
 
     guard let sendServerMsgJsonString = ChatOutGoingEvent.message(localMessage).jsonString else {
-      print(#line, "json convert issue")
+      print(#line, "jsonString convert issue")
       return .none
     }
 
     state.messages.insert(localMessage, at: 0)
 
     return environment.websocketClient.send(
-      environment.currentUser.id, .string(sendServerMsgJsonString)
+        currentUserID,
+        .string(sendServerMsgJsonString)
     )
     .receive(on: environment.mainQueue)
     .eraseToEffect()

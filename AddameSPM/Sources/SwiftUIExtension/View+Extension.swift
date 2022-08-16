@@ -9,7 +9,7 @@ import SwiftUI
 
 extension View {
 
-  @ViewBuilder public func listRowSeparatorHidden() -> some View {
+  @ViewBuilder public func listRowSeparatorHiddenIfAvaibale() -> some View {
     if #available(iOS 15.0, *) {
       self.listRowSeparator(.hidden)
     } else { // ios 14

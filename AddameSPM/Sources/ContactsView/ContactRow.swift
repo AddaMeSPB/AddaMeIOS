@@ -8,8 +8,9 @@
 import AsyncImageLoder
 import ComposableArchitecture
 import CoreDataStore
-import SharedModels
+import AddaSharedModels
 import SwiftUI
+import FoundationExtension
 
 public struct ContactRow: View {
   @Environment(\.colorScheme) var colorScheme
@@ -25,7 +26,7 @@ public struct ContactRow: View {
       HStack(spacing: 0) {
         if let avatar = viewStore.contact.avatar {
           AsyncImage(
-            urlString: avatar,
+            url: avatar.url,
             placeholder: {
               Text("Loading...").frame(width: 100, height: 100, alignment: .center)
             },

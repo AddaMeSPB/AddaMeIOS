@@ -26,6 +26,7 @@ extension SettingsView {
     case onDismiss
     case distanceView(DistanceAction)
     case resetAuthData
+    case deleteMeButtonTapped
     case isLogoutButton(tapped: Bool)
     case termsSheet(isPresented: Bool, url: String?)
     case privacySheet(isPresented: Bool, url: String?)
@@ -118,6 +119,18 @@ public struct SettingsView: View {
         }
 
         HStack {
+            Button {
+                viewStore.send(.deleteMeButtonTapped)
+            } label: {
+              Text("Delete")
+                .font(.body)
+                .bold()
+            }
+            .padding(10)
+            .background(Color.yellow)
+            .clipShape(RoundedRectangle(cornerRadius: 13, style: .continuous))
+            .padding([.bottom, .leading], 20)
+
           Spacer()
           Button {
             viewStore.send(.isLogoutButton(tapped: true))

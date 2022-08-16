@@ -7,7 +7,8 @@
 
 import ComposableArchitecture
 import KeychainService
-import SharedModels
+import AddaSharedModels
+import HTTPRequestKit
 
 public let eventDetailsOverlayReducer = Reducer<
   EventDetailsOverlayState, EventDetailsOverlayAction, EventDetailsEnvironment
@@ -15,10 +16,21 @@ public let eventDetailsOverlayReducer = Reducer<
   switch action {
   case .onAppear:
 
-    return environment.conversationClient.find("", state.event.conversationsId)
-      .receive(on: environment.mainQueue)
-      .catchToEffect()
-      .map(EventDetailsOverlayAction.conversationResponse)
+//      return environment.conversationClient.find("", state.event.conversationsId.hexString)
+//      .receive(on: environment.mainQueue)
+//      .catchToEffect()
+//      .map(EventDetailsOverlayAction.conversationResponse)
+
+      return .task { [state] in
+          do {
+              let conversationOutput = try await environment.conversationClient
+                  .find(state.event.conversationsId.hexString)
+
+              return EventDetailsOverlayAction.conversationResponse(.success(conversationOutput))
+          } catch {
+              return EventDetailsOverlayAction.conversationResponse(.failure(.custom("", error)))
+          }
+      }
 
   case .alertDismissed:
     state.alert = nil
@@ -28,23 +40,35 @@ public let eventDetailsOverlayReducer = Reducer<
     return .none
 
   case let .askJoinRequest(bool):
-    guard let currentUSER: User = KeychainService.loadCodable(for: .user),
-      let conversation = state.conversation
+    guard let currentUSER: UserOutput = KeychainService.loadCodable(for: .user),
+          let conversation = state.conversation,
+          let usersId = currentUSER.id
     else {
+        // send logs
       return .none
     }
 
+    let conversationId = conversation.id
     state.isMovingChatRoom = bool
     let adduser = AddUser(
-      conversationsId: conversation.id,
-      usersId: currentUSER.id
+        conversationsId: conversationId,
+        usersId: usersId
     )
 
-    return environment.conversationClient
-      .addUserToConversation(adduser, "\(conversation.id)/users/\(currentUSER.id)")
-      .receive(on: environment.mainQueue)
-      .catchToEffect()
-      .map(EventDetailsOverlayAction.joinToEvent)
+//    return environment.conversationClient
+//      .addUserToConversation(adduser, "\(conversationId)/users/\(usersId)")
+//      .receive(on: environment.mainQueue)
+//      .catchToEffect()
+//      .map(EventDetailsOverlayAction.joinToEvent)
+
+      return .task {
+          do {
+              let addMe = try await environment.conversationClient.addUserToConversation(adduser)
+              return EventDetailsOverlayAction.joinToEvent(.success(addMe))
+          } catch {
+              return EventDetailsOverlayAction.joinToEvent(.failure(.custom("", error)))
+          }
+      }
 
   case let .joinToEvent(.success(response)):
     print(#line, response)

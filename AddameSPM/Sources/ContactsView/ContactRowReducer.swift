@@ -12,7 +12,7 @@ import Combine
 import ComposableArchitecture
 import ComposableArchitectureHelpers
 import HTTPRequestKit
-import SharedModels
+import AddaSharedModels
 import SwiftUI
 
 public struct ContactRowEnvironment {}
@@ -23,7 +23,7 @@ public let contactRowReducer = Reducer<ContactRowState, ContactRowAction, Contac
   switch action {
 
   case let .moveToChatRoom(present): return .none
-  case let .chatWith(name: name, phoneNumber: phoneNumber): return .none
-
+  case let .chatWith(name: name, phoneNumber: phoneNumber):
+      return .none
   }
 }

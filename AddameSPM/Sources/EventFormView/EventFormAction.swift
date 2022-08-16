@@ -10,8 +10,9 @@ import Foundation
 import HTTPRequestKit
 import MapKit
 import MapView
-import SharedModels
+import AddaSharedModels
 import SwiftUI
+import BSON
 
 public enum EventFormAction: Equatable {
   case didAppear
@@ -19,13 +20,14 @@ public enum EventFormAction: Equatable {
   case titleChanged(String)
   case textFieldHeightChanged(CGFloat)
   case selectedDurations(DurationButtons)
-  case selectedCategories(Categories)
+  case selectedCategory(AddaSharedModels.CategoryResponse)
   case selectedDurationIndex(Int)
   case showCategorySheet(Bool)
   case liveLocationToggleChanged(Bool)
   case isSearchSheet(isPresented: Bool)
   case locationSearch(LocationSearchAction)
-  case eventsResponse(Result<EventResponse.Item, HTTPRequest.HRError>)
+  case eventsResponse(Result<EventResponse, HTTPRequest.HRError>)
+  case categoryResponse(Result<CategoriesResponse, HTTPRequest.HRError>)
   case backToPVAfterCreatedEventSuccessfully
 
   case submitButtonTapped
@@ -51,10 +53,10 @@ extension EventFormAction {
       return textFieldHeightChanged(value)
     case let .selectedDurations(duration):
       return selectedDurations(duration)
-    case let .selectedCategories(categories):
-      return selectedCategories(categories)
     case let .selectedDurationIndex(int):
       return selectedDurationIndex(int)
+    case let .selectedCategory(category):
+        return selectedCategory(category)
     case let .showCategorySheet(isPresent):
       return showCategorySheet(isPresent)
     case let .liveLocationToggleChanged(liveLocationEnabled):

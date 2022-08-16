@@ -6,7 +6,7 @@
 //
 
 import ComposableArchitecture
-import SharedModels
+import AddaSharedModels
 import SwiftUI
 
 struct ChatListView: View {
@@ -28,7 +28,7 @@ struct ChatListView: View {
               viewStore.send(.fetchMoreMessageIfNeeded(currentItem: messageViewStore.state))
             }
             .scaleEffect(x: 1, y: -1, anchor: .center)
-            .listRowSeparatorHidden()
+            .listRowSeparatorHiddenIfAvaibale()
         }
       }
     }

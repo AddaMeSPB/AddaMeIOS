@@ -8,14 +8,14 @@
 import ChatView
 import Contacts
 import HTTPRequestKit
-import SharedModels
+import AddaSharedModels
 
 // public enum ChatAction: Equatable {}
 
 public enum ContactListAction: Equatable {
   case onAppear
   case contactRow(id: String, action: ContactRowAction)
-  case contactsResponse(Result<[Contact], HTTPRequest.HRError>)
+  case contactsResponse(Result<[ContactOutPut], HTTPRequest.HRError>)
 }
 
 // extension ContactListAction {

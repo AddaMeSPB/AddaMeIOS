@@ -12,13 +12,13 @@ import CoreDataClient
 import CoreDataStore
 import Foundation
 import HTTPRequestKit
-import SharedModels
+import AddaSharedModels
 import SwiftUI
 
 extension ContactsView {
   public struct ViewState: Equatable {
     public var alert: AlertState<ContactsAction>?
-    public var contacts: IdentifiedArrayOf<Contact> = []
+    public var contacts: IdentifiedArrayOf<ContactOutPut> = []
     public var isAuthorizedContacts: Bool = false
     public var invalidPermission: Bool = false
     public var isLoading: Bool = false
@@ -29,7 +29,7 @@ extension ContactsView {
     case alertDismissed
     case contactRow(id: String?, action: ContactRowAction)
     case contactsAuthorizationStatus(CNAuthorizationStatus)
-    case contactsResponse(Result<[Contact], HTTPRequest.HRError>)
+    case contactsResponse(Result<[ContactOutPut], HTTPRequest.HRError>)
   }
 }
 

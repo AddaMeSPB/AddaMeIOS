@@ -11,8 +11,9 @@ import Foundation
 import HTTPRequestKit
 import KeychainService
 import MapView
-import SharedModels
+import AddaSharedModels
 import SwiftUI
+import BSON
 
 public let eventFormReducer = Reducer<
   EventFormState, EventFormAction, EventFormEnvironment
@@ -20,13 +21,20 @@ public let eventFormReducer = Reducer<
 
   switch action {
   case .didAppear:
-    guard let currentUSER: User = KeychainService.loadCodable(for: .user) else {
+    guard let currentUSER: UserOutput = KeychainService.loadCodable(for: .user) else {
       // assertionFailure("current user is missing")
       return .none
     }
     state.currentUser = currentUSER
 
-    return .none
+      return .task {
+          do {
+              let categories = try await environment.eventClient.categoriesFetch()
+              return EventFormAction.categoryResponse(.success(categories))
+          } catch {
+              return EventFormAction.categoryResponse(.failure(.custom("cant fetch category from server", error)))
+          }
+      }
   case .didDisappear:
     return .none
   case let .titleChanged(string):
@@ -49,7 +57,7 @@ public let eventFormReducer = Reducer<
     return .none
 
   case let .selectedDurationIndex(int):
-    state.selectedCateforyIndex = int
+    state.selectedDurationIndex = int
     return .none
 
   case .backToPVAfterCreatedEventSuccessfully:
@@ -59,12 +67,19 @@ public let eventFormReducer = Reducer<
     state.isEventCreatedSuccessfully = true
     state.isPostRequestOnFly = false
     return Effect(value: EventFormAction.backToPVAfterCreatedEventSuccessfully)
-      .delay(for: 3, scheduler: environment.mainQueue)
+          .delay(for: 1.6, scheduler: environment.mainQueue)
       .eraseToEffect()
 
   case let .eventsResponse(.failure(error)):
     state.isPostRequestOnFly = false
     return .none
+
+  case let  .categoryResponse(.success(categoriesResponse)):
+      state.categories = .init(uniqueElements: categoriesResponse.categories)
+      return .none
+
+  case let  .categoryResponse(.failure(error)):
+      return .none
 
   case .submitButtonTapped:
 
@@ -74,44 +89,52 @@ public let eventFormReducer = Reducer<
       return .none
     }
 
-    state.isPostRequestOnFly = true
-    let event = Event(
-      name: state.title,
-      details: "",
-      imageUrl: state.currentUser.attachments?.last?.imageUrlString,
-      duration: state.durationIntValue,
-      categories: state.categoryRawValue,
-      isActive: true,
-      addressName: state.eventAddress,
-      type: .Point,
-      sponsored: false,
-      overlay: false,
-      coordinates: [coordinate.longitude, coordinate.latitude]
-      // mongoDB coordicate have to long then lat
-      // selectedPlace.coordinatesMongoDouble
-    )
+      guard let categoriesId = state.selectedCateforyID else {
+          state.alert = .init(title: TextState("Please seletect category!"))
+          return .none
+      }
 
-    return environment.eventClient
-      .create(event, "")
-      .retry(3)
-      .receive(on: environment.mainQueue)
-      .catchToEffect(EventFormAction.eventsResponse)
+    state.isPostRequestOnFly = true
+      let eventInput = EventInput(
+        name: state.title,
+        details: "",
+        imageUrl: state.currentUser.attachments?.last?.imageUrlString,
+        duration: state.durationIntValue,
+        isActive: true,
+        ownerId: ObjectId(),
+        categoriesId: categoriesId,
+        addressName: state.eventAddress,
+        sponsored: false,
+        overlay: false,
+        type: .Point,
+        coordinates: [coordinate.longitude, coordinate.latitude]
+        // mongoDB coordinate have to long then lat
+        // selectedPlace.coordinatesMongoDouble
+      )
+
+      return .task {
+          do {
+              let eventCreatResponse = try await environment.eventClient.create(eventInput)
+              return EventFormAction.eventsResponse(.success(eventCreatResponse))
+          } catch {
+              return EventFormAction.eventsResponse(.failure(.custom("cant create event!", error)))
+          }
+      }
 
   case .actionSheetButtonTapped:
 
     // menu context please
     state.actionSheet = .init(
       title: .init("Categories"),
-      message: .init("Select your category."),
+      message: .init("Select category."),
       buttons: [.cancel(.init("Cancel"))]
     )
 
-    state.actionSheet?.buttons = Categories
-      .allCases.enumerated()
-      .map { _, item in
+      state.actionSheet?.buttons = state.categories
+      .map { item in
         .default(
-          .init("\(item.rawValue)"),
-          action: .send(.selectedCategories(item))
+          .init("\(item.name)"),
+          action: .send(.selectedCategory(item))
         )
       }
 
@@ -134,8 +157,9 @@ public let eventFormReducer = Reducer<
     state.alert = nil
     return .none
 
-  case let .selectedCategories(categories):
-    state.categoryRawValue = categories.rawValue
+  case let .selectedCategory(category):
+      state.selectedCateforyID = category.id
+      state.category = category.name
     return .none
 
   case let .textFieldHeightChanged(height):
@@ -174,7 +198,8 @@ public let eventFormReducer = Reducer<
 .debug()
 .presenting(
   locationSearchReducer,
-  state: \.locationSearchState,
+  state: .keyPath(\.locationSearchState),
+  id: .notNil(),
   action: /EventFormAction.locationSearch,
   environment: { _ in LocationEnvironment.live }
 )

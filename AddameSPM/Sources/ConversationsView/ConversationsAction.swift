@@ -10,44 +10,56 @@ import ComposableArchitecture
 import ContactsView
 import Foundation
 import HTTPRequestKit
-import SharedModels
+import AddaSharedModels
+import BSON
 
 public enum ConversationsAction: Equatable {
   case onAppear
+  case onDisAppear
   case alertDismissed
-  case chatRoom(index: String, action: ConversationAction)
-  case conversationTapped(ConversationResponse.Item)
+  case chatRoom(index: ObjectId, action: ConversationAction)
+  case conversationTapped(ConversationOutPut)
   case chatView(isPresented: Bool)
   case contactsView(isPresented: Bool)
   case chat(ChatAction)
   case contacts(ContactsAction)
 
-  case conversationsResponse(Result<ConversationResponse, HTTPRequest.HRError>)
-  case conversationResponse(Result<ConversationResponse.Item, HTTPRequest.HRError>)
-  case fetchMoreConversationIfNeeded(currentItem: ConversationResponse.Item?)
+  case conversationsResponse(ConversationsResponse)
+  case conversationsResponseError(HTTPRequest.HRError)
+  case updateLastConversation(MessageItem)
+
+  case conversationResponse(Result<ConversationOutPut, HTTPRequest.HRError>)
+  case fetchMoreConversationIfNeeded(currentItem: ConversationOutPut?)
 }
 
 extension ConversationsAction {
-  static func view(_ localAction: ConversationsView.ViewAction) -> Self {
-    switch localAction {
+  // swiftlint:disable cyclomatic_complexity
+  init(_ action: ConversationsView.ViewAction) {
+    switch action {
     case .onAppear:
-      return onAppear
+        self = .onAppear
+    case .onDisAppear:
+        self = .onDisAppear
     case let .conversationsResponse(res):
-      return conversationsResponse(res)
+        self =  .conversationsResponse(res)
+    case let .conversationsResponseError(error):
+        self = .conversationsResponseError(error)
     case let .fetchMoreConversationIfNeeded(currentItem):
-      return fetchMoreConversationIfNeeded(currentItem: currentItem)
+        self =  .fetchMoreConversationIfNeeded(currentItem: currentItem)
     case .alertDismissed:
-      return alertDismissed
+        self = .alertDismissed
     case let .conversationTapped(conversationItem):
-      return conversationTapped(conversationItem)
+        self = .conversationTapped(conversationItem)
     case let .chat(action):
-      return chat(action)
+        self = .chat(action)
     case let .contacts(action):
-      return contacts(action)
+        self = .contacts(action)
     case let .chatView(isPresented: isPresented):
-      return .chatView(isPresented: isPresented)
+      self = .chatView(isPresented: isPresented)
     case let .contactsView(isPresented: isPresented):
-      return .contactsView(isPresented: isPresented)
+      self = .contactsView(isPresented: isPresented)
+    case let .updateLastConversation(messageItem):
+        self =  .updateLastConversation(messageItem)
     }
   }
 }

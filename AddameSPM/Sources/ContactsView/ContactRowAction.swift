@@ -8,7 +8,7 @@
 import ChatView
 import Contacts
 import HTTPRequestKit
-import SharedModels
+import AddaSharedModels
 
 public enum ContactRowAction: Equatable {
   case moveToChatRoom(Bool)

@@ -12,10 +12,11 @@ import ComposablePresentation
 import ComposableArchitectureHelpers
 import ContactsView
 import HTTPRequestKit
-import SharedModels
+import AddaSharedModels
 import SwiftUI
 import WebSocketClient
 import WebSocketClientLive
+import BSON
 
 // swiftlint:disable:next line_length superfluous_disable_command
 public let conversationsReducer = Reducer<
@@ -23,14 +24,16 @@ public let conversationsReducer = Reducer<
 > { state, action, environment in
 
   var fetchMoreConversations: Effect<ConversationsAction, Never> {
-    let query = QueryItem(page: "\(state.currentPage)", per: "10")
+          let query = QueryItem(page: state.currentPage, per: 10)
 
-    return environment.conversationClient.list(query, "")
-      .retry(3)
-      .subscribe(on: environment.backgroundQueue)
-      .receive(on: environment.mainQueue)
-      .catchToEffect()
-      .map(ConversationsAction.conversationsResponse)
+        return .task {
+            do {
+                let conversations = try await environment.conversationClient.list(query)
+                return ConversationsAction.conversationsResponse(conversations)
+            } catch {
+               return ConversationsAction.conversationsResponseError(HTTPRequest.HRError.networkError(error))
+            }
+        }
   }
 
   func createOrFine() -> Effect<ConversationsAction, Never> {
@@ -41,12 +44,15 @@ public let conversationsReducer = Reducer<
     }
 
     print(#line, "createConversation", createConversation)
-    return environment.conversationClient.create(createConversation, "")
-      .retry(3)
-      .subscribe(on: environment.backgroundQueue)
-      .receive(on: environment.mainQueue)
-      .catchToEffect()
-      .map(ConversationsAction.conversationResponse)
+
+      return .task {
+          do {
+              let response = try await environment.conversationClient.create(createConversation)
+              return ConversationsAction.conversationResponse(.success(response))
+          } catch {
+              return  ConversationsAction.conversationResponse(.failure(HTTPRequest.HRError.networkError(error)))
+          }
+      }
   }
 
   func presentChatView() -> Effect<ConversationsAction, Never> {
@@ -61,6 +67,10 @@ public let conversationsReducer = Reducer<
 
     state.isLoadingPage = true
     return fetchMoreConversations
+
+  case .onDisAppear:
+      state.canLoadMorePages = true
+      return .none
 
   case let .fetchMoreConversationIfNeeded(currentItem):
 
@@ -82,7 +92,7 @@ public let conversationsReducer = Reducer<
 
   case let .chatView(isPresented: present):
 
-      print(#line, state.conversation)
+    print(#line, state.conversation as Any)
     state.chatState = present ? ChatState(conversation: state.conversation) : nil
     return .none
 
@@ -91,25 +101,43 @@ public let conversationsReducer = Reducer<
     state.contactsState = present ? ContactsState() : nil
     return .none
 
-  case let .conversationsResponse(.success(response)):
+  case let .conversationsResponse(response):
 
-    state.canLoadMorePages = state.conversations.count < response.metadata.total
-    state.isLoadingPage = false
-    state.currentPage += 1
+      state.isLoadingPage = false
 
-    let combineConversationResults = (response.items + state.conversations)
-      .filter { $0.lastMessage != nil }
-      .uniqElemets()
-      .sorted()
+      response.items.forEach {
+          if state.conversations[id: $0.id] != $0 {
+              state.conversations.append($0)
+          }
+      }
 
-    state.conversations = .init(uniqueElements: combineConversationResults)
+      if state.conversations.isEmpty {
+          state.conversations.append(contentsOf: response.items)
+      }
+
+      var newConversations = state.conversations.filter { $0.lastMessage != nil }
+      newConversations.sort(by: { $0.lastMessage?.createdAt?.compare($1.createdAt ?? Date()) == .orderedDescending })
+      state.conversations = newConversations
+
+      state.canLoadMorePages = state.conversations.count < response.metadata.total
+      if state.canLoadMorePages {
+          state.currentPage += 1
+      }
 
     return .none
 
-  case let .conversationsResponse(.failure(error)):
-    state.isLoadingPage = false
-    state.alert = .init(title: TextState("Error happens \(error.description)"))
+  case let .conversationsResponseError(error):
+      state.isLoadingPage = false
+      state.alert = .init(title: TextState("Error happens \(error.description)"))
     return .none
+
+  case let .updateLastConversation(messageResponse):
+      print(#line, messageResponse.conversationId)
+      let updatedIndex = state.conversations.firstIndex(where: { $0.id == messageResponse.id })
+      state.conversations[id: messageResponse.conversationId]?.lastMessage = messageResponse
+
+      state.conversations.sort()
+      return .none
 
   case .alertDismissed:
     state.alert = nil
@@ -142,8 +170,8 @@ public let conversationsReducer = Reducer<
       print(#line, bool)
       return .none
     case let .chatWith(name: name, phoneNumber: phoneNumber):
-        print(#line, name, phoneNumber)
-      state.createConversation = CreateConversation(
+
+      state.createConversation = ConversationCreate(
         title: name,
         type: .oneToOne,
         opponentPhoneNumber: phoneNumber
@@ -168,13 +196,15 @@ public let conversationsReducer = Reducer<
 }
 .presenting(
   chatReducer,
-  state: \.chatState,
+  state: .keyPath(\.chatState),
+  id: .notNil(),
   action: /ConversationsAction.chat,
   environment: { _ in ChatEnvironment.live }
 )
 .presenting(
   contactsReducer,
-  state: \.contactsState,
+  state: .keyPath(\.contactsState),
+  id: .notNil(),
   action: /ConversationsAction.contacts,
   environment: { _ in ContactsEnvironment.live }
 )

@@ -7,7 +7,7 @@
 
 import SwiftUI
 import ComposableArchitecture
-import SharedModels
+import AddaSharedModels
 
 public struct MyEventsState: Equatable {
     public init(
@@ -15,7 +15,7 @@ public struct MyEventsState: Equatable {
         canLoadMorePages: Bool = true,
         currentPage: Int = 1,
         index: Int = 0,
-        myEvents: IdentifiedArrayOf<EventResponse.Item> = []
+        myEvents: IdentifiedArrayOf<EventResponse> = []
     ) {
         self.isLoadingPage = isLoadingPage
         self.canLoadMorePages = canLoadMorePages
@@ -28,7 +28,7 @@ public struct MyEventsState: Equatable {
     public var canLoadMorePages = true
     public var currentPage = 1
     public var index = 0
-    public var myEvents: IdentifiedArrayOf<EventResponse.Item> = []
+    public var myEvents: IdentifiedArrayOf<EventResponse> = []
 }
 
 public struct MyEventsListView: View {

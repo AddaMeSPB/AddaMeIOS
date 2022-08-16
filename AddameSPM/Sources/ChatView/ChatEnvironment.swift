@@ -11,9 +11,10 @@ import Combine
 import ComposableArchitecture
 import ConversationClient
 import KeychainService
-import SharedModels
+import AddaSharedModels
 import WebSocketClient
 import WebSocketClientLive
+import Foundation
 
 public struct ChatEnvironment {
   let chatClient: ChatClient
@@ -33,10 +34,10 @@ public struct ChatEnvironment {
     self.backgroundQueue = backgroundQueue
   }
 
-  public var currentUser: User {
-    guard let currentUSER: User = KeychainService.loadCodable(for: .user) else {
+  public var currentUser: UserOutput {
+    guard let currentUSER: UserOutput = KeychainService.loadCodable(for: .user) else {
       assertionFailure("current user is missing")
-      return User.draff
+      return UserOutput.withFirstName
     }
 
     return currentUSER
@@ -45,7 +46,7 @@ public struct ChatEnvironment {
 
 extension ChatEnvironment {
   public static let live: ChatEnvironment = .init(
-    chatClient: .live(api: .build),
+    chatClient: .live,
     websocketClient: .live,
     mainQueue: .main,
     backgroundQueue: .main

@@ -10,8 +10,9 @@ import Combine
 import ComposableArchitecture
 import ConversationClient
 import ConversationClientLive
-import SharedModels
+import AddaSharedModels
 import WebSocketClient
+import Foundation
 
 public struct ConversationEnvironment {
   public let conversationClient: ConversationClient
@@ -34,25 +35,9 @@ public struct ConversationEnvironment {
 
 extension ConversationEnvironment {
   public static let live: ConversationEnvironment = .init(
-    conversationClient: .live(api: .build),
+    conversationClient: .live,
     websocketClient: .live,
     backgroundQueue: .main,
     mainQueue: .main
   )
 }
-
-// public class WebsocketEnvironment {
-//
-//  let websocketClient: WebSocketClient
-//  public var mainQueue: AnySchedulerOf<DispatchQueue>
-//
-//  public init(
-//    websocketClient: WebSocketClient,
-//    mainQueue: AnySchedulerOf<DispatchQueue>
-//  ) {
-//    self.websocketClient = websocketClient
-//    self.websocketClient.handshake()
-//    self.mainQueue = mainQueue
-//  }
-//
-// }

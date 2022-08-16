@@ -6,7 +6,7 @@
 //
 
 import ComposableArchitecture
-import SharedModels
+import AddaSharedModels
 import SwiftUI
 
 struct ChatBottomView: View {

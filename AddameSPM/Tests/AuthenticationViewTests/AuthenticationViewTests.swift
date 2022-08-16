@@ -8,7 +8,7 @@
 import ComposableArchitecture
 import KeychainService
 import PhoneNumberKit
-import SharedModels
+import AddaSharedModels
 import HTTPRequestKit
 import SwiftUI
 import Combine

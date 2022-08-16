@@ -15,13 +15,12 @@ import EventDetailsView
 import EventFormView
 import HTTPRequestKit
 import MapKit
-import SharedModels
+import AddaSharedModels
 import SwiftUI
 import MapView
-import MyEventsView
 
-struct LocationManagerId: Hashable {}
-struct IDFAStatusId: Hashable {}
+enum LocationManagerId: Hashable {}
+enum IDFAStatusId: Hashable {}
 
 // swiftlint:disable superfluous_disable_command file_length
 public let eventsReducer = Reducer<EventsState, EventsAction, EventsEnvironment> {
@@ -61,25 +60,13 @@ public let eventsReducer = Reducer<EventsState, EventsAction, EventsEnvironment>
       state.isConnected = true
       state.waitingForUpdateLocation = false
 
-        return environment.locationManager.startUpdatingLocation()
+      return environment.locationManager.startUpdatingLocation()
             .fireAndForget()
 
     @unknown default:
       return .none
     }
   }
-
-    var fetchMyEvents: Effect<EventsAction, Never> {
-
-      state.isLoadingMyEvent = true
-
-      let query = QueryItem(page: "1", per: "1")
-
-      return environment.eventClient.events(query, "my")
-        .retry(3)
-        .receive(on: environment.mainQueue)
-        .catchToEffect(EventsAction.myEventsResponse)
-    }
 
   var fetchEvents: Effect<EventsAction, Never> {
     guard state.isConnected && state.canLoadMorePages,
@@ -91,7 +78,7 @@ public let eventsReducer = Reducer<EventsState, EventsAction, EventsEnvironment>
     state.location = location
 
     let getDistanceType = environment.userDefaults.integerForKey("typee")
-    let maxDistance = getDistanceType == 0 ? (250 * 1000) : (250 / 1.609) * 1609
+    let maxDistance = getDistanceType == 0 ? (300 * 1000) : (300 / 1.609) * 1609
     let distanceType: String = getDistanceType == 0 ? "kilometers" : "miles"
     let getDistance = environment.userDefaults.doubleForKey(distanceType)
     var distanceInMeters: Double = 0.0
@@ -110,21 +97,25 @@ public let eventsReducer = Reducer<EventsState, EventsAction, EventsEnvironment>
       }
     }
 
-    let lat = "\(location.coordinate.latitude)"
-    let long = "\(location.coordinate.longitude)"
-    print(#line, distanceInMeters)
-    let query = QueryItem(
-      page: "\(state.currentPage)",
-      per: "10", lat: lat, long: long,
-      distance: "\(Int(distanceInMeters))"
-    )
+      let lat = location.coordinate.latitude
+      let long = location.coordinate.longitude
 
-    return environment.eventClient.events(query, "")
-      .retry(3)
-      .receive(on: environment.mainQueue.animation(.default))
-      .removeDuplicates()
-      .catchToEffect()
-      .map(EventsAction.eventsResponse)
+      let query = EventPageRequest(
+          page: state.currentPage,
+          par: 10,
+          lat: lat, long: long,
+          distance: distanceInMeters
+      )
+
+      return  .task {
+          do {
+              print(#line, query)
+            let events = try await environment.eventClient.events(query)
+            return  EventsAction.eventsResponse(events)
+          } catch {
+              return EventsAction.eventsResponseError(HTTPRequest.HRError.custom("fetch events get error", error))
+          }
+      }
   }
 
   func getPlacemark(_ location: Location) -> Effect<EventsAction, Never> {
@@ -147,22 +138,31 @@ public let eventsReducer = Reducer<EventsState, EventsAction, EventsEnvironment>
   case .onAppear:
 
     return .merge(
-      fetchMyEvents,
-
       environment.locationManager.delegate()
+        .receive(on: environment.mainQueue)
+        .eraseToEffect()
         .map(EventsAction.locationManager)
-        .cancellable(id: LocationManagerId()),
+        .cancellable(id: LocationManagerId.self),
 
       currentLocationButtonTapped,
+
       environment.idfaClient.requestAuthorization()
+        .receive(on: environment.mainQueue)
         .map(EventsAction.idfaAuthorizationStatus)
-        .cancellable(id: IDFAStatusId()),
+        .eraseToEffect()
+        .cancellable(id: IDFAStatusId.self),
 
-      fetchMyEvents
+      fetchEvents
     )
+  case .onDisAppear:
+      state.canLoadMorePages = true
 
+      return .none
   case .fetchEventOnAppear:
-      if state.isLocationAuthorized {
+      let isLocationAuthorized = state.isLocationAuthorized
+      state.isLocationAuthorizedCount += 1
+
+      if isLocationAuthorized && state.isLocationAuthorizedCount == 1 {
           return fetchEvents
       }
 
@@ -189,24 +189,28 @@ public let eventsReducer = Reducer<EventsState, EventsAction, EventsEnvironment>
     return .none
 
   case let .event(index: index):
-
     return .none
-  case let .eventsResponse(.success(eventArray)):
+
+  case let .eventsResponse(eventArray):
 
     state.waitingForUpdateLocation = false
-    state.canLoadMorePages = state.events.count < eventArray.metadata.total
+
     state.isLoadingPage = false
-    state.currentPage += 1
 
     eventArray.items.forEach {
-      if !state.events.contains($0) {
-        state.events.append($0)
-      }
+        if state.events[id: $0.id] != $0 {
+            state.events.append($0)
+        }
     }
+
+      state.canLoadMorePages = state.events.count < eventArray.metadata.total
+      if state.canLoadMorePages {
+          state.currentPage += 1
+      }
 
     return .none
 
-  case let .eventsResponse(.failure(error)):
+  case let .eventsResponseError(error):
     state.isLoadingPage = false
     state.alert = .init(title: TextState(error.description))
 
@@ -241,11 +245,14 @@ public let eventsReducer = Reducer<EventsState, EventsAction, EventsEnvironment>
     state.currentAddress = addressString
     state.placeMark = placemark
 
-    return .none
+      return .cancel(id: LocationManagerId.self)
 
   case let .locationManager(.didUpdateLocations(locations)):
 
-    guard state.isConnected, let location = locations.first else { return .none }
+    guard state.isConnected,
+            let location = locations.first
+      else { return .none }
+
     state.location = location
 
     return .merge(
@@ -376,19 +383,22 @@ public let eventsReducer = Reducer<EventsState, EventsAction, EventsEnvironment>
 .debug()
 .presenting(
   eventFormReducer,
-  state: \.eventFormState,
+  state: .keyPath(\.eventFormState),
+  id: .notNil(),
   action: /EventsAction.eventForm,
   environment: { _ in EventFormEnvironment.live }
 )
 .presenting(
   chatReducer,
-  state: \.chatState,
+  state: .keyPath(\.chatState),
+  id: .notNil(),
   action: /EventsAction.chat,
   environment: { _ in ChatEnvironment.live }
 )
 .presenting(
   eventDetailsReducer,
-  state: \.eventDetailsState,
+  state: .keyPath(\.eventDetailsState),
+  id: .notNil(),
   action: /EventsAction.eventDetails,
   environment: { _ in EventDetailsEnvironment.live }
 )
@@ -411,7 +421,7 @@ private let locationManagerReducer = Reducer<
         .startUpdatingLocation()
         .fireAndForget()
     }
-    return .none
+      return .none
 
   case .didChangeAuthorization(.denied),
     .didChangeAuthorization(.restricted):

@@ -16,191 +16,169 @@ import HTTPRequestKit
 import InfoPlist
 import KeychainService
 import PhoneNumberKit
-import SharedModels
-
-func token() -> AnyPublisher<String, HTTPRequest.HRError> {
-  guard let token: AuthTokenResponse = KeychainService.loadCodable(for: .token) else {
-    print(#line, "not Authorized Token are missing")
-    return Fail(error: HTTPRequest.HRError.missingTokenFromIOS)
-      .eraseToAnyPublisher()
-  }
-
-  return Just(token.accessToken)
-    .setFailureType(to: HTTPRequest.HRError.self)
-    .eraseToAnyPublisher()
-}
+import AddaSharedModels
+import URLRouting
 
 public struct ContactAPI {
-  public static let build = Self()
-  private var baseURL: URL {
-    EnvironmentKeys.rootURL.appendingPathComponent("/contacts/")
-  }
+    public static let build = Self()
 
-  private let contactStore = CNContactStore()
-  private let phoneNumberKit = PhoneNumberKit()
-  private let keysToFetch: [CNKeyDescriptor] = [
-    CNContactFormatter.descriptorForRequiredKeys(for: .fullName),
-    CNContactPhoneNumbersKey as CNKeyDescriptor,
-    CNContactIdentifierKey as CNKeyDescriptor
-  ]
-  private let combineContact = CombineContacts()
-  let region = Locale.current
-
-  private let contactsSubject = PassthroughSubject<[Contact], Never>()
-  var contactsPublisher: AnyPublisher<[Contact], Never> {
-    contactsSubject.eraseToAnyPublisher()
-  }
-
-  public func authorization() -> AnyPublisher<CNAuthorizationStatus, Never> {
-    Future<CNAuthorizationStatus, Never> { promise in
-      self.contactStore.requestAccess(for: .contacts) { _, _ in
-        let status = CNContactStore.authorizationStatus(for: .contacts)
-        promise(.success(status))
-      }
-    }
-    .eraseToAnyPublisher()
-  }
-
-  public var requestAccess: AnyPublisher<Bool, ContactError> {
-    return combineContact.requestAccess(for: .contacts)
-      .mapError { error in
-        error
-      }.eraseToAnyPublisher()
-  }
-
-  public func getCNContacts() -> AnyPublisher<[CNContact], ContactError> {
-    return combineContact.containers(matching: nil)
-      .flatMap { containers -> AnyPublisher<CNContainer, ContactError> in
-        containers
-          .publisher
-          .setFailureType(to: ContactError.self)
-          .eraseToAnyPublisher()
-      }
-      .map { CNContact.predicateForContactsInContainer(withIdentifier: $0.identifier) }
-      .flatMap { predicate in
-        self.combineContact.unifiedContacts(matching: predicate, keysToFetch: keysToFetch)
-      }
-      .mapError {
-        $0
-      }
-      .eraseToAnyPublisher()
-  }
-
-  public func buildCustomContacts() -> AnyPublisher<[Contact], ContactError> {
-    return getCNContacts()
-      .flatMap { cnContacts -> AnyPublisher<CNContact, ContactError> in
-        cnContacts
-          .publisher
-          .setFailureType(to: ContactError.self)
-          .eraseToAnyPublisher()
-      }
-      .map { formatedContactMobile($0) }
-      .reduce([Contact](), +)
-      .removeDuplicates()
-      .mapError {
-        $0
-      }
-      .eraseToAnyPublisher()
-  }
-
-  private func formatedContactMobile(_ cnContact: CNContact) -> [Contact] {
-    guard let currentUSER: User = KeychainService.loadCodable(for: .user) else {
-      return []
-    }
-
-    let fullName = CNContactFormatter.string(from: cnContact, style: .fullName)
-
-    return cnContact.phoneNumbers
-      .map { ($0.identifier, $0.value.stringValue) }
-      .compactMap {
-        ($0.0, try? self.phoneNumberKit.parse($0.1, withRegion: region.regionCode ?? "RU"))
-      }
-      .filter { $0.1?.type == .mobile }
-      .map {
-        (identifier: $0.0, formattedPhoneNumber: self.phoneNumberKit.format($0.1!, toType: .e164))
-      }
-      .map {
-        Contact(
-          identifier: $0.identifier,
-          userId: currentUSER.id, phoneNumber: $0.formattedPhoneNumber,
-          fullName: fullName
+    let apiClient: URLRoutingClient<SiteRoute> = .live(
+        router: siteRouter.baseRequestData(
+            .init(
+                scheme: EnvironmentKeys.rootURL.scheme,
+                host: EnvironmentKeys.rootURL.host,
+                port: EnvironmentKeys.setPort(),
+                headers: ["Authorization": ["Bearer \(accessTokenTemp)"]]
+            )
         )
-      }
-  }
+    )
 
-  private func fetchUsers(by contacts: [Contact]) -> AnyPublisher<[User], HTTPRequest.HRError> {
-    return token().flatMap { token -> AnyPublisher<[User], HTTPRequest.HRError> in
-      let builder: HTTPRequest = .build(
-        baseURL: baseURL,
-        method: .post,
-        authType: .bearer(token: token),
-        path: "",
-        contentType: .json,
-        dataType: .encodable(input: contacts, encoder: .init())
-      )
+    private let phoneNumberKit = PhoneNumberKit()
+    private let keysToFetch: [CNKeyDescriptor] = [
+        CNContactFormatter.descriptorForRequiredKeys(for: .fullName),
+        CNContactPhoneNumbersKey as CNKeyDescriptor,
+        CNContactIdentifierKey as CNKeyDescriptor
+    ]
+    private let combineContact = CombineContacts()
+    let region = Locale.current
 
-      return builder.send(scheduler: RunLoop.main)
-        .catch { (error: HTTPRequest.HRError) -> AnyPublisher<[User], HTTPRequest.HRError> in
-          Fail(error: error).eraseToAnyPublisher()
+    private let contactsSubject = PassthroughSubject<[ContactOutPut], Never>()
+    var contactsPublisher: AnyPublisher<[ContactOutPut], Never> {
+        contactsSubject.eraseToAnyPublisher()
+    }
+
+    public func authorization() async throws -> CNAuthorizationStatus {
+        _ = try await self.combineContact.requestAccessAsync(for: .contacts)
+        let status = CNContactStore.authorizationStatus(for: .contacts)
+        return status
+    }
+
+    public var requestAccess: AnyPublisher<Bool, ContactError> {
+        return combineContact.requestAccess(for: .contacts)
+            .mapError { error in
+                error
+            }.eraseToAnyPublisher()
+    }
+
+    public func requestAccessA() async throws -> Bool {
+        do {
+            return try await combineContact.requestAccessAsync(for: .contacts)
+        } catch {
+            print(#line, error)
+            throw error
         }
-        .receive(on: DispatchQueue.main)
-        .eraseToAnyPublisher()
     }
-    .catch { (error: HTTPRequest.HRError) -> AnyPublisher<[User], HTTPRequest.HRError> in
-      Fail(error: error).eraseToAnyPublisher()
-    }
-    .catch { (error: HTTPRequest.HRError) -> AnyPublisher<[User], HTTPRequest.HRError> in
-      Fail(error: error).eraseToAnyPublisher()
-    }
-    .receive(on: DispatchQueue.main)
-    .eraseToAnyPublisher()
-  }
 
-  public func getRegUsers(by contacts: [Contact]) -> AnyPublisher<[User], HTTPRequest.HRError> {
-    return buildCustomContacts()
-      .mapError { contactError -> HTTPRequest.HRError in
-        HTTPRequest.HRError.custom("from contactError to HTTPRequest.HRError", contactError)
-      }
-      .flatMapLatest { contacts -> AnyPublisher<[User], HTTPRequest.HRError> in
-        self.fetchUsers(by: contacts)
-      }
-      .eraseToAnyPublisher()
-  }
+    public func getCNContactsAsync() async throws -> [CNContact] {
+
+        do {
+            var contacts: [CNContact] = [CNContact]()
+
+            let cnContainers = try await combineContact.containersAsync(matching: nil)
+
+            for contact in cnContainers {
+                let predicate = CNContact.predicateForContactsInContainer(withIdentifier: contact.identifier)
+                contacts += try await self.combineContact
+                    .unifiedContactsAsync(matching: predicate, keysToFetch: keysToFetch)
+            }
+
+            return contacts
+        } catch {
+            throw error
+        }
+
+    }
+
+    public func buildCustomContactsAsync() async throws -> MobileNumbersInput {
+        let contacts = try await getCNContactsAsync()
+            .map { formatedContactMobile($0) }
+            .reduce([ContactInPut](), +)
+            .map { $0.phoneNumber }
+
+        return MobileNumbersInput(mobileNumber: contacts)
+    }
+
+    private func formatedContactMobile(_ cnContact: CNContact) -> [ContactInPut] {
+
+        guard let currentUSER: UserOutput = KeychainService.loadCodable(for: .user) else {
+            return []
+        }
+
+        let fullName = CNContactFormatter.string(from: cnContact, style: .fullName)
+
+        //      var result: [ContactInPut] = [ContactInPut]()
+        //
+        //      let pns = cnContact.phoneNumbers.map { $0.value.stringValue }
+        //      let phoneNumbers = phoneNumberKit.parse(pns)
+        //      let rawNumberArray = phoneNumbers.map {
+        //          $0.numberString
+        //      }
+        //      let phoneNumbersCustomDefaultRegion = phoneNumberKit
+        //          .parse(rawNumberArray, withRegion: "RU", ignoreType: true)
+        //
+        //      let mobileNumbers = phoneNumbersCustomDefaultRegion.filter { $0.type == .mobile }
+        //
+        //      for (index, phone) in mobileNumbers.enumerated() {
+        //          result.append(
+        //            ContactInPut(
+        //                userId: currentUSER.id!,
+        //                identifier: cnContact.phoneNumbers[index].identifier,
+        //                phoneNumber: phoneNumberKit.format(phone, toType: .e164),
+        //                fullName: fullName
+        //            )
+        //          )
+        //      }
+        //
+        //      return result
+
+        return cnContact.phoneNumbers
+            .map { cnPhoneNumber in (cnPhoneNumber.identifier, cnPhoneNumber.value.stringValue) }
+            .compactMap { (identifier: String, stringValue: String) in
+                (
+                    identifier: identifier,
+                    parsePhoneNumber: try? self.phoneNumberKit.parse(
+                        stringValue,
+                        withRegion: region.regionCode ?? "RU"
+                    )
+                )
+            }
+            .filter {
+                $0.parsePhoneNumber != nil && $0.parsePhoneNumber!.type == .mobile
+            }
+            .map { (identifier: String, parsePhoneNumber: PhoneNumber?) in
+                (
+                    identifier: identifier,
+                    formattedPhoneNumber: self.phoneNumberKit.format(parsePhoneNumber!, toType: .e164)
+                )
+            }
+            .map { contact in
+                ContactInPut(
+                    userId: currentUSER.id!,
+                    identifier: contact.identifier,
+                    phoneNumber: contact.formattedPhoneNumber,
+                    fullName: fullName
+                )
+            }
+    }
+
 }
 
 extension ContactClient {
-  public static func live(api: ContactAPI) -> Self {
-    .init(
-      authorization: api.authorization,
-      buidContacts: api.buildCustomContacts,
-      getRegisterUsersFromServer: api.getRegUsers(by:)
-    )
-  }
-}
+    public static func live(api: ContactAPI) -> Self {
+        .init(
+            authorization: { return try await api.authorization() },
 
-//
-// struct AnyObserver<Output, Failure: Error> {
-//  let onNext: ((Output) -> Void)
-//  let onError: ((Failure) -> Void)
-//  let onComplete: (() -> Void)
-// }
-//
-// struct Disposable {
-//  let dispose: () -> Void
-// }
-//
-// extension AnyPublisher {
-//  static func create(subscribe: @escaping (AnyObserver<Output, Failure>) -> Disposable) -> Self {
-//    let subject = PassthroughSubject<Output, Failure>()
-//    var disposable: Disposable?
-//    return subject
-//      .handleEvents(receiveSubscription: { subscription in
-//        disposable = subscribe(AnyObserver(
-//          onNext: { output in subject.send(output) },
-//          onError: { failure in subject.send(completion: .failure(failure)) },
-//          onComplete: { subject.send(completion: .finished) }
-//        ))
-//      }, receiveCancel: { disposable?.dispose() })
-//      .eraseToAnyPublisher()
-//  }
-// }
+            buidContacts: { return try await api.buildCustomContactsAsync() },
+
+            getRegisterUsersFromServer: { mobileNumbersInput in
+                return try await api.apiClient.decodedResponse(
+                    for: .authEngine(
+                        .contacts(.getRegisterUsers(inputs: mobileNumbersInput))
+                    ),
+                    as: [UserOutput].self,
+                    decoder: .iso8601
+                ).value
+            }
+        )
+    }
+}

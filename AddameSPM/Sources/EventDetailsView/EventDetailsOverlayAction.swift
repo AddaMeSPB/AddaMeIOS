@@ -10,15 +10,19 @@ import ConversationClient
 import HTTPRequestKit
 import KeychainService
 import MapView
-import SharedModels
+import AddaSharedModels
 
 public enum EventDetailsOverlayAction: Equatable {
+    public static func == (lhs: EventDetailsOverlayAction, rhs: EventDetailsOverlayAction) -> Bool {
+        return true
+    }
+
   case onAppear
   case alertDismissed
   case startChat(Bool)
   case askJoinRequest(Bool)
-  case joinToEvent(Result<ConversationResponse.UserAdd, HTTPRequest.HRError>)
-  case conversationResponse(Result<ConversationResponse.Item, HTTPRequest.HRError>)
+  case joinToEvent(Result<AddUser, HTTPRequest.HRError>)
+  case conversationResponse(Result<ConversationOutPut, HTTPRequest.HRError>)
 }
 
 extension EventDetailsOverlayAction {

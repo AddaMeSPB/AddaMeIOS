@@ -8,13 +8,13 @@
 import ComposableArchitecture
 import MapKit
 import MapView
-import SharedModels
+import AddaSharedModels
 
 public struct EventDetailsOverlayState: Equatable {
   public init(
     alert: AlertState<EventDetailsOverlayAction>?,
-    event: EventResponse.Item,
-    conversation: ConversationResponse.Item? = nil,
+    event: EventResponse,
+    conversation: ConversationOutPut? = nil,
     isMember: Bool = false,
     isAdmin: Bool = false,
     isMovingChatRoom: Bool = false
@@ -28,8 +28,8 @@ public struct EventDetailsOverlayState: Equatable {
   }
 
   public var alert: AlertState<EventDetailsOverlayAction>?
-  public var event: EventResponse.Item
-  public var conversation: ConversationResponse.Item?
+  public var event: EventResponse
+  public var conversation: ConversationOutPut?
   public var conversationOwnerName: String = ""
   public var isMember: Bool = false
   public var isAdmin: Bool = false

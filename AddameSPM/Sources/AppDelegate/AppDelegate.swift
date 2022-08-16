@@ -10,7 +10,7 @@ import ComposableArchitecture
 import UIKit
 import DeviceClient
 import Combine
-import SharedModels
+import AddaSharedModels
 import HTTPRequestKit
 import SwiftUI
 import UserNotificationClient
@@ -50,7 +50,7 @@ extension AppDelegateEnvironment {
     public static var live: AppDelegateEnvironment = .init(
         mainQueue: .main,
         backgroundQueue: .main,
-        devicClient: .live(api: .build),
+        devicClient: .live,
         userNotifications: .live,
         remoteNotifications: .live
     )
@@ -59,8 +59,9 @@ extension AppDelegateEnvironment {
 public enum AppDelegateAction: Equatable {
   case didFinishLaunching
   case didRegisterForRemoteNotifications(Result<Data, NSError>)
-  case deviceResponse(Result<Device, HTTPRequest.HRError>)
+  case deviceResponse(Result<DeviceInOutPut, HTTPRequest.HRError>)
   case userNotifications(UserNotificationClient.DelegateEvent)
+  case sendDeviceInfo
 }
 
 public let appDelegateReducer = Reducer<
@@ -76,24 +77,33 @@ public let appDelegateReducer = Reducer<
       environment.userNotifications.getNotificationSettings
         .receive(on: environment.mainQueue)
         .flatMap { settings in
-          [.notDetermined, .authorized].contains(settings.authorizationStatus)
+            [.denied, .notDetermined, .authorized].contains(settings.authorizationStatus)
             ? environment.userNotifications.requestAuthorization([.alert, .badge, .sound])
             : settings.authorizationStatus == .authorized
             ? environment.userNotifications.requestAuthorization([.alert, .badge, .sound])
-              : .none
+            : .none
         }
         .ignoreFailure()
+        .print()
         .flatMap { successful in
+
           successful
             ? Effect.registerForRemoteNotifications(
               mainQueue: environment.mainQueue,
               remoteNotifications: environment.remoteNotifications,
               userNotifications: environment.userNotifications
             )
-            : .none
+            : Effect.unregisterForRemoteNotifications(
+                mainQueue: environment.mainQueue,
+                remoteNotifications: environment.remoteNotifications,
+                userNotifications: environment.userNotifications
+            )
         }
         .eraseToEffect()
         .fireAndForget()
+
+      // need get action when user dont give permision
+
     )
 
   case let .didRegisterForRemoteNotifications(.failure(error)):
@@ -101,29 +111,61 @@ public let appDelegateReducer = Reducer<
     return .none
 
   case let .didRegisterForRemoteNotifications(.success(tokenData)):
-      let token = tokenData.toHexString()
-      let device = Device(name: "", model: "", osVersion: "", token: token, voipToken: "")
-      KeychainService.save(string: token, for: .deviceToken)
+      let identifierForVendor = UIDevice.current.identifierForVendor?.uuidString
+      let token = tokenData.toHexString
+      let device = DeviceInOutPut(
+        identifierForVendor: identifierForVendor,
+        name: UIDevice.current.name,
+        model: UIDevice.current.model,
+        osVersion: UIDevice.current.systemVersion,
+        token: token,
+        voipToken: ""
+      )
 
-//    return environment.deviceClient.dcu(device, "")
-//        .subscribe(on: environment.backgroundQueue)
-//        .catchToEffect()
-//        .map(AppDelegateAction.deviceResponse)
-      return .none
+      KeychainService.save(string: token, for: .deviceToken)
+      return .task {
+          do {
+              let deviceResponse = try await environment.deviceClient.dcu(device)
+              return AppDelegateAction.deviceResponse(.success(deviceResponse))
+          } catch {
+              return AppDelegateAction.deviceResponse(.failure(.custom("cant save device", error)))
+          }
+      }
 
   case let .userNotifications(.willPresentNotification(_, completionHandler)):
-    return .fireAndForget {
-      completionHandler(.banner)
-    }
+    return .fireAndForget { completionHandler(.banner) }
 
   case .userNotifications:
     return .none
+
+  case .sendDeviceInfo:
+
+      let identifierForVendor = UIDevice.current.identifierForVendor?.uuidString
+
+      let device = DeviceInOutPut(
+        identifierForVendor: identifierForVendor,
+        name: UIDevice.current.name,
+        model: UIDevice.current.model,
+        osVersion: UIDevice.current.systemVersion,
+        token: "",
+        voipToken: ""
+      )
+
+      return .task {
+          do {
+              let deviceResponse = try await environment.deviceClient.dcu(device)
+              return AppDelegateAction.deviceResponse(.success(deviceResponse))
+          } catch {
+              return AppDelegateAction.deviceResponse(.failure(.custom("cant save device", error)))
+          }
+      }
+
   case let .deviceResponse(.success(deviceResponse)):
       print("deviceResponse", deviceResponse)
       return .none
 
   case let .deviceResponse(.failure(error)):
-      print("deviceRespones error", error)
+      print("deviceRespones error: \(error.description)", error)
       return .none
   }
 }

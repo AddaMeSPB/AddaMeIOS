@@ -11,7 +11,7 @@ import ComposableCoreLocation
 import EventDetailsView
 import EventFormView
 import MapKit
-import SharedModels
+import AddaSharedModels
 import AppTrackingTransparency
 
 public struct EventsState: Equatable {
@@ -27,15 +27,16 @@ public struct EventsState: Equatable {
   public var isMovingChatRoom: Bool = false
   public var isEFromNavigationActive = false
   public var isIDFAAuthorized = false
+  public var isLocationAuthorizedCount = 0
 
   public var currentPage = 1
   public var currentAddress = ""
   public var placeMark: CLPlacemark?
   public var location: Location?
-  public var events: IdentifiedArrayOf<EventResponse.Item> = []
-  public var myEvent: EventResponse.Item?
-  public var event: EventResponse.Item?
-  public var conversation: ConversationResponse.Item?
+  public var events: IdentifiedArrayOf<EventResponse> = []
+  public var myEvent: EventResponse?
+  public var event: EventResponse?
+  public var conversation: ConversationOutPut?
 
   public var eventFormState: EventFormState?
   public var eventDetailsState: EventDetailsState?
@@ -52,10 +53,11 @@ public struct EventsState: Equatable {
     isIDFAAuthorized: Bool = false,
     isLoadingPage: Bool = false,
     isLoadingMyEvent: Bool = false,
+    isLocationAuthorizedCount: Int = 0,
     canLoadMorePages: Bool = true, currentPage: Int = 1,
     currentAddress: String = "", placeMark: CLPlacemark? = nil,
-    location: Location? = nil, events: IdentifiedArrayOf<EventResponse.Item> = [],
-    myEvent: EventResponse.Item? = nil, event: EventResponse.Item? = nil,
+    location: Location? = nil, events: IdentifiedArrayOf<EventResponse> = [],
+    myEvent: EventResponse? = nil, event: EventResponse? = nil,
     eventFormState: EventFormState? = nil,
     eventDetailsState: EventDetailsState? = nil,
     chatState: ChatState? = nil
@@ -71,6 +73,7 @@ public struct EventsState: Equatable {
     self.isMovingChatRoom = isMovingChatRoom
     self.isEFromNavigationActive = isEFromNavigationActive
     self.isIDFAAuthorized = isIDFAAuthorized
+    self.isLocationAuthorizedCount = isLocationAuthorizedCount
     self.currentPage = currentPage
     self.currentAddress = currentAddress
     self.placeMark = placeMark
@@ -116,102 +119,4 @@ extension EventsState {
       conversation: conversation
     )
   }
-}
-
-// swiftlint:disable all
-extension EventsState {
-
-  public static let event: EventResponse.Item = .init(
-    id: "5fbfe53675a93bda87c7cb16",
-    name: "Cool :)", categories: "General",
-    imageUrl:
-      "https://avatars.mds.yandex.net/get-pdb/2776508/af73774d-7409-4e73-81c8-c8ab127c2f8b/s1200?webp=false",
-    duration: 14400,
-    isActive: true, conversationsId: "5fbfe5361cdd72e23297914a",
-    addressName: "8к1литД улица Вавиловых , Saint Petersburg", type: "Point", sponsored: false,
-    overlay: false, coordinates: [60.020532228306031, 30.388014239849944], createdAt: Date(),
-    updatedAt: Date()
-  )
-
-  private static let events: IdentifiedArrayOf<EventResponse.Item> = [
-    .init(
-      id: "5fbfe53675a93bda87c7cb16",
-      name: "Cool :)", categories: "General",
-      imageUrl:
-        "https://avatars.mds.yandex.net/get-pdb/2776508/af73774d-7409-4e73-81c8-c8ab127c2f8b/s1200?webp=false",
-      duration: 14400,
-      isActive: true, conversationsId: "5fbfe5361cdd72e23297914a",
-      addressName: "8к1литД улица Вавиловых , Saint Petersburg", type: "Point", sponsored: false,
-      overlay: false, coordinates: [60.020532228306031, 30.388014239849944], createdAt: Date(),
-      updatedAt: Date()),
-    .init(
-      id: "5fbe8a8c8ba94be8a688324b", name: "Awesome 🤩 app", categories: "General",
-      duration: 14400, isActive: true, conversationsId: "5fbe8a8c492346f651b57946",
-      addressName: "8к1литД улица Вавиловых , Saint Petersburg", type: "Point", sponsored: false,
-      overlay: false, coordinates: [60.020525506753494, 30.387988546891499], createdAt: Date(),
-      updatedAt: Date()),
-    .init(
-      id: "5fbea245b226053f0ece711c", name: "Bicycling 🚴🏽", categories: "LookingForAcompany",
-      imageUrl:
-        "https://avatars.mds.yandex.net/get-pdb/2776508/af73774d-7409-4e73-81c8-c8ab127c2f8b/s1200?webp=false",
-      duration: 14400, isActive: true, conversationsId: "5fbe8a8c492346f651b57946",
-      addressName: "9к5 улица Бутлерова Saint Petersburg, Saint Petersburg", type: "Point",
-      sponsored: false, overlay: false, coordinates: [60.00380571585201, 30.399472870547118],
-      createdAt: Date(), updatedAt: Date()),
-    .init(
-      id: "5fbea245b226053f0ece712c", name: "Walk Around 🚶🏽🚶🏼‍♀️", categories: "LookingForAcompany",
-      duration: 14400, isActive: true, conversationsId: "5fbe8a8c492346f651b57946",
-      addressName: "188839, Первомайское, СНТ Славино-2 Поселок, 31 Первомайское Россия",
-      type: "Point", sponsored: false, overlay: false,
-      coordinates: [60.261340452875721, 29.873706166262373], createdAt: Date(), updatedAt: Date()),
-  ]
-
-  public static let placeholderEvents = Self(
-    isConnected: true,
-    isLocationAuthorized: true,
-    waitingForUpdateLocation: false,
-    isLoadingPage: true,
-    location: Location(
-      altitude: 0,
-      coordinate: CLLocationCoordinate2D(latitude: 60.020532228306031, longitude: 30.388014239849944),
-      course: 0,
-      horizontalAccuracy: 0,
-      speed: 0,
-      timestamp: Date(timeIntervalSince1970: 0),
-      verticalAccuracy: 0
-    ),
-    events: events
-  )
-  public static let fetchEvents = Self(
-    isConnected: true,
-    isLocationAuthorized: true,
-    waitingForUpdateLocation: true,
-    isLoadingPage: false,
-    location: Location(
-      altitude: 0,
-      coordinate: CLLocationCoordinate2D(latitude: 60.020532228306031, longitude: 30.388014239849944),
-      course: 0,
-      horizontalAccuracy: 0,
-      speed: 0,
-      timestamp: Date(timeIntervalSince1970: 0),
-      verticalAccuracy: 0
-    ),
-    events: events
-  )
-
-
-  public static let eventForRow = Self(
-    waitingForUpdateLocation: false,
-    location: Location(
-      altitude: 0,
-      coordinate: CLLocationCoordinate2D(latitude: 60.020532228306031, longitude: 30.388014239849944),
-      course: 0,
-      horizontalAccuracy: 0,
-      speed: 0,
-      timestamp: Date(timeIntervalSince1970: 0),
-      verticalAccuracy: 0
-    ),
-    event: event
-  )
-
 }

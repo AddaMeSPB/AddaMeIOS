@@ -8,7 +8,8 @@
 import ComposableArchitecture
 import EventClient
 import KeychainService
-import SharedModels
+import AddaSharedModels
+import Foundation
 
 public struct EventFormEnvironment {
   public var eventClient: EventClient
@@ -25,7 +26,7 @@ public struct EventFormEnvironment {
 
 extension EventFormEnvironment {
   public static let live: EventFormEnvironment = .init(
-    eventClient: .live(api: .build),
+    eventClient: .live,
     mainQueue: .main
   )
 }

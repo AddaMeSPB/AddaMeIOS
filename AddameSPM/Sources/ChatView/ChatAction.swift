@@ -7,7 +7,7 @@
 
 import Foundation
 import HTTPRequestKit
-import SharedModels
+import AddaSharedModels
 import WebSocketClient
 
 public enum MessageAction: Equatable {}
@@ -15,11 +15,13 @@ public enum MessageAction: Equatable {}
 public enum ChatAction: Equatable {
   case onAppear
   case alertDismissed
-  case conversation(ConversationResponse.Item?)
-  case messages(Result<ChatMessageResponse, HTTPRequest.HRError>)
-  case fetchMoreMessageIfNeeded(currentItem: ChatMessageResponse.Item?)
-  case fetchMoreMessage(currentItem: ChatMessageResponse.Item)
-  case message(index: ChatMessageResponse.Item.ID, action: MessageAction)
+  case conversation(ConversationOutPut?)
+  case messagesResponse(MessagePage)
+  case messagesResponseError(HTTPRequest.HRError)
+
+  case fetchMoreMessageIfNeeded(currentItem: MessageItem?)
+  case fetchMoreMessage(currentItem: MessageItem)
+  case message(index: MessageItem.ID, action: MessageAction)
   case sendResponse(NSError?)
   case webSocket(WebSocketClient.Action)
   case pingResponse(NSError?)
@@ -38,8 +40,6 @@ extension ChatAction {
       return .alertDismissed
     case let .conversation(conversation):
       return .conversation(conversation)
-    case let .messages(messages):
-      return .messages(messages)
     case let .fetchMoreMessageIfNeeded(currentItem: currentItem):
       return .fetchMoreMessageIfNeeded(currentItem: currentItem)
     case let .fetchMoreMessage(currentItem: item):

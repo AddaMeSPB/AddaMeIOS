@@ -12,7 +12,7 @@ import AuthClientLive
 import ComposableArchitecture
 import EventClient
 import EventClientLive
-import SharedModels
+import AddaSharedModels
 import UserClient
 import UserClientLive
 import UIKit
@@ -47,10 +47,10 @@ public struct ProfileEnvironment {
 
 extension ProfileEnvironment {
   public static let live: ProfileEnvironment = .init(
-    userClient: UserClient.live(api: .build),
-    eventClient: EventClient.live(api: .build),
-    authClient: AuthClient.live(api: .build),
-    attachmentClient: AttachmentClient.live(api: .build),
+    userClient: .live,
+    eventClient: .live,
+    authClient: .live,
+    attachmentClient: .live,
     backgroundQueue: .main,
     mainQueue: .main
   )

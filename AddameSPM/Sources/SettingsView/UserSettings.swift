@@ -12,7 +12,7 @@ import UIKit
 import UserDefaultsClient
 import UserNotificationClient
 import KeychainService
-import SharedModels
+import AddaSharedModels
 import ComposablePresentation
 import AuthenticationView
 
@@ -56,6 +56,7 @@ public enum SettingsAction: Equatable {
   case userNotificationSettingsResponse(UserNotificationClient.Notification.Settings)
   case distanceView(DistanceAction)
   case resetAuthData
+  case deleteMeButtonTapped
   case isLogoutButton(tapped: Bool)
   case termsSheet(isPresented: Bool, url: String?)
   case privacySheet(isPresented: Bool, url: String?)
@@ -75,6 +76,8 @@ extension SettingsAction {
       return distanceView(action)
     case .resetAuthData:
       return resetAuthData
+    case .deleteMeButtonTapped:
+        return deleteMeButtonTapped
     case let .isLogoutButton(tapped: tapped):
       return .isLogoutButton(tapped: tapped)
     case let .termsSheet(isPresented: isPresented, url: url):
@@ -188,6 +191,8 @@ public let settingsReducer = Reducer<
       return .none
     case .resetAuthData:
       return .none
+    case .deleteMeButtonTapped:
+      return .none
     case let .isLogoutButton(tapped: tapped):
       return .none
     // swiftlint:disable pattern_matching_keywords
@@ -205,7 +210,8 @@ public let settingsReducer = Reducer<
 )
 .presenting(
   termsAndPrivacyReducer,
-  state: \.termsAndPrivacyState,
+  state: .keyPath(\.termsAndPrivacyState),
+  id: .notNil(),
   action: /SettingsAction.termsAndPrivacy,
   environment: { _ in TermsAndPrivacyEnvironment.live }
 )

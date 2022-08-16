@@ -4,27 +4,28 @@ import Contacts
 import CoreData
 import HTTPRequestKit
 import PhoneNumberKit
-import SharedModels
+import AddaSharedModels
 import SwiftUI
+import Foundation
 
 public struct ContactClient {
-  public typealias AuthorizationStatusHandler = () -> AnyPublisher<CNAuthorizationStatus, Never>
-  public typealias BuildContactsHandler = () -> AnyPublisher<[Contact], ContactError>
-  public typealias GetRegisterUsersHandler = ([Contact]) -> AnyPublisher<[User], HTTPRequest.HRError>
+    public typealias AuthorizationStatusHandler = @Sendable () async throws -> CNAuthorizationStatus
+    public typealias BuildContactsHandler = @Sendable () async throws-> MobileNumbersInput
+    public typealias GetRegisterUsersFromServer = @Sendable (MobileNumbersInput) async throws -> [UserOutput]
 
-  public var authorization: AuthorizationStatusHandler
-  public var buidContacts: BuildContactsHandler
-  public var getRegisterUsersFromServer: GetRegisterUsersHandler
+    public var authorization: AuthorizationStatusHandler
+    public var buidContacts: BuildContactsHandler
+    public var getRegisterUsersFromServer: GetRegisterUsersFromServer
 
-  public init(
-    authorization: @escaping AuthorizationStatusHandler,
-    buidContacts: @escaping BuildContactsHandler,
-    getRegisterUsersFromServer: @escaping GetRegisterUsersHandler
-  ) {
-    self.authorization = authorization
-    self.buidContacts = buidContacts
-    self.getRegisterUsersFromServer = getRegisterUsersFromServer
-  }
+    public init(
+        authorization: @escaping AuthorizationStatusHandler,
+        buidContacts: @escaping BuildContactsHandler,
+        getRegisterUsersFromServer: @escaping GetRegisterUsersFromServer
+      ) {
+        self.authorization = authorization
+        self.buidContacts = buidContacts
+        self.getRegisterUsersFromServer = getRegisterUsersFromServer
+      }
 }
 
 // import Combine

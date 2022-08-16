@@ -8,14 +8,14 @@
 import AuthClient
 import ComposableArchitecture
 import PhoneNumberKit
-import SharedModels
+import AddaSharedModels
 import SwiftUI
 
 public struct AuthenticationView: View {
 
   @State private var phoneField: PhoneNumberTextFieldView?
   @State private var isValidPhoneNumber: Bool = false
-  @State private var phoneNumber = String.empty
+  @State private var phoneNumber = ""
 
   let store: Store<LoginState, LoginAction>
 
@@ -72,16 +72,14 @@ public struct AuthenticationView: View {
           )
         )
     )
-    .onAppear {
-      self.phoneField = PhoneNumberTextFieldView(
-        phoneNumber: self.$phoneNumber,
-        isValid: $isValidPhoneNumber
-      )
-    }
   }
 
   public var body: some View {
-    WithViewStore(self.store.scope(state: { $0.view }, action: LoginAction.view)) { viewStore in
+    WithViewStore(
+        self.store,
+        observe: ViewState.init,
+        send: LoginAction.init
+    ) { viewStore in
       ZStack(alignment: .top) {
 
         VStack {
@@ -111,7 +109,7 @@ public struct AuthenticationView: View {
             }
 
             if viewStore.isValidationCodeIsSend {
-              inputValidationCodeTextView(viewStore)
+              inputCodeTextView(viewStore)
             }
           }
           .padding(EdgeInsets(top: 10, leading: 10, bottom: 20, trailing: 10))
@@ -123,12 +121,18 @@ public struct AuthenticationView: View {
           Spacer()
         }
       }
+      .onAppear {
+        self.phoneField = PhoneNumberTextFieldView(
+          phoneNumber: self.$phoneNumber,
+          isValid: self.$isValidPhoneNumber
+        )
+      }
       .alert(self.store.scope(state: { $0.alert }), dismiss: .alertDismissed)
     }
   }
 
   @ViewBuilder
-  private func inputValidationCodeTextView(
+  private func inputCodeTextView(
     _ viewStore: ViewStore<AuthenticationView.ViewState, AuthenticationView.ViewAction>
   ) -> some View {
     VStack {
@@ -136,8 +140,10 @@ public struct AuthenticationView: View {
         TextField(
           "__ __ __ __ __ __",
           text: viewStore.binding(
-            get: { $0.authResponse?.code ?? "" }, send: ViewAction.verificationRequest)
+            get: \.code,
+            send: ViewAction.codeChanged)
         )
+        .keyboardType(.numberPad)
         .font(.largeTitle)
         .multilineTextAlignment(.center)
         .frame(minWidth: 0, maxWidth: .infinity, minHeight: 0, maxHeight: 60)
@@ -221,9 +227,7 @@ public struct AuthenticationView: View {
 struct AuthenticationView_Previews: PreviewProvider {
   static let now = Date()
 
-  static let user = User(
-    id: UUID().uuidString, phoneNumber: "+79218821217", createdAt: now, updatedAt: now)
-  static let access = AuthTokenResponse(accessToken: "fdsfdsafas", refreshToken: "sfasdfas")
+  static let access = RefreshTokenResponse.draff
 
   static var environment = AuthenticationEnvironment(
     authClient: .happyPath,
@@ -232,7 +236,7 @@ struct AuthenticationView_Previews: PreviewProvider {
   )
 
   static var store = Store(
-    initialState: LoginState(),
+    initialState: LoginState() ,
     reducer: loginReducer,
     environment: environment
   )
@@ -243,15 +247,20 @@ struct AuthenticationView_Previews: PreviewProvider {
 }
 
 extension AuthenticationView {
-  struct ViewState: Equatable {
-    public var alert: AlertState<LoginAction>?
-    public var authResponse: AuthResponse?
-    public var isUserFirstNameEmpty = false
-    public var isValidationCodeIsSend = false
-    public var isLoginRequestInFlight = false
-    public var isAuthorized: Bool = false
-    public var showTermsSheet: Bool = false
-    public var showPrivacySheet: Bool = false
+    struct ViewState: Equatable {
+        public init(state: LoginState) {
+            self.code = state.code
+            self.isLoginRequestInFlight = state.isLoginRequestInFlight
+            self.isValidationCodeIsSend = state.isValidationCodeIsSend
+            self.showPrivacySheet = state.showTermsSheet
+            self.showTermsSheet = state.showTermsSheet
+        }
+
+        public var code: String
+        public var isValidationCodeIsSend = false
+        public var isLoginRequestInFlight = false
+        public var showPrivacySheet = false
+        public var showTermsSheet = false
   }
 
   enum ViewAction: Equatable {
@@ -259,38 +268,23 @@ extension AuthenticationView {
     case showTermsSheet
     case showPrivacySheet
     case sendPhoneNumberButtonTapped(String)
-    case verificationRequest(String)
-  }
-}
-
-extension LoginState {
-  var view: AuthenticationView.ViewState {
-    AuthenticationView.ViewState(
-      alert: alert,
-      authResponse: authResponse,
-      isUserFirstNameEmpty: isUserFirstNameEmpty,
-      isValidationCodeIsSend: isValidationCodeIsSend,
-      isLoginRequestInFlight: isLoginRequestInFlight,
-      isAuthorized: isAuthorized,
-      showTermsSheet: showTermsSheet,
-      showPrivacySheet: showPrivacySheet
-    )
+    case codeChanged(String)
   }
 }
 
 extension LoginAction {
-  static func view(_ localAction: AuthenticationView.ViewAction) -> Self {
-    switch localAction {
+  init(_ action: AuthenticationView.ViewAction) {
+    switch action {
     case .alertDismissed:
-      return .alertDismissed
+      self = .alertDismissed
     case let .sendPhoneNumberButtonTapped(phoneNumber):
-      return .sendPhoneNumberButtonTapped(phoneNumber)
-    case let .verificationRequest(authResponse):
-      return .verificationRequest(authResponse)
+      self = .sendPhoneNumberButtonTapped(phoneNumber)
+    case let .codeChanged(authResponse):
+      self = .codeChanged(authResponse)
     case .showTermsSheet:
-      return .showTermsSheet
+      self = .showTermsSheet
     case .showPrivacySheet:
-      return .showPrivacySheet
+      self = .showPrivacySheet
     }
   }
 }

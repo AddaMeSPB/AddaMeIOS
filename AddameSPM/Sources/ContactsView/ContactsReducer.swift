@@ -14,10 +14,12 @@ import ComposableArchitectureHelpers
 import CoreData
 import CoreDataStore
 import HTTPRequestKit
-import SharedModels
+import AddaSharedModels
 import SwiftUI
 import WebSocketClient
 import WebSocketClientLive
+import URLRouting
+import BSON
 
 public let contactsReducer: Reducer<ContactsState, ContactsAction, ContactsEnvironment> = .combine(
   contactRowReducer
@@ -32,10 +34,18 @@ public let contactsReducer: Reducer<ContactsState, ContactsAction, ContactsEnvir
     switch action {
     case .onAppear:
       state.isLoading = true
-
-      return environment.coreDataClient.contactClient.authorization()
-        .map(ContactsAction.contactsAuthorizationStatus)
-        .eraseToEffect()
+        return .task {
+            do {
+                let status = try await environment.contactClient.authorization()
+                return ContactsAction.contactsAuthorizationStatus(status)
+            } catch let error as URLRoutingDecodingError {
+              // use error.response or error.data to surface errors to user
+                return ContactsAction.alertDismissed
+            } catch {
+                let status = try await environment.contactClient.authorization()
+                return ContactsAction.contactsAuthorizationStatus(status)
+            }
+        }
 
     case .alertDismissed:
       state.alert = nil
@@ -56,11 +66,41 @@ public let contactsReducer: Reducer<ContactsState, ContactsAction, ContactsEnvir
     case let .contactsAuthorizationStatus(status):
         switch status {
         case .authorized:
-            return environment.coreDataClient.getContacts()
-              .subscribe(on: environment.backgroundQueue)
-              .receive(on: environment.mainQueue)
-              .catchToEffect()
-              .map(ContactsAction.contactsResponse)
+            return .task {
+                do {
+                    let contacts = try await environment.contactClient.buidContacts()
+                    let defaultContacts = Set(contacts.mobileNumber).sorted()
+                    let afterRemoveDuplicationContacts = MobileNumbersInput(mobileNumber: defaultContacts)
+                    let userOutputs = try await environment.contactClient
+                        .getRegisterUsersFromServer(afterRemoveDuplicationContacts)
+
+                    let contactsOutPut = userOutputs.map { user in
+                        ContactOutPut(
+                            id: ObjectId(),
+                            userId: user.id!,
+                            identifier: user.id!.hexString,
+                            phoneNumber: user.phoneNumber,
+                            fullName: user.fullName,
+                            avatar: user.lastAvatarURLString,
+                            isRegister: true
+                        )
+                    }
+
+                    return ContactsAction.contactsResponse(.success(contactsOutPut))
+
+                } catch let error as URLRoutingDecodingError {
+                    debugPrint(#line, error.response, error.localizedDescription)
+                  // use error.response or error.data to surface errors to user
+                    return ContactsAction.contactsResponse(
+                        .failure(HTTPRequest.HRError.custom("cant send or or server error", error))
+                    )
+                } catch {
+                    return ContactsAction.contactsResponse(
+                        .failure(HTTPRequest.HRError.custom("cant send or or server error", error))
+                    )
+                }
+            }
+
         case .notDetermined:
             state.alert = .init(title: TextState("Permission notDetermined"))
             return .none
@@ -82,14 +122,3 @@ public let contactsReducer: Reducer<ContactsState, ContactsAction, ContactsEnvir
     }
   }
 )
-
-extension Reducer {
-  func optional() -> Reducer<State?, Action, Environment> {
-    .init { state, action, environment in
-      guard var wrappedState = state
-      else { return .none }
-      defer { state = wrappedState }
-      return self.run(&wrappedState, action, environment)
-    }
-  }
-}

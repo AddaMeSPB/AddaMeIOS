@@ -15,23 +15,12 @@ import Foundation
 import HTTPRequestKit
 import KeychainService
 import SettingsView
-import SharedModels
+import AddaSharedModels
 import SwiftUI
 import UIKit
 import UserClient
 import ImagePicker
 import MyEventsView
-
-public func getUserFromKeychain() -> Effect<User, HTTPRequest.HRError> {
-  return Effect<User, HTTPRequest.HRError>.future { callBack in
-    guard let user: User = KeychainService.loadCodable(for: .user) else {
-      print(#line, "missing token")
-      return callBack(.failure(HTTPRequest.HRError.missingTokenFromIOS))
-    }
-
-    return callBack(.success(user))
-  }
-}
 
 public let profileReducer = Reducer<
   ProfileState,
@@ -47,12 +36,23 @@ public let profileReducer = Reducer<
   switch action {
   case .onAppear:
 
-    return .merge(
-      getUserFromKeychain()
-        .flatMap { environment.userClient.userMeHandler($0.id, "\($0.id)") }
-        .receive(on: environment.mainQueue)
-        .catchToEffect(ProfileAction.userResponse)
-    )
+      guard let currentUSER: UserOutput = KeychainService.loadCodable(for: .user),
+                let userId = currentUSER.id else {
+        // assertionFailure("current user is missing")
+        return .none
+      }
+
+      return .task {
+          do {
+              return ProfileAction.userResponse(
+                .success(try await environment.userClient.userMeHandler(userId.hexString))
+              )
+          } catch {
+              return ProfileAction.userResponse(
+                .failure(HTTPRequest.HRError.custom("fetch user error", error))
+              )
+          }
+      }
 
   case .alertDismissed:
     state.alert = nil
@@ -74,7 +74,7 @@ public let profileReducer = Reducer<
     return .none
 
   case let .uploadAvatar(image):
-    guard let user: User = KeychainService.loadCodable(for: .user) else {
+    guard let user: UserOutput = KeychainService.loadCodable(for: .user) else {
       return .none
     }
 
@@ -84,28 +84,53 @@ public let profileReducer = Reducer<
 
   case let .updateUserName(firstName, lastName):
 
-    return getUserFromKeychain()
-      .map { user -> User in
-        var user = user
-        user.firstName = firstName
-        user.lastName = lastName
-        return user
+      return .task {
+          do {
+              guard var currentUSER: UserOutput = KeychainService.loadCodable(for: .user) else {
+                // assertionFailure("current user is missing")
+                  return ProfileAction.userResponse(
+                    .failure(HTTPRequest.HRError.custom("cant find user from KeychainService", nil))
+                  )
+              }
+
+              currentUSER.firstName = firstName
+              currentUSER.lastName = lastName
+
+              return ProfileAction.userResponse(.success(try await environment.userClient.update(currentUSER)))
+          } catch {
+              return ProfileAction.userResponse(
+                .failure(HTTPRequest.HRError.custom("cant update user \(error)", error))
+              )
+          }
       }
-      .flatMap { environment.userClient.update($0, "update") }
-      .receive(on: environment.mainQueue)
-      .catchToEffect(ProfileAction.userResponse)
 
   case let .createAttachment(attachment):
 
-    return environment.attachmentClient.updateUserImageURL(attachment, "")
-      .receive(on: environment.mainQueue)
-      .catchToEffect()
-      .map(ProfileAction.attacmentResponse)
+      return .task {
+          do {
+              return ProfileAction.attacmentResponse(
+                .success(try await environment.attachmentClient.updateUserImageURL(attachment))
+              )
+          } catch {
+              return ProfileAction.attacmentResponse(
+                .failure(
+                    HTTPRequest.HRError
+                        .custom("cant upload image data error: \(error)", error)
+                )
+              )
+          }
+
+      }
+
+//    return environment.attachmentClient.updateUserImageURL(attachment, "")
+//      .receive(on: environment.mainQueue)
+//      .catchToEffect()
+//      .map(ProfileAction.attacmentResponse)
 
   case .resetAuthData:
     AppUserDefaults.save(false, forKey: .isAuthorized)
-    KeychainService.save(codable: User?.none, for: .user)
-    KeychainService.save(codable: AuthResponse?.none, for: .token)
+    KeychainService.save(codable: UserOutput?.none, for: .user)
+    KeychainService.save(codable: VerifySMSInOutput?.none, for: .token)
     KeychainService.logout()
     AppUserDefaults.erase()
 
@@ -146,21 +171,25 @@ public let profileReducer = Reducer<
     return .none
 
   case let .imageUploadResponse(.success(imageURLString)):
-    guard let user: User = KeychainService.loadCodable(for: .user) else {
-      return .none
-    }
+        guard let user: UserOutput = KeychainService.loadCodable(for: .user) else {
+          return .none
+        }
 
-    let attachment = Attachment(type: .image, userId: user.id, imageUrlString: imageURLString)
+      let attachmentInput = AttachmentInOutPut(type: .image, userId: user.id, imageUrlString: imageURLString)
 
-    return environment.attachmentClient.updateUserImageURL(attachment, "")
-      .subscribe(on: environment.backgroundQueue)
-      .receive(on: environment.mainQueue.animation())
-      .catchToEffect()
-      .map(ProfileAction.attacmentResponse)
-
-//      .receive(on: environment.mainQueue, anim)
-//      .catchToEffect()
-//      .map(ProfileAction.attacmentResponse)
+      return .task {
+          do {
+              return ProfileAction.attacmentResponse(
+                .success(try await environment.attachmentClient.updateUserImageURL(attachmentInput))
+              )
+          } catch {
+              return ProfileAction.attacmentResponse(
+                .failure(
+                    HTTPRequest.HRError.custom("cant upload attachment", error)
+                )
+              )
+          }
+      }
 
   case let .imageUploadResponse(.failure(error)):
     state.isUploadingImage = false
@@ -174,14 +203,23 @@ public let profileReducer = Reducer<
   case let .imagePicker(.picked(result: .success(image))):
     state.isUploadingImage = true
     state.imagePickerState = nil
-    guard let user: User = KeychainService.loadCodable(for: .user) else {
+    guard let user: UserOutput = KeychainService.loadCodable(for: .user) else {
       return .none
     }
 
-    return AWSS3Helper.uploadImage(image, conversationId: nil, userId: user.id)
-      .receive(on: environment.mainQueue)
-      .catchToEffect()
-      .map(ProfileAction.imageUploadResponse)
+      return .task {
+          do {
+              return ProfileAction.imageUploadResponse(
+                .success(try await environment.attachmentClient.uploadImageToS3(image, nil, user.id?.hexString))
+              )
+          } catch {
+              return ProfileAction.imageUploadResponse(
+                .failure(
+                    HTTPRequest.HRError.custom("cant upload image to S3 server", error)
+                )
+              )
+          }
+      }
 
   case .imagePicker(_):
     return .none
@@ -193,13 +231,15 @@ public let profileReducer = Reducer<
 .debug()
 .presenting(
   settingsReducer,
-  state: \.settingsState,
+  state: .keyPath(\.settingsState),
+  id: .notNil(),
   action: /ProfileAction.settings,
   environment: { _ in SettingsEnvironment.live }
 )
 .presenting(
   imagePickerReducer,
-  state: \.imagePickerState,
+  state: .keyPath(\.imagePickerState),
+  id: .notNil(),
   action: /ProfileAction.imagePicker,
   environment: { _ in ImagePickerEnvironment.live }
 )

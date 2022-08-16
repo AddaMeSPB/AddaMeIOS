@@ -7,7 +7,7 @@
 
 import SwiftUI
 import ComposableArchitecture
-import SharedModels
+import AddaSharedModels
 import EventClient
 import EventClientLive
 
@@ -23,29 +23,30 @@ public struct MyEventsEnvironment {
 
 extension MyEventsEnvironment {
   public static let live: MyEventsEnvironment = .init(
-    eventClient: EventClient.live(api: .build),
+    eventClient: .live,
     mainQueue: .main
   )
 }
 
-public let myEventsReducer = Reducer<MyEventsState, MyEventsAction, MyEventsEnvironment> { state, action, environment in
-    func fetchMoreMyEvents() -> Effect<MyEventsAction, Never> {
-      guard !state.isLoadingPage, state.canLoadMorePages else { return .none }
-
-      state.isLoadingPage = true
-
-      let query = QueryItem(page: "\(state.currentPage)", per: "10")
-
-      return environment.eventClient.events(query, "my")
-        .retry(3)
-        .receive(on: environment.mainQueue)
-        .removeDuplicates()
-        .catchToEffect(MyEventsAction.myEventsResponse)
-    }
+public let myEventsReducer = Reducer<MyEventsState, MyEventsAction, MyEventsEnvironment> { state, action, _ in
+//    func fetchMoreMyEvents() -> Effect<MyEventsAction, Never> {
+//      guard !state.isLoadingPage, state.canLoadMorePages else { return .none }
+//
+//      state.isLoadingPage = true
+//
+//      let query = QueryItem(page: "\(state.currentPage)", per: "10")
+//
+//      return environment.eventClient.events(query, "my")
+//        .retry(3)
+//        .receive(on: environment.mainQueue)
+//        .removeDuplicates()
+//        .catchToEffect(MyEventsAction.myEventsResponse)
+//    }
 
     switch action {
     case .onApper:
-        return fetchMoreMyEvents()
+        return .none
+        // fetchMoreMyEvents()
 
     case let .myEventsResponse(.success(element)):
             state.canLoadMorePages = state.myEvents.count < element.metadata.total

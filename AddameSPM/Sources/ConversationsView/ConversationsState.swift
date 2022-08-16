@@ -9,7 +9,7 @@ import ChatView
 import ComposableArchitecture
 import ContactsView
 import Foundation
-import SharedModels
+import AddaSharedModels
 
 public struct ConversationsState: Equatable {
   public init(
@@ -17,11 +17,11 @@ public struct ConversationsState: Equatable {
     canLoadMorePages: Bool = true,
     currentPage: Int = 1,
     alert: AlertState<ConversationsAction>? = nil,
-    conversations: IdentifiedArrayOf<ConversationResponse.Item> = [],
-    conversation: ConversationResponse.Item? = nil,
+    conversations: IdentifiedArrayOf<ConversationOutPut> = [],
+    conversation: ConversationOutPut? = nil,
     chatState: ChatState? = nil,
     contactsState: ContactsState? = nil,
-    createConversation: CreateConversation? = nil
+    createConversation: ConversationCreate? = nil
   ) {
     self.isLoadingPage = isLoadingPage
     self.canLoadMorePages = canLoadMorePages
@@ -39,9 +39,9 @@ public struct ConversationsState: Equatable {
   public var currentPage = 1
 
   public var alert: AlertState<ConversationsAction>?
-  public var conversations: IdentifiedArrayOf<ConversationResponse.Item> = []
-  public var conversation: ConversationResponse.Item?
-  public var createConversation: CreateConversation?
+  public var conversations: IdentifiedArrayOf<ConversationOutPut> = []
+  public var conversation: ConversationOutPut?
+  public var createConversation: ConversationCreate?
   public var chatState: ChatState?
   public var contactsState: ContactsState?
 
@@ -49,45 +49,9 @@ public struct ConversationsState: Equatable {
 }
 
 extension ConversationsState {
-  var view: ConversationsView.ViewState {
-    ConversationsView.ViewState(
-      alert: alert,
-      isLoadingPage: isLoadingPage,
-      conversations: conversations,
-      conversation: conversation,
-      chatState: chatState,
-      contactsState: contactsState
-    )
-  }
-}
-
-extension ConversationsState {
   public static let placholderConversations = Self(
     isLoadingPage: true,
-    conversations: .init(uniqueElements: [
-      ConversationResponse.Item(
-        Conversation(
-          id: UUID().uuidString, title: "Walk Around 🚶🏽🚶🏼‍♀️",
-          type: .group, createdAt: Date(), updatedAt: Date()
-        )
-      ),
-      ConversationResponse.Item(
-        Conversation(
-          id: UUID().uuidString, title: "+79218821217, Alla Fake Number Update",
-          type: .oneToOne, createdAt: Date(), updatedAt: Date()
-        )
-      ),
-      ConversationResponse.Item(
-        Conversation(
-          id: UUID().uuidString, title: "Running", type: .group, createdAt: Date(),
-          updatedAt: Date())
-      )
-    ]
-    ),
-    conversation: .init(
-      Conversation(
-        id: UUID().uuidString, title: "Running", type: .group, createdAt: Date(), updatedAt: Date())
-    ),
+    conversations: .init(uniqueElements: ConversationOutPut.conversationsMock),
     chatState: .init()
   )
 }
