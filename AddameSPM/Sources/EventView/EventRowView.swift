@@ -1,22 +1,17 @@
-//
-//  EventRowView.swift
-//  
-//
-//  Created by Saroar Khandoker on 20.09.2021.
-//
+ import AsyncImageLoder
+ import ChatView
+ import ComposableArchitecture
+ import ComposableArchitectureHelpers
+ import ComposableCoreLocation
+ import MapKit
+ import AddaSharedModels
+ import SwiftUI
+ import SwiftUIExtension
+ import FoundationExtension
 
-import AsyncImageLoder
-import ChatView
-import ComposableArchitecture
-import ComposableArchitectureHelpers
-import ComposableCoreLocation
-import MapKit
-import AddaSharedModels
-import SwiftUI
-import SwiftUIExtension
-import FoundationExtension
+public enum EventAction: Equatable {}
 
-public struct EventRowView: View {
+ public struct EventRowView: View {
   let currentLocation: Location?
   @Environment(\.colorScheme) var colorScheme
 
@@ -98,9 +93,9 @@ public struct EventRowView: View {
       .padding([.top, .bottom], 5)
     }
   }
-}
+ }
 
-extension Double {
+ extension Double {
   var meterTOkilometers: String {
     return String(format: "%.02f km away", self / 1000)
   }
@@ -108,7 +103,7 @@ extension Double {
   var meterTOmiles: String {
     return String(format: "%.02f miles away", self / 1609)
   }
-}
+ }
 
 // struct EventRowView_Previews: PreviewProvider {
 //

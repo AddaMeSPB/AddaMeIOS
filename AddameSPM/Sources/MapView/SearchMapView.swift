@@ -12,6 +12,7 @@ import MapKit
 import Network
 import SwiftUI
 import SwiftUIExtension
+import SwiftUIHelpers
 
 extension LocationSearchView {
   public struct ViewState: Equatable, Hashable {

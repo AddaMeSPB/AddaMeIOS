@@ -79,7 +79,7 @@ public let contactsReducer: Reducer<ContactsState, ContactsAction, ContactsEnvir
                             id: ObjectId(),
                             userId: user.id!,
                             identifier: user.id!.hexString,
-                            phoneNumber: user.phoneNumber,
+                            phoneNumber: user.phoneNumber ?? "",
                             fullName: user.fullName,
                             avatar: user.lastAvatarURLString,
                             isRegister: true

@@ -9,17 +9,14 @@ import Combine
 import ComposableArchitecture
 import ComposablePresentation
 import ComposableArchitectureHelpers
-import EventClient
-import EventClientLive
 import Foundation
-import HTTPRequestKit
-import KeychainService
 import MapKit
 import MapView
 import AddaSharedModels
 import SwiftUI
 import SwiftUIExtension
 import BSON
+import SwiftUIHelpers
 
 extension EventFormView {
   public struct ViewState: Equatable {
@@ -45,8 +42,8 @@ extension EventFormView {
     public var currentPlace: EventResponse?
     public var eventAddress: String = ""
     public var selectedDutaionButtons: DurationButtons = .Four_Hours
-    public var actionSheet: ConfirmationDialogState<EventFormAction>?
-    public var alert: AlertState<EventFormAction>?
+    public var actionSheet: ConfirmationDialogState<HangoutForm.Action>?
+    public var alert: AlertState<HangoutForm.Action>?
     public var locationSearchState: LocationSearchState?
     public var isPostRequestOnFly: Bool = false
     public var isEventCreatedSuccessfully: Bool = false
@@ -84,17 +81,17 @@ extension EventFormView {
 public struct EventFormView: View {
   @Environment(\.colorScheme) var colorScheme
 
-  public init(store: Store<EventFormState, EventFormAction>) {
+  public init(store: StoreOf<HangoutForm>) {
     self.store = store
   }
 
-  let store: Store<EventFormState, EventFormAction>
+  let store: StoreOf<HangoutForm>
 
   public var body: some View {
     WithViewStore(
       self.store.scope(
         state: { $0.view },
-        action: EventFormAction.view
+        action: HangoutForm.Action.view
       )
     ) { viewStore in
       ZStack(alignment: viewStore.state.isEventCreatedSuccessfully ? .top : .bottomTrailing) {
@@ -237,7 +234,7 @@ public struct EventFormView: View {
         viewStore.send(.didAppear)
       }
       .sheet(
-        store.scope(state: \.locationSearchState, action: EventFormAction.locationSearch),
+        store.scope(state: \.locationSearchState, action: HangoutForm.Action.locationSearch),
         mapState: replayNonNil(),
         onDismiss: { ViewStore(store.stateless).send(.isSearchSheet(isPresented: true)) },
         content: LocationSearchView.init(store:)
@@ -320,21 +317,14 @@ public struct EventFormView: View {
 }
 
 struct EventFormView_Previews: PreviewProvider {
-  static let store = Store(
-    initialState: EventFormState.validEventForm,
-    reducer: eventFormReducer,
-    environment: EventFormEnvironment(
-      eventClient: .empty,
-      mainQueue: .immediate
+    static var store = Store(
+        initialState: HangoutForm.State(),
+        reducer: HangoutForm()
     )
-  )
 
   static var previews: some View {
     Text("Background").sheet(isPresented: .constant(true)) {
       EventFormView(store: store)
-        // .redacted(reason: .placeholder)
-        // .redacted(reason: EventsState.events.isLoadingPage ? .placeholder : [])
-//        .environment(\.colorScheme, .dark)
     }
   }
 }

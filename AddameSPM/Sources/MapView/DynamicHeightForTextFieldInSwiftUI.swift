@@ -4,6 +4,7 @@
 //
 import SwiftUI
 import SwiftUIExtension
+import SwiftUIHelpers
 
 //
 // struct DynamicHeightTextField: UIViewRepresentable {

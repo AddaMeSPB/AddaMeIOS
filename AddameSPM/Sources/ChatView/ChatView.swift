@@ -58,16 +58,17 @@ public struct ChatView: View {
       VStack {
         ZStack {
           List {
-            ChatListView(
-              store: viewStore.isLoadingPage
-                ? Store(
-                  initialState: ChatState.placeholderMessages,
-                  reducer: .empty,
-                  environment: ()
-                )
-                : self.store
-            )
-            .redacted(reason: viewStore.isLoadingPage ? .placeholder : [])
+              EmptyView()
+//            ChatListView(
+//              store: viewStore.isLoadingPage
+//                ? Store(
+//                  initialState: ChatState.placeholderMessages,
+//                  reducer: .empty,
+//                  environment: ()
+//                )
+//                : self.store
+//            )
+//            .redacted(reason: viewStore.isLoadingPage ? .placeholder : [])
           }
           .listStyle(PlainListStyle())
           .scaleEffect(x: 1, y: -1, anchor: .center)

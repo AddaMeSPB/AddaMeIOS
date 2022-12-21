@@ -1,183 +1,288 @@
-import AuthClient
-import AuthClientLive
 import Combine
 import ComposableArchitecture
-import HTTPRequestKit
-import KeychainService
+import KeychainClient
 import PhoneNumberKit
 import AddaSharedModels
 import SwiftUI
 import UserDefaultsClient
-
-public struct LoginState: Equatable {
-
-  public init() {}
-
-  public static func == (lhs: LoginState, rhs: LoginState) -> Bool {
-    return lhs.isAuthorized == rhs.isAuthorized
-  }
-
-  public var alert: AlertState<LoginAction>?
-  public var code: String = ""
-  public var authResponse: VerifySMSInOutput = .draff
-  public var isValidationCodeIsSend = false
-  public var isLoginRequestInFlight = false
-  public var isAuthorized: Bool = false
-  public var isUserFirstNameEmpty: Bool = true
-  public var showTermsSheet: Bool = false
-  public var showPrivacySheet: Bool = false
-}
-
-public enum LoginAction: Equatable {
-  case onAppear
-  case alertDismissed
-  case showTermsSheet
-  case showPrivacySheet
-  case sendPhoneNumberButtonTapped(String)
-  case codeChanged(String)
-  case loninResponse(TaskResult<VerifySMSInOutput>)
-  case verificationResponse(TaskResult<LoginResponse>)
-}
-
-public struct AuthenticationEnvironment {
-  public var authClient: AuthClient
-  public var mainQueue: AnySchedulerOf<DispatchQueue>
-  public var userDefaults: UserDefaultsClient
-
-  public init(
-    authClient: AuthClient,
-    userDefaults: UserDefaultsClient,
-    mainQueue: AnySchedulerOf<DispatchQueue>
-  ) {
-    self.authClient = authClient
-    self.userDefaults = userDefaults
-    self.mainQueue = mainQueue
-  }
-}
-
-extension AuthenticationEnvironment {
-  public static let live: AuthenticationEnvironment = .init(
-    authClient: .live,
-    userDefaults: .live(),
-    mainQueue: .main
-  )
-}
+import Build
+import APIClient
+import RegisterFormFeature
+import FoundationExtension
+import SettingsFeature
 
 public enum VerificationCodeCanceable {}
 
-public let loginReducer = Reducer<LoginState, LoginAction, AuthenticationEnvironment> {
-  state, action, environment in
+public struct Login: ReducerProtocol {
+    public struct State: Equatable {
 
-  var saveBoolValue: Effect<LoginAction, Never> {
-    return environment.userDefaults
-      .setBool(true, AppUserDefaults.Key.isAuthorized.rawValue)
-      .receive(on: environment.mainQueue)
-      .fireAndForget()
-  }
+      public init() {}
 
-  switch action {
-
-  case .onAppear:
-    state.isAuthorized = environment.userDefaults
-      .boolForKey(AppUserDefaults.Key.isAuthorized.rawValue)
-    state.isUserFirstNameEmpty = environment.userDefaults
-      .boolForKey(AppUserDefaults.Key.isUserFirstNameEmpty.rawValue)
-    return .none
-
-  case .alertDismissed:
-    state.alert = nil
-    return .none
-
-  case let .sendPhoneNumberButtonTapped(phoneNumber):
-    state.isLoginRequestInFlight = true
-
-    do {
-      let phoneNumberKit = PhoneNumberKit()
-      let parseNumber = try phoneNumberKit.parse(phoneNumber)
-      let e164PhoneNumber = phoneNumberKit.format(parseNumber, toType: .e164)
-      state.authResponse.phoneNumber = e164PhoneNumber
-    } catch {
-      print(#line, error.localizedDescription)
-      return .none
-    }
-
-      return .task {  [authResponse = state.authResponse] in
-        return .loninResponse(
-            await TaskResult {
-                try await environment.authClient.login(authResponse)
-            }
-        )
+      public static func == (lhs: State, rhs: State) -> Bool {
+        return lhs.isAuthorized == rhs.isAuthorized
       }
 
-  case let .codeChanged(code):
-      print(#line, code)
-      state.code = code
+      public var alert: AlertState<Action>?
 
-    if code.count == 6 {
-      state.isLoginRequestInFlight = true
-      state.authResponse.code = code
+      public var niceName = ""
+      public var email: String = ""
+      public var code: String = ""
 
-        return .task {  [authResponse = state.authResponse] in
-             .verificationResponse(
-                await TaskResult {
-                    try await environment.authClient.verification(
-                        VerifySMSInOutput(
-                            phoneNumber: authResponse.phoneNumber,
-                            attemptId: authResponse.attemptId,
-                            code: authResponse.code
-                        )
-                    )
-                }
-            )
-        }
-        .cancellable(id: VerificationCodeCanceable.self)
+      public var emailLoginInput: EmailLoginInput?
+      public var emailLoginOutput: EmailLoginOutput?
+      public var isValidationCodeIsSend = false
+      public var isLoginRequestInFlight = false
+      public var isAuthorized: Bool = false
+      public var isUserFirstNameEmpty: Bool = true
+      public var deviceCheckData: Data?
+      public var isEmailValidated: Bool = false
+
+      public var registerState: RegisterFormReducer.State?
+      public var isSheetRegisterPresented: Bool { self.registerState != nil }
+
+      /// Move to SettingFeature
+      public var termsAndPrivacy: TermsAndPrivacy.State?
+      public var isTermsOrPrivacySheetOpen: TermsOrPrivacy = .nill
+      public  var isSheetTermsAndPrivacyPresented: Bool { self.termsAndPrivacy != nil }
+        
     }
 
-    return .none
+    public enum TermsOrPrivacy {
+        case nill, terms, privacy
+    }
 
-  case let .loninResponse(.success(authResponse)):
-    state.isLoginRequestInFlight = false
-    state.isValidationCodeIsSend = true
-    state.authResponse = authResponse
-    return .none
+    public enum Action: Equatable {
+      case onAppear
+      case alertDismissed
+      case termsPrivacySheet(isPresented: TermsOrPrivacy)
+      case sendEmailButtonTapped
+      case niceNameTextChanged(String)
+      case emailTextChanged(String)
+      case codeChanged(String)
+      case loninResponse(TaskResult<EmailLoginOutput>)
+      case verificationResponse(TaskResult<SuccessfulLoginResponse>)
 
-  case let .loninResponse(.failure(error)):
-    state.isLoginRequestInFlight = false
-    state.isValidationCodeIsSend = false
-//    state.alert = .init(title: TextState(error))
+      case termsAndPrivacy(TermsAndPrivacy.Action)
+      case isSheetTermsAndPrivacy(isPresented: Bool)
+      case register(RegisterFormReducer.Action)
+      case isSheetRegister(isPresented: Bool)
+      case moveToTableView
+    }
 
-    return .none
+    @Dependency(\.mainQueue) var mainQueue
+    @Dependency(\.userDefaults) var userDefaults
+    @Dependency(\.keychainClient) var keychainClient
+    @Dependency(\.build) var build
+    @Dependency(\.apiClient) var apiClient
 
-  case let .verificationResponse(.success(loginRes)):
+    public init() {}
 
-    state.isLoginRequestInFlight = false
+    public var body: some ReducerProtocol<State, Action> {
+        self.core
+    }
 
-    KeychainService.save(codable: loginRes.user, for: .user)
-    KeychainService.save(codable: loginRes.access, for: .token)
+    @ReducerBuilder<State, Action>
+    var core: some ReducerProtocol<State, Action> {
 
-    return .merge(
-      environment.userDefaults
-        .setBool(true, AppUserDefaults.Key.isAuthorized.rawValue)
-        .fireAndForget(),
+        Reduce { state, action in
+            switch action {
 
-      environment.userDefaults
-        .setBool(loginRes.user?.firstName == nil ? false : true, AppUserDefaults.Key.isUserFirstNameEmpty.rawValue)
-        .fireAndForget()
-    )
+            case .onAppear:
+                state.isAuthorized = userDefaults.boolForKey(UserDefaultKey.isAuthorized.rawValue)
+                state.isUserFirstNameEmpty = userDefaults.boolForKey(UserDefaultKey.isUserFirstNameEmpty.rawValue)
 
-  case let .verificationResponse(.failure(error)):
-    state.alert = .init(title: TextState("Please try again!") )
-      // send this for logs .init(title: TextState(error.description))
-    state.isLoginRequestInFlight = false
+                let isAuthorized = userDefaults.boolForKey(UserDefaultKey.isAuthorized.rawValue) == true
+                let isAskPermissionCompleted = userDefaults.boolForKey(UserDefaultKey.isAskPermissionCompleted.rawValue) == true
 
-    return .none
+                if isAuthorized {
+                    if !isAskPermissionCompleted {
+                        state.registerState = .init()
+                        return .none
+                    }
+                }
 
-  case .showTermsSheet:
-    state.showTermsSheet = true
-    return .none
+                return .none
 
-  case .showPrivacySheet:
-    state.showPrivacySheet = true
-    return .none
-  }
+            case .alertDismissed:
+                state.alert = nil
+                return .none
+
+            case .niceNameTextChanged(let name):
+                state.niceName = name
+
+                return .none
+
+            case .emailTextChanged(let email):
+                state.email = email
+
+                guard email.isEmailValid else {
+                    state.isEmailValidated = false
+                    return .none
+                }
+
+                state.isEmailValidated = true
+                return .none
+
+            case .sendEmailButtonTapped:
+                state.isLoginRequestInFlight = true
+
+                state.isEmailValidated = true
+                let emailLoginInput = EmailLoginInput(email: state.email.lowercased())
+                state.emailLoginInput = emailLoginInput
+
+                return .task {
+                    return .loninResponse(
+                        await TaskResult {
+                            try await apiClient.decodedResponse(
+                                for: .authEngine(.authentication(.loginViaEmail(emailLoginInput))),
+                                as: EmailLoginOutput.self
+                            ).value
+                        }
+                    )
+                }
+
+            case let .codeChanged(code):
+
+                guard let emailLoginOutput = state.emailLoginOutput else {
+                    return .none
+                }
+
+                state.code = code
+
+                if code.count == 6 {
+
+                    state.isLoginRequestInFlight = true
+
+                    let input = VerifyEmailInput(
+                        niceName: state.niceName,
+                        email: emailLoginOutput.email,
+                        attemptId: emailLoginOutput.attemptId,
+                        code: code
+                    )
+
+                    return .task {
+                        .verificationResponse(
+                            await TaskResult {
+                                try await apiClient.decodedResponse(
+                                    for: .authEngine(.authentication(.verifyEmail(input))),
+                                    as: SuccessfulLoginResponse.self
+                                ).value
+                            }
+                        )
+                    }
+                    .cancellable(id: VerificationCodeCanceable.self)
+                }
+
+                return .none
+
+            case let .loninResponse(.success(emailLoginOutput)):
+                state.isLoginRequestInFlight = false
+                state.isValidationCodeIsSend = true
+                state.emailLoginOutput = emailLoginOutput
+
+                return .none
+
+            case .loninResponse(.failure(let error)):
+                state.isLoginRequestInFlight = false
+                state.isValidationCodeIsSend = false
+                print(#line, self, error.localizedDescription)
+                return .none
+
+            case let .verificationResponse(.success(loginRes)):
+
+                if loginRes.user == nil || loginRes.access == nil {
+                    return .none
+                }
+
+                state.isLoginRequestInFlight = false
+
+                return .run(priority: .background) { _ in
+
+                    await withThrowingTaskGroup(of: Void.self) { group in
+
+                        group.addTask {
+                            await userDefaults.setBool(
+                                 true,
+                                 UserDefaultKey.isAuthorized.rawValue
+                            )
+
+                            await self.userDefaults.setBool(
+                                loginRes.user?.fullName == nil ? false : true,
+                                UserDefaultKey.isUserFirstNameEmpty.rawValue
+                            )
+                        }
+
+                        group.addTask {
+                            try await keychainClient.saveCodable(loginRes.user, .user, build.identifier())
+                            try await keychainClient.saveCodable(loginRes.access, .token, build.identifier())
+                        }
+                    }
+                }
+
+            case .verificationResponse(.failure(_)):
+                state.alert = .init(title: TextState("Please try again!") )
+                // send this for logs .init(title: TextState(error.description))
+                state.isLoginRequestInFlight = false
+
+                return .none
+
+            case .termsPrivacySheet(let actiontp):
+                switch actiontp {
+                case .nill:
+                    state.termsAndPrivacy = nil
+                    return .none
+
+                case .terms:
+                    state.termsAndPrivacy = .init(wbModel: .init(link: "https://addame.com/terms"))
+                    return .none
+
+                case .privacy:
+                    state.termsAndPrivacy = .init(wbModel: .init(link: "https://addame.com/privacy"))
+                    return .none
+                }
+
+            case .isSheetTermsAndPrivacy(isPresented: true):
+                return .none
+
+            case .isSheetTermsAndPrivacy(isPresented: false):
+                return .run { send in
+                    await send(.termsPrivacySheet(isPresented: .nill))
+                }
+
+            case .termsAndPrivacy(.leaveCurentPageButtonClick):
+                state.termsAndPrivacy = nil
+                return .none
+
+            case .termsAndPrivacy:
+                return .none
+
+            case .register(.moveToLoginView):
+                state.registerState = nil
+                return .run { send in
+                    try await self.mainQueue.sleep(for: .seconds(0.3))
+                    await send(.moveToTableView)
+                }
+
+            case .register:
+                return .none
+
+            case .isSheetRegister(isPresented: let presented):
+                if presented {
+                    state.registerState = .init()
+                } else {
+                    state.registerState = nil
+                }
+                return .none
+            case .moveToTableView:
+                return .none
+            }
+        }
+        // this part move to SettinsFeature
+        .ifLet(\.termsAndPrivacy, action: /Login.Action.termsAndPrivacy) {
+            TermsAndPrivacy()
+        }
+        .ifLet(\.registerState, action: /Login.Action.register) {
+            RegisterFormReducer()
+        }
+    }
 }

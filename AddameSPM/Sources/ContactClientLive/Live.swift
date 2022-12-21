@@ -12,12 +12,11 @@ import Contacts
 import CoreData
 import CoreDataStore
 import Foundation
-import HTTPRequestKit
 import InfoPlist
-import KeychainService
 import PhoneNumberKit
 import AddaSharedModels
 import URLRouting
+import BSON
 
 public struct ContactAPI {
     public static let build = Self()
@@ -28,7 +27,7 @@ public struct ContactAPI {
                 scheme: EnvironmentKeys.rootURL.scheme,
                 host: EnvironmentKeys.rootURL.host,
                 port: EnvironmentKeys.setPort(),
-                headers: ["Authorization": ["Bearer \(accessTokenTemp)"]]
+                headers: ["Authorization": ["Bearer "]]
             )
         )
     )
@@ -47,12 +46,14 @@ public struct ContactAPI {
         contactsSubject.eraseToAnyPublisher()
     }
 
+    // MARK: CNAuthorizationStatus
     public func authorization() async throws -> CNAuthorizationStatus {
         _ = try await self.combineContact.requestAccessAsync(for: .contacts)
         let status = CNContactStore.authorizationStatus(for: .contacts)
         return status
     }
 
+    // MARK: RequestAccess
     public var requestAccess: AnyPublisher<Bool, ContactError> {
         return combineContact.requestAccess(for: .contacts)
             .mapError { error in
@@ -100,36 +101,11 @@ public struct ContactAPI {
 
     private func formatedContactMobile(_ cnContact: CNContact) -> [ContactInPut] {
 
-        guard let currentUSER: UserOutput = KeychainService.loadCodable(for: .user) else {
-            return []
-        }
+//        guard let currentUSER: UserOutput = KeychainService.loadCodable(for: .user) else {
+//            return []
+//        }
 
         let fullName = CNContactFormatter.string(from: cnContact, style: .fullName)
-
-        //      var result: [ContactInPut] = [ContactInPut]()
-        //
-        //      let pns = cnContact.phoneNumbers.map { $0.value.stringValue }
-        //      let phoneNumbers = phoneNumberKit.parse(pns)
-        //      let rawNumberArray = phoneNumbers.map {
-        //          $0.numberString
-        //      }
-        //      let phoneNumbersCustomDefaultRegion = phoneNumberKit
-        //          .parse(rawNumberArray, withRegion: "RU", ignoreType: true)
-        //
-        //      let mobileNumbers = phoneNumbersCustomDefaultRegion.filter { $0.type == .mobile }
-        //
-        //      for (index, phone) in mobileNumbers.enumerated() {
-        //          result.append(
-        //            ContactInPut(
-        //                userId: currentUSER.id!,
-        //                identifier: cnContact.phoneNumbers[index].identifier,
-        //                phoneNumber: phoneNumberKit.format(phone, toType: .e164),
-        //                fullName: fullName
-        //            )
-        //          )
-        //      }
-        //
-        //      return result
 
         return cnContact.phoneNumbers
             .map { cnPhoneNumber in (cnPhoneNumber.identifier, cnPhoneNumber.value.stringValue) }
@@ -153,7 +129,7 @@ public struct ContactAPI {
             }
             .map { contact in
                 ContactInPut(
-                    userId: currentUSER.id!,
+                    userId: ObjectId(), // "currentUSER.id!",
                     identifier: contact.identifier,
                     phoneNumber: contact.formattedPhoneNumber,
                     fullName: fullName

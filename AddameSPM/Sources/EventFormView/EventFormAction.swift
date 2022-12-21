@@ -7,39 +7,13 @@
 
 import ComposableArchitecture
 import Foundation
-import HTTPRequestKit
 import MapKit
 import MapView
 import AddaSharedModels
 import SwiftUI
 import BSON
 
-public enum EventFormAction: Equatable {
-  case didAppear
-  case didDisappear
-  case titleChanged(String)
-  case textFieldHeightChanged(CGFloat)
-  case selectedDurations(DurationButtons)
-  case selectedCategory(AddaSharedModels.CategoryResponse)
-  case selectedDurationIndex(Int)
-  case showCategorySheet(Bool)
-  case liveLocationToggleChanged(Bool)
-  case isSearchSheet(isPresented: Bool)
-  case locationSearch(LocationSearchAction)
-  case eventsResponse(Result<EventResponse, HTTPRequest.HRError>)
-  case categoryResponse(Result<CategoriesResponse, HTTPRequest.HRError>)
-  case backToPVAfterCreatedEventSuccessfully
-
-  case submitButtonTapped
-  case actionSheetButtonTapped
-  case actionSheetCancelTapped
-  case actionSheetDismissed
-  case alertButtonTapped
-  case alertCancelTapped
-  case alertDismissed
-}
-
-extension EventFormAction {
+extension HangoutForm.Action {
   // swiftlint:disable cyclomatic_complexity
   static func view(_ localAction: EventFormView.ViewAction) -> Self {
     switch localAction {

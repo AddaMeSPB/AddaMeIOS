@@ -1,14 +1,12 @@
-import MapKit
-import ComposableCoreLocation
-import AddaSharedModels
+ import MapKit
+ import ComposableCoreLocation
+ import AddaSharedModels
 
 // swiftlint:disable all
-extension EventsState {
+extension Hangouts.State {
 
     public static let placeholderEvents = Self(
       isConnected: true,
-      isLocationAuthorized: true,
-      waitingForUpdateLocation: false,
       isLoadingPage: true,
       location: Location(
         altitude: 0,
@@ -21,11 +19,9 @@ extension EventsState {
       ),
       events: .init(uniqueElements: EventsResponse.draff.items)
     )
-    
+
     public static let fetchEvents = Self(
       isConnected: true,
-      isLocationAuthorized: true,
-      waitingForUpdateLocation: true,
       isLoadingPage: false,
       location: Location(
         altitude: 0,
@@ -41,7 +37,6 @@ extension EventsState {
 
 
     public static let eventForRow = Self(
-      waitingForUpdateLocation: false,
       location: Location(
         altitude: 0,
         coordinate: CLLocationCoordinate2D(latitude: 60.020532228306031, longitude: 30.388014239849944),
@@ -53,4 +48,4 @@ extension EventsState {
       ),
       event: EventResponse.exploreAreaDraff
     )
-}
+ }

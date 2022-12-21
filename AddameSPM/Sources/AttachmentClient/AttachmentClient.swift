@@ -10,7 +10,7 @@ import Foundation
 import AddaSharedModels
 import UIKit
 import InfoPlist
-import KeychainService
+import KeychainClient
 import URLRouting
 import SotoS3
 
@@ -22,7 +22,7 @@ public struct AttachmentClient {
                 scheme: EnvironmentKeys.rootURL.scheme,
                 host: EnvironmentKeys.rootURL.host,
                 port: EnvironmentKeys.setPort(),
-                headers: ["Authorization": ["Bearer \(accessTokenTemp)"]]
+                headers: ["Authorization": ["Bearer "]]
             )
         )
     )

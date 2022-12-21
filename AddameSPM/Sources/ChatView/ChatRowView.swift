@@ -8,7 +8,7 @@
 import AsyncImageLoder
 import ComposableArchitecture
 import HTTPRequestKit
-import KeychainService
+import KeychainClient
 import AddaSharedModels
 import SwiftUI
 import SwiftUIExtension
@@ -108,23 +108,23 @@ struct ChatRowView: View {
 
     @ViewBuilder
     var body: some View {
-        WithViewStore(self.store) { viewStore in
+        WithViewStore(self.store) { _ in
             Group {
-                if isCurrentUser(userId: viewStore.sender!.id!.hexString) {
-                    opponentUsersRow(viewStore: viewStore)
-                        .listRowSeparatorHiddenIfAvaibale()
-                } else {
-                    currentUserRow(viewStore: viewStore)
-                        .listRowSeparatorHiddenIfAvaibale()
-                }
+//                if isCurrentUser(userId: viewStore.sender!.id!.hexString) {
+//                    opponentUsersRow(viewStore: viewStore)
+//                        .listRowSeparatorHiddenIfAvaibale()
+//                } else {
+//                    currentUserRow(viewStore: viewStore)
+//                        .listRowSeparatorHiddenIfAvaibale()
+//                }
             }
         }
     }
 
-    private func isCurrentUser(userId: String) -> Bool {
-        if let currentUSER: UserOutput = KeychainService.loadCodable(for: .user) {
-            return currentUSER.id!.hexString == userId ? true : false
-        }
-        return false
-    }
+//    private func isCurrentUser(userId: String) -> Bool {
+//        if let currentUSER: UserGetObject = KeychainClient.readCodable(.user) {
+//            return currentUSER.id!.hexString == userId ? true : false
+//        }
+//        return false
+//    }
 }

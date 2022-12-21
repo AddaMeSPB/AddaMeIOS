@@ -1,11 +1,9 @@
 import Combine
 import Foundation
-import HTTPRequestKit
 import AddaSharedModels
 import SwiftUI
 import URLRouting
 import InfoPlist
-import KeychainService
 
 public struct EventClient {
 
@@ -16,7 +14,7 @@ public struct EventClient {
               host: EnvironmentKeys.rootURL.host,
               port: EnvironmentKeys.setPort(),
               headers: [
-                  "Authorization": ["Bearer \(accessTokenTemp)"]
+                  "Authorization": ["Bearer "]
               ]
           )
       )

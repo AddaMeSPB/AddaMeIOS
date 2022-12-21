@@ -2,6 +2,10 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>ADDAME_IOS_APP_NAME</key>
+	<string>${ADDAME_IOS_APP_NAME}</string>
+	<key>ADDAME_IOS_ENVIRONMENT</key>
+	<string>${ADDAME_IOS_ENVIRONMENT}</string>
 	<key>ACCESS_KEY_ID</key>
 	<string>$(ACCESS_KEY_ID)</string>
 	<key>CFBundleDevelopmentRegion</key>

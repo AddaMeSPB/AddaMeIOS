@@ -1,42 +1,90 @@
+import SwiftUI
+import Foundation
+import ComposableArchitecture
 import AsyncImageLoder
 import ChatView
-import ComposableArchitecture
 import ComposableArchitectureHelpers
 import ComposableCoreLocation
-import ComposablePresentation
 import EventDetailsView
 import EventFormView
-import HTTPRequestKit
 import MapKit
 import AddaSharedModels
-import SwiftUI
+
 import SwiftUIExtension
 import AdSupport
 import AppTrackingTransparency
+import LocationReducer
+import SwiftUIHelpers
 
-extension EventView {
+//public struct HangoutsView: View {
+//    @Environment(\.colorScheme) var colorScheme
+//
+//    public init(store: StoreOf<Hangouts>) {
+//        self.store = store
+//    }
+//
+//    public let store: StoreOf<Hangouts>
+//
+//    public var body: some View {
+//        WithViewStore(
+//            self.store.scope(
+//                state: { $0.view },
+//                action: Hangouts.Action.view
+//            )
+//        ) { viewStore in
+//            VStack {
+//                if let coordinate = viewStore.locationState.coordinate {
+//                    Text("Location: \(coordinate.coordinate.longitude), \(coordinate.coordinate.latitude)")
+//                }
+//            }
+//            .navigationTitle("Hangouts")
+//            .background(colorScheme == .dark ? Color.gray.edgesIgnoringSafeArea(.all) : nil)
+//        }
+//
+//    }
+//
+//}
+
+extension HangoutsView {
     public struct ViewState: Equatable {
-        public var alert: AlertState<EventsAction>?
-        public var isConnected = true
-        public var isLocationAuthorized = false
-        public var waitingForUpdateLocation = true
-        public var isLoadingPage = false
-        public var isLoadingMyEvent: Bool = false
-        public var isMovingChatRoom: Bool = false
-        public var isEFromNavigationActive: Bool = false
-        public var isIDFAAuthorized = false
-        public var isLocationAuthorizedCount = 0
-        public var location: Location?
-        public var events: IdentifiedArrayOf<EventResponse> = []
+        init(state: Hangouts.State) {
+            self.alert = state.alert
+            self.isConnected = state.isConnected
+            self.isLoadingPage = state.isLoadingPage
+            self.isLoadingMyEvent = state.isLoadingMyEvent
+            self.isMovingChatRoom = state.isMovingChatRoom
+            self.isEFromNavigationActive = state.isEFromNavigationActive
+            self.isIDFAAuthorized = state.isIDFAAuthorized
+            self.isLocationAuthorizedCount = state.isLocationAuthorizedCount
+            self.events = state.events
+            self.myEvent = state.myEvent
+            self.event = state.event
+            self.hangoutFormState = state.hangoutFormState
+            self.isHangoutNavigationActive = state.isHangoutNavigationActive
+            self.locationState = state.locationState
+        }
+
+        public var alert: AlertState<Hangouts.Action>?
+        public var isConnected: Bool
+        public var isLoadingPage: Bool
+        public var isLoadingMyEvent: Bool
+        public var isMovingChatRoom: Bool
+        public var isEFromNavigationActive: Bool
+        public var isIDFAAuthorized: Bool
+        public var isLocationAuthorizedCount: Int
+        public var events: IdentifiedArrayOf<EventResponse>
         public var myEvent: EventResponse?
         public var event: EventResponse?
-        public var placeMark: CLPlacemark?
 
-        public var eventFormState: EventFormState?
-        public var eventDetailsState: EventDetailsState?
-        public var isEventDetailsSheetPresented: Bool { eventDetailsState != nil }
-        public var chatState: ChatState?
-        public var conversation: ConversationOutPut?
+        public var hangoutFormState: HangoutForm.State?
+        public var isHangoutNavigationActive: Bool
+        public var locationState: LocationReducer.State
+        //        public var eventDetailsState: EventDetailsState?
+        //        public var isEventDetailsSheetPresented: Bool { eventDetailsState != nil }
+        //        public var chatState: ChatState?
+        //        public var conversation: ConversationOutPut?
+
+
     }
 
     public enum ViewAction: Equatable {
@@ -46,11 +94,11 @@ extension EventView {
         case event(index: EventResponse.ID, action: EventAction)
 
         case fetchEventOnAppear
-        case eventFormView(isNavigate: Bool)
-        case eventForm(EventFormAction)
+        case hangoutFormView(isNavigate: Bool)
+        case hangoutForm(HangoutForm.Action)
 
         case eventDetailsView(isPresented: Bool)
-        case eventDetails(EventDetailsAction)
+        //        case eventDetails(EventDetailsAction)
 
         case chatView(isNavigate: Bool)
         case chat(ChatAction)
@@ -60,7 +108,7 @@ extension EventView {
         case currentLocationButtonTapped
         case eventTapped(EventResponse)
 
-        case idfaAuthorizationStatus(ATTrackingManager.AuthorizationStatus)
+//        case idfaAuthorizationStatus(ATTrackingManager.AuthorizationStatus)
         case popupSettings
         case dismissEvent
         case onAppear
@@ -68,17 +116,18 @@ extension EventView {
     }
 }
 
-public struct EventView: View {
+
+public struct HangoutsView: View {
     @Environment(\.colorScheme) var colorScheme
 
-    public init(store: Store<EventsState, EventsAction>) {
+    public let store: StoreOf<Hangouts>
+
+    public init(store: StoreOf<Hangouts>) {
         self.store = store
     }
 
-    public let store: Store<EventsState, EventsAction>
-
     public func locationAndLoadingStatus(
-        viewStore: ViewStore<EventView.ViewState, EventView.ViewAction>
+        viewStore: ViewStore<HangoutsView.ViewState, HangoutsView.ViewAction>
     ) -> some View {
 
         return HStack {
@@ -94,7 +143,7 @@ public struct EventView: View {
                     .layoutPriority(1)
             }
 
-            if viewStore.waitingForUpdateLocation {
+            if viewStore.locationState.waitingForUpdateLocation {
                 Text("Please wait we are updating your current location!")
                     .font(.body)
                     .frame(maxWidth: .infinity)
@@ -110,14 +159,14 @@ public struct EventView: View {
     }
 
     public func isLocationAuthorizedView(
-        viewStore: ViewStore<EventView.ViewState, EventView.ViewAction>
+        viewStore: ViewStore<HangoutsView.ViewState, HangoutsView.ViewAction>
     ) -> some View {
 
         return VStack {
             Text("""
-                      This feature does not work with get your current location so active it to see this feature,
-                      You can change your permission anytime from app settings.
-                      """
+                  This feature does not work with get your current location so active it to see this feature,
+                  You can change your permission anytime from app settings.
+                  """
             ).font(.body)
                 .frame(maxWidth: .infinity)
                 .padding()
@@ -141,69 +190,64 @@ public struct EventView: View {
     }
 
     public var body: some View {
-        WithViewStore(
-            self.store.scope(
-                state: { $0.view },
-                action: EventsAction.view
-            )
-        ) { viewStore in
+        // self.store, observe: ViewState.init, send: NewGame.Action.init
+        WithViewStore(self.store, observe: ViewState.init, send: Hangouts.Action.init) { viewStore in
 
             ZStack(alignment: .bottomTrailing) {
-                VStack {
-                    if viewStore.isEventDetailsSheetPresented
-                    && viewStore.isMovingChatRoom {
-                        ProgressView()
-                            .frame(width: 150.0, height: 150.0)
-                            .padding(50.0)
-                    }
-                }
+//                VStack {
+//                    if viewStore.isEventDetailsSheetPresented
+//                        && viewStore.isMovingChatRoom {
+//                        ProgressView()
+//                            .frame(width: 150.0, height: 150.0)
+//                            .padding(50.0)
+//                    }
+//                }
 
                 ScrollView {
                     LazyVStack {
 
-                        if viewStore.waitingForUpdateLocation {
+                        if viewStore.locationState.waitingForUpdateLocation {
                             locationAndLoadingStatus(viewStore: viewStore)
                         }
 
-                        if !viewStore.isLocationAuthorized {
+                        if !viewStore.locationState.isLocationAuthorized {
                             isLocationAuthorizedView(viewStore: viewStore)
                         }
 
                         EventsListView(
                             store: viewStore.isLoadingPage
                             ? Store(
-                                initialState: EventsState.placeholderEvents,
-                                reducer: .empty,
-                                environment: ()
+                                initialState: Hangouts.State.placeholderEvents,
+                                reducer: Hangouts()
                             )
                             : self.store
                         )
                         .redacted(reason: viewStore.isLoadingPage ? .placeholder : [])
                     }
                 }
-                .navigationTitle("Events")
+                .navigationTitle("Hangouts")
                 .background(colorScheme == .dark ? Color.gray.edgesIgnoringSafeArea(.all) : nil)
 
-                HStack {
-                    Spacer()
-                    Button {
-                        viewStore.send(.currentLocationButtonTapped)
-                    } label: {
-                        Image(systemName: viewStore.state.isLocationAuthorized ? "circle" : "location")
-                            .foregroundColor(Color.white)
-                            .frame(
-                                width: viewStore.state.isLocationAuthorized ? 20 : 60,
-                                height: viewStore.state.isLocationAuthorized ? 20 : 60
-                            )
-                            .background(viewStore.state.isLocationAuthorized ? Color.green : Color.red)
-                            .clipShape(Circle())
-                            .padding([.trailing], 26)
-                            .padding([.bottom], 26)
-                    }
-                    .animation(.easeIn)
-                    .shadow(
-                        color: viewStore.state.isLocationAuthorized ? Color.green : Color.red, radius: 20, y: 5)
-                }
+//                HStack {
+//                    Spacer()
+//                    Button {
+//                        viewStore.send(.currentLocationButtonTapped)
+//                    } label: {
+//                        Image(systemName: viewStore.state.isLocationAuthorized ? "circle" : "location")
+//                            .foregroundColor(Color.white)
+//                            .frame(
+//                                width: viewStore.state.isLocationAuthorized ? 20 : 60,
+//                                height: viewStore.state.isLocationAuthorized ? 20 : 60
+//                            )
+//                            .background(viewStore.state.isLocationAuthorized ? Color.green : Color.red)
+//                            .clipShape(Circle())
+//                            .padding([.trailing], 26)
+//                            .padding([.bottom], 26)
+//                    }
+//                    .animation(.easeIn)
+//                    .shadow(
+//                        color: viewStore.state.isLocationAuthorized ? Color.green : Color.red, radius: 20, y: 5)
+//                }
             }
             .onDisappear { viewStore.send(.onDisAppear) }
             .navigationViewStyle(StackNavigationViewStyle())
@@ -214,21 +258,38 @@ public struct EventView: View {
                 }
             }
             .alert(self.store.scope(state: { $0.alert }), dismiss: .alertDismissed)
+            .background(
+                NavigationLink(
+                  destination: IfLetStore(
+                    self.store.scope(
+                      state: \.hangoutFormState,
+                      action: Hangouts.Action.hangoutForm
+                    )
+                  ) {
+                      EventFormView(store: $0)
+                  },
+//                  viewStore.binding(\.$property, as:\.viewStateProperty)
+                  isActive: viewStore.binding(
+                    get: \.isHangoutNavigationActive,
+                    send: Hangouts.Action.hangoutFormView(isNavigate:)
+                  )
+                ) {}
+            )
         }
-        .sheet(
-            store.scope(state: \.eventDetailsState, action: EventsAction.eventDetails),
-            mapState: replayNonNil(),
-            onDismiss: {
-                ViewStore(store.stateless).send(.eventDetailsView(isPresented: false))
-            },
-            content: EventDetailsView.init(store:)
-        )
-        .sheet(
-            store.scope(state: \.eventFormState, action: EventsAction.eventForm),
-            mapState: replayNonNil(),
-            onDismiss: { ViewStore(store.stateless).send(.eventFormView(isNavigate: false)) },
-            content: EventFormView.init(store:)
-        )
+//        .sheet(
+//            store.scope(state: \.eventDetailsState, action: Hangouts.Action.eventDetails),
+//            mapState: replayNonNil(),
+//            onDismiss: {
+//                ViewStore(store.stateless).send(.eventDetailsView(isPresented: false))
+//            },
+//            content: EventDetailsView.init(store:)
+//        )
+//        .sheet(
+//            store.scope(state: \.eventFormState, action: Hangouts.Action.eventForm),
+//            mapState: replayNonNil(),
+//            onDismiss: { ViewStore(store.stateless).send(.eventFormView(isNavigate: false)) },
+//            content: EventFormView.init(store:)
+//        )
         //    .navigationLink(
         //      store.scope(state: \.eventFormState, action: EventsAction.eventForm),
         //      state: replayNonNil(),
@@ -237,89 +298,80 @@ public struct EventView: View {
         //      },
         //      destination: EventFormView.init(store:)
         //    )
-        .background(
-            NavigationLinkWithStore(
-                store.scope(state: \.chatState, action: EventsAction.chat),
-                mapState: replayNonNil(),
-                onDeactivate: { ViewStore(store.stateless).send(.chatView(isNavigate: false)) },
-                destination: ChatView.init(store:)
-            )
-        )
+//        .background(
+//            NavigationLinkWithStore(
+//                store.scope(state: \.chatState, action: Hangouts.Action.chat),
+//                mapState: replayNonNil(),
+//                onDeactivate: { ViewStore(store.stateless).send(.chatView(isNavigate: false)) },
+//                destination: ChatView.init(store:)
+//            )
+//        )
     }
 
     private func toolbarItemTrailingButton(
-        _ viewStore: ViewStore<EventView.ViewState, EventView.ViewAction>
+        _ viewStore: ViewStore<HangoutsView.ViewState, HangoutsView.ViewAction>
     ) -> some View {
         Button {
-            viewStore.send(.eventFormView(isNavigate: true))
+            viewStore.send(.hangoutFormView(isNavigate: true))
         } label: {
             if #available(iOS 15.0, *) {
                 Image(systemName: "plus.circle")
                     .font(.title)
                     .foregroundColor(colorScheme == .dark ? .white : .blue)
-                    .opacity(viewStore.isEventDetailsSheetPresented ? 0 : 1)
-                    .overlay(
-                        ProgressView()
-                            .frame(width: 150.0, height: 150.0)
-                            .padding(50.0)
-                            .opacity(viewStore.isEventDetailsSheetPresented ? 1 : 0)
-                    )
+//                    .opacity(viewStore.isEventDetailsSheetPresented ? 0 : 1)
+//                    .overlay(
+//                        ProgressView()
+//                            .frame(width: 150.0, height: 150.0)
+//                            .padding(50.0)
+//                            .opacity(viewStore.isEventDetailsSheetPresented ? 1 : 0)
+//                    )
             } else {
                 Image(systemName: "plus.circle")
                     .font(.title)
-                    .foregroundColor(viewStore.state.isLocationAuthorized ? Color.black : Color.gray)
+                    .foregroundColor(viewStore.state.locationState.isLocationAuthorized ? Color.black : Color.gray)
             }
         }
-        .disabled(viewStore.state.placeMark == nil )
-        .opacity(viewStore.state.placeMark == nil ? 0 : 1)
+        .disabled(viewStore.state.locationState.placeMark == nil )
+        .opacity(viewStore.state.locationState.placeMark == nil ? 0 : 1)
     }
 }
 
-struct EventView_Previews: PreviewProvider {
+struct HangoutsView_Previews: PreviewProvider {
 
     static let store = Store(
-        initialState: EventsState(),
-        reducer: eventsReducer,
-        environment: EventsEnvironment.happyPath
+        initialState: Hangouts.State(),
+        reducer: Hangouts()
     )
 
     static var previews: some View {
-        Group {
-            TabView {
-                NavigationView {
-                    EventView(store: store)
-                }
+        TabView {
+            NavigationView {
+                HangoutsView(store: store)
             }
-
-            TabView {
-                NavigationView {
-                    EventView(store: store)
-                        .environment(\.colorScheme, .dark)
-                }
-            }
-            .environment(\.colorScheme, .dark)
         }
     }
 }
 
 struct EventsListView: View {
-    let store: Store<EventsState, EventsAction>
+    let store: StoreOf<Hangouts>
 
     var body: some View {
-        WithViewStore(
-            self.store.scope(
-                state: { $0.view },
-                action: EventsAction.view
-            )
-        ) { viewStore in
+//        WithViewStore(
+//            self.store.scope(
+//                state: { $0.view },
+//                action: Hangouts.Action.view
+//            )
+//        )
+
+        WithViewStore(self.store, observe: HangoutsView.ViewState.init, send: Hangouts.Action.init) { viewStore in
             ForEachStore(
-                self.store.scope(state: \.events, action: EventsAction.event)
+                self.store.scope(state: \.events, action: Hangouts.Action.event)
             ) { eventStore in
                 WithViewStore(eventStore) { eventViewStore in
                     Button {
                         viewStore.send(.eventTapped(eventViewStore.state))
                     } label: {
-                        EventRowView(store: eventStore, currentLocation: viewStore.state.location)
+                        EventRowView(store: eventStore, currentLocation: viewStore.state.locationState.location)
                             .onAppear {
                                 viewStore.send(.fetchMoreEventsIfNeeded(item: eventViewStore.state))
                             }
@@ -329,4 +381,17 @@ struct EventsListView: View {
             }
         }
     }
+}
+
+public extension ViewStore {
+  func binding<ParentState, Value>(
+    _ parentKeyPath: WritableKeyPath<ParentState, BindableState<Value>>,
+    as keyPath: KeyPath<State, Value>
+  ) -> Binding<Value>
+    where Action: BindableAction, Action.State == ParentState, Value: Equatable {
+    binding(
+      get: { $0[keyPath: keyPath] },
+      send: { .binding(.set(parentKeyPath, $0)) }
+    )
+  }
 }

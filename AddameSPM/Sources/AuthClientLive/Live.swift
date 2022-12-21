@@ -12,21 +12,21 @@ import FoundationExtension
 import InfoPlist
 import AddaSharedModels
 
-extension AuthClient {
-    public static var live: AuthClient = .init(
-        login: { input in
-            return try await AuthClient.apiClient.decodedResponse(
-                for: .authEngine(.authentication(.login(input: input))),
-                as: VerifySMSInOutput.self,
-                decoder: .iso8601
-            ).value
-        },
-        verification: { input in
-            return try await AuthClient.apiClient.decodedResponse(
-                for: .authEngine(.authentication(.verifySms(input: input))),
-                as: LoginResponse.self,
-                decoder: .iso8601
-            ).value
-        }
-    )
-}
+// extension AuthClient {
+//    public static var live: AuthClient = .init(
+//        login: { input in
+//            return try await AuthClient.apiClient.decodedResponse(
+//                for: .authEngine(.authentication(.login(input: input))),
+//                as: VerifySMSInOutput.self,
+//                decoder: .iso8601
+//            ).value
+//        },
+//        verification: { input in
+//            return try await AuthClient.apiClient.decodedResponse(
+//                for: .authEngine(.authentication(.verifySms(input: input))),
+//                as: LoginResponse.self,
+//                decoder: .iso8601
+//            ).value
+//        }
+//    )
+// }

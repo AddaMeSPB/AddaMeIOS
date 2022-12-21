@@ -12,7 +12,7 @@ import HTTPRequestKit
 import SotoS3
 import InfoPlist
 import AddaSharedModels
-import KeychainService
+import KeychainClient
 import UIKit
 
 extension AttachmentClient {

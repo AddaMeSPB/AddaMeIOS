@@ -8,7 +8,6 @@
 import SwiftUI
 import ComposableArchitecture
 import PhotosUI
-
 import Combine
 
 extension PHPickerResult {
@@ -38,80 +37,71 @@ extension PHPickerResult {
   }
 }
 
-public struct ImagePickerState: Equatable {
-  public var showingImagePicker: Bool
-  public var image: UIImage?
+public struct ImagePickerReducer: ReducerProtocol {
+    public struct State: Equatable {
+      public var showingImagePicker: Bool
+      public var image: UIImage?
 
-  public init(showingImagePicker: Bool, image: UIImage? = nil) {
-    self.showingImagePicker = showingImagePicker
-    self.image = image
-  }
+      public init(showingImagePicker: Bool, image: UIImage? = nil) {
+        self.showingImagePicker = showingImagePicker
+        self.image = image
+      }
+    }
+
+    public enum Action: Equatable {
+        public static func == (lhs: ImagePickerReducer.Action, rhs: ImagePickerReducer.Action) -> Bool {
+        return lhs.value == rhs.value
+      }
+
+      // only for Equatable
+      var value: String? {
+        return String(describing: self).components(separatedBy: "(").first
+      }
+
+      case setSheet(isPresented: Bool)
+
+      case imagePicked(image: UIImage)
+
+      case pickerResultReceived(result: PHPickerResult)
+      case picked(result: Result<UIImage, PHPickerResult.ImageError>)
+    }
+
+    public init() {}
+
+    public var body: some ReducerProtocol<State, Action> {
+        Reduce { state, action in
+            switch action {
+            case let .setSheet(isPresented: presented):
+              state.showingImagePicker = presented
+              return .none
+
+            case let .imagePicked(image: image):
+              state.image = image
+              return .none
+
+            case let .pickerResultReceived(result: result):
+
+              return result.loadImage()
+                .receive(on: DispatchQueue.main)
+                .catchToEffect(ImagePickerReducer.Action.picked(result:))
+
+            case let .picked(result: .success(image)):
+              state.image = image
+              return .none
+
+            case .picked(result: .failure):
+              return .none
+            }
+        }
+    }
 }
-
-public enum ImagePickerAction: Equatable {
-  public static func == (lhs: ImagePickerAction, rhs: ImagePickerAction) -> Bool {
-    return lhs.value == rhs.value
-  }
-
-  // only for Equatable
-  var value: String? {
-    return String(describing: self).components(separatedBy: "(").first
-  }
-
-  case setSheet(isPresented: Bool)
-
-  case imagePicked(image: UIImage)
-
-  case pickerResultReceived(result: PHPickerResult)
-  case picked(result: Result<UIImage, PHPickerResult.ImageError>)
-}
-
-public struct ImagePickerEnvironment {
-  public init() {}
-}
-
-extension ImagePickerEnvironment {
-  public static let live: ImagePickerEnvironment = .init()
-}
-
-public let imagePickerReducer = Reducer<
-  ImagePickerState,
-  ImagePickerAction,
-  ImagePickerEnvironment
-> {
-  state, action, _ in
-
-  switch action {
-  case let .setSheet(isPresented: presented):
-    state.showingImagePicker = presented
-    return .none
-
-  case let .imagePicked(image: image):
-    state.image = image
-    return .none
-
-  case let .pickerResultReceived(result: result):
-
-    return result.loadImage()
-      .receive(on: DispatchQueue.main)
-      .catchToEffect(ImagePickerAction.picked(result:))
-
-  case let .picked(result: .success(image)):
-    state.image = image
-    return .none
-
-  case .picked(result: .failure):
-    return .none
-  }
-}
-.debug()
 
 public struct ImagePicker: UIViewControllerRepresentable {
   @Environment(\.presentationMode) var presentationMode
 
-  let viewStore: ViewStore<ImagePickerState, ImagePickerAction>
+    let viewStore: ViewStore<ImagePickerReducer.State, ImagePickerReducer.Action>
 
-  public init(store: Store<ImagePickerState, ImagePickerAction>) {
+    public init(store: Store<ImagePickerReducer.State, ImagePickerReducer.Action>) {
     self.viewStore = ViewStore(store)
   }
 

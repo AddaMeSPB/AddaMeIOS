@@ -6,50 +6,39 @@
 //
 
 import AppFeature
-import AuthClient
-import AuthClientLive
-import AuthenticationView
 import ComposableArchitecture
 import SwiftUI
-import TabsView
-import AppDelegate
 import UIKit
 
-public final class AppDelegate: NSObject, UIApplicationDelegate {
-  public let store = Store(
-    initialState: AppState(),
-    reducer: appReducer,
-    environment: .live
+final class AppDelegate: NSObject, UIApplicationDelegate {
+  let store = Store(
+    initialState: AppReducer.State(),
+    reducer: AppReducer()
+        ._printChanges()
+        .transformDependency(\.self) { _ in }
   )
 
-  public lazy var viewStore = ViewStore(
-    self.store.scope(state: { _ in () }),
-    removeDuplicates: ==
-  )
+  var viewStore: ViewStore<Void, AppReducer.Action> {
+    ViewStore(self.store.stateless)
+  }
 
-  public  func application(
-      _ application: UIApplication,
-      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
-    ) -> Bool {
-      self.viewStore.send(.appDelegate(.didFinishLaunching))
-      return true
-    }
+  func application(
+    _ application: UIApplication,
+    didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
+  ) -> Bool {
+    self.viewStore.send(.appDelegate(.didFinishLaunching))
+    return true
+  }
 
-   public func application(
-      _ application: UIApplication,
-      didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data
-    ) {
-      self.viewStore.send(.appDelegate(.didRegisterForRemoteNotifications(.success(deviceToken))))
-    }
+  func application(
+    _ application: UIApplication,
+    didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data
+  ) {}
 
-   public func application(
-      _ application: UIApplication,
-      didFailToRegisterForRemoteNotificationsWithError error: Error
-    ) {
-      self.viewStore.send(
-        .appDelegate(.didRegisterForRemoteNotifications(.failure(error as NSError)))
-      )
-    }
+  func application(
+    _ application: UIApplication,
+    didFailToRegisterForRemoteNotificationsWithError error: Error
+  ) {}
 }
 
 @main

@@ -7,7 +7,7 @@
 
 import AVFoundation
 import FoundationExtension
-import KeychainService
+import KeychainClient
 import NIO
 import SotoS3
 import AddaSharedModels

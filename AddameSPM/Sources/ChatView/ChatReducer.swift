@@ -9,7 +9,7 @@ import Foundation
 import ComposableArchitecture
 import FoundationExtension
 import InfoPlist
-import KeychainService
+import KeychainClient
 import AddaSharedModels
 import HTTPRequestKit
 import BSON
@@ -25,14 +25,15 @@ public let chatReducer = Reducer<ChatState, ChatAction, ChatEnvironment> {
 
     let query = QueryItem(page: state.currentPage, per: 10)
 
-      return .task {
-          do {
-              let messages = try await environment.chatClient.messages(query, conversationsID)
-              return ChatAction.messagesResponse(messages)
-          } catch {
-             return ChatAction.messagesResponseError(HTTPRequest.HRError.networkError(error))
-          }
-      }
+      return .none
+//          .task {
+//          do {
+//              let messages = try await environment.chatClient.messages(query, conversationsID)
+//              return ChatAction.messagesResponse(messages)
+//          } catch {
+//             return ChatAction.messagesResponseError(HTTPRequest.HRError.networkError(error))
+//          }
+//      }
 
   }
 

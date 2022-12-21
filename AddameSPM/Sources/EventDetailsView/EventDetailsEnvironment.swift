@@ -12,20 +12,16 @@ import Foundation
 
 public struct EventDetailsEnvironment {
   public init(
-    conversationClient: ConversationClient,
     mainQueue: AnySchedulerOf<DispatchQueue>
   ) {
-    self.conversationClient = conversationClient
     self.mainQueue = mainQueue
   }
 
-  public let conversationClient: ConversationClient
   var mainQueue: AnySchedulerOf<DispatchQueue>
 }
 
 extension EventDetailsEnvironment {
   public static let live: EventDetailsEnvironment = .init(
-    conversationClient: .live,
     mainQueue: .main
   )
 }

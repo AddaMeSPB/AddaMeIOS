@@ -8,7 +8,7 @@
 import ComposableArchitecture
 import ConversationClient
 import HTTPRequestKit
-import KeychainService
+import KeychainClient
 import MapView
 import AddaSharedModels
 
