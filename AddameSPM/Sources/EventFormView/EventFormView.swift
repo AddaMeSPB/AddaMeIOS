@@ -5,277 +5,360 @@
 //  Created by Saroar Khandoker on 06.04.2021.
 //
 
-import Combine
+import Foundation
+import MapKit
+import SwiftUI
+import BSON
 import ComposableArchitecture
 import ComposablePresentation
 import ComposableArchitectureHelpers
-import Foundation
-import MapKit
 import MapView
 import AddaSharedModels
-import SwiftUI
 import SwiftUIExtension
-import BSON
 import SwiftUIHelpers
+import FoundationExtension
 
 extension EventFormView {
-  public struct ViewState: Equatable {
-    public var title = ""
-    public var textFieldHeight: CGFloat = 30
-    public var durationRawValue: String = DurationButtons.Four_Hours.rawValue
-    public var selectedDurationIndex: Int = 0
-    public var selectedCateforyID: ObjectId?
-    public var showCategorySheet = false
-    public var liveLocationToggleisOn = true
-    public var moveMapView = false
-    public var selectLocationtoggleisOn = false {
-      willSet {
-        liveLocationToggleisOn = false
-      }
-    }
 
-    public var selectedTag: String?
-    public var showSuccessActionSheet = false
-    public var placeMark: CLPlacemark?
+    public struct ViewState: Equatable {
+        public var title: String
+        public var maxTitleCharacters: Int
+        public var textFieldHeight: CGFloat
+        public var durationRawValue: String
+        public var selectedDurationIndex: Int
+        public var selectedCateforyID: ObjectId?
+        public var showCategorySheet: Bool
+        public var liveLocationToggleisOn: Bool
+        public var selectLocationtoggleisOn: Bool
 
-    public var selectedPlace: EventResponse?
-    public var currentPlace: EventResponse?
-    public var eventAddress: String = ""
-    public var selectedDutaionButtons: DurationButtons = .Four_Hours
-    public var actionSheet: ConfirmationDialogState<HangoutForm.Action>?
-    public var alert: AlertState<HangoutForm.Action>?
-    public var locationSearchState: LocationSearchState?
-    public var isPostRequestOnFly: Bool = false
-    public var isEventCreatedSuccessfully: Bool = false
-    public var category: String = ""
+        public var selectedTag: String?
+        public var showSuccessActionSheet: Bool
+        public var placeMark: Placemark
 
-    public var isSheetPresented: Bool { locationSearchState != nil }
-    public var isAllFeildsAreValid: Bool {
-      return !title.isEmpty && title.count > 2
-        && !eventAddress.isEmpty
-        && !durationRawValue.isEmpty
-    }
+        public var selectedPlace: EventResponse?
+        public var currentPlace: EventResponse?
+        public var eventAddress: String
+        public var selectedDutaionButtons: DurationButtons
+        public var actionSheet: ConfirmationDialogState<HangoutForm.Action>?
+        public var alert: AlertState<HangoutForm.Action>?
+        public var locationSearchState: LocationSearch.State?
+        public var isPostRequestOnFly: Bool
+        public var isEventCreatedSuccessfully: Bool
+        public var category: String
 
-    public var currentUser: UserOutput = .withFirstName
+        public var isSheetPresented: Bool
+        public var isAllFeildsAreValid: Bool
+        public var currentUser: UserGetObject
+        public var isLocationSearchNavigate: Bool
+
+        init(state: HangoutForm.State) {
+            self.title = state.title
+            self.maxTitleCharacters = state.maxTitleCharacters
+            self.textFieldHeight = state.textFieldHeight
+            self.durationRawValue = state.durationRawValue
+            self.selectedDurationIndex = state.selectedDurationIndex
+            self.selectedCateforyID = state.selectedCateforyID
+            self.showCategorySheet = state.showCategorySheet
+            self.liveLocationToggleisOn = state.liveLocationToggleisOn
+            self.selectLocationtoggleisOn = state.selectLocationtoggleisOn
+            self.selectedTag = state.selectedTag
+            self.showSuccessActionSheet = state.showSuccessActionSheet
+            self.placeMark = state.placeMark
+            self.selectedPlace = state.selectedPlace
+            self.currentPlace = state.currentPlace
+            self.eventAddress = state.eventAddress
+            self.selectedDutaionButtons = state.selectedDutaionButtons
+            self.actionSheet = state.actionSheet
+            self.alert = state.alert
+            self.locationSearchState = state.locationSearchState
+            self.isPostRequestOnFly = state.isPostRequestOnFly
+            self.isEventCreatedSuccessfully = state.isEventCreatedSuccessfully
+            self.category = state.category
+            self.isSheetPresented = state.locationSearchState != nil
+            self.isAllFeildsAreValid = !state.title.isEmpty
+                && state.title.count > 3
+                && !state.eventAddress.isEmpty
+                && !state.durationRawValue.isEmpty
+                && !state.category.isEmpty
+
+            self.currentUser = state.currentUser
+            self.isLocationSearchNavigate = state.locationSearchState != nil
+        }
   }
 
-  public enum ViewAction: Equatable {
-    case didAppear
-    case didDisappear
-    case titleChanged(String)
-    case textFieldHeightChanged(CGFloat)
-    case selectedDurations(DurationButtons)
-    case selectedDurationIndex(Int)
-    case selectedCategory(AddaSharedModels.CategoryResponse)
-    case showCategorySheet(Bool)
-    case liveLocationToggleChanged(Bool)
-    case isSearchSheet(isPresented: Bool)
-    case locationSearch(LocationSearchAction)
+    public enum ViewAction: Equatable {
+        case onAppear
+        case onDisappear
+        case titleChanged(String)
+        case textFieldHeightChanged(CGFloat)
+        case selectedDurations(DurationButtons)
+        case selectedDurationIndex(Int)
+        case selectedCategory(AddaSharedModels.CategoryResponse)
+        case showCategorySheet(Bool)
+        case liveLocationToggleChanged(Bool)
+        case isLocationSearch(navigate: Bool)
+        case locationSearch(LocationSearch.Action)
 
-    case submitButtonTapped
-    case actionSheetButtonTapped
-    case actionSheetDismissed
-  }
+        case submitButtonTapped
+        case actionSheetButtonTapped
+        case actionSheetDismissed
+    }
 }
 
 public struct EventFormView: View {
-  @Environment(\.colorScheme) var colorScheme
+    @Environment(\.colorScheme) var colorScheme
+    let liveLocationNote = """
+    📍 we will use your curent location as your event location if you want to choice other place,
+    then please click and turn off to get new window for choice your EVENT location
+    """
 
-  public init(store: StoreOf<HangoutForm>) {
-    self.store = store
-  }
+    let store: StoreOf<HangoutForm>
 
-  let store: StoreOf<HangoutForm>
+      public init(store: StoreOf<HangoutForm>) {
+        self.store = store
+      }
 
-  public var body: some View {
-    WithViewStore(
-      self.store.scope(
-        state: { $0.view },
-        action: HangoutForm.Action.view
-      )
-    ) { viewStore in
-      ZStack(alignment: viewStore.state.isEventCreatedSuccessfully ? .top : .bottomTrailing) {
+    public var body: some View {
 
-        if viewStore.state.isPostRequestOnFly {
-          ProgressView()
-        }
+        //self.store, observe: ViewState.init, send: Hangouts.Action.init
 
-        Form {
+        WithViewStore(self.store, observe: ViewState.init, send: HangoutForm.Action.init) { viewStore in
+        
+        ZStack(alignment: viewStore.state.isEventCreatedSuccessfully ? .top : .bottomTrailing) {
 
-          Text("Create Event Form")
-            .font(.title)
-            .frame(maxWidth: .infinity, alignment: .center)
+            if viewStore.state.isPostRequestOnFly {
+                ProgressView()
+            }
 
-          Section {
-            HStack {
-              TextField(
-                "Title",
-                text: viewStore.binding(
-                  get: \.title,
-                  send: ViewAction.titleChanged
+            Form {
+                Section {
+
+                    VStack(alignment: .leading) {
+                        Text("I want to 👇🏼")
+                            .font(.title2).fontWeight(.medium)
+                            .padding(.top, 10)
+                            .padding(.bottom, -5)
+
+                        titleInput(viewStore)
+
+                        Text("Max of \(viewStore.maxTitleCharacters) Characters")
+                            .font(Font.system(size: 18, weight: .bold, design: .rounded))
+                            .foregroundColor(viewStore.maxTitleCharacters <= 27 ? Color.blue : Color(UIColor.systemRed))
+                            .padding(.top, -5)
+                    }
+
+                    HStack {
+
+                        Text("Event Duration")
+                            .font(.title).bold()
+
+                        Text(viewStore.durationRawValue)
+                            .font(.title).bold()
+                            .foregroundColor(Color.blue)
+                    }
+                    .padding(.vertical)
+
+                    Picker(
+                        "Duration",
+                        selection: viewStore.binding(
+                            get: \.selectedDutaionButtons,
+                            send: EventFormView.ViewAction.selectedDurations
+                        ).animation()
+                    ) {
+                        ForEach(DurationButtons.allCases, id: \.self) { button in
+                            Text(button.rawValue).tag(button)
+                        }
+                    }
+                    .pickerStyle(SegmentedPickerStyle())
+                    .padding(.vertical)
+
+                    Button {viewStore.send(.actionSheetButtonTapped)} label: {
+                        HStack {
+                            VStack(alignment: .leading) {
+                                Text("Select your")
+                                Text("Categoris")
+                            }
+                            Spacer()
+                            Text("⇡ \(viewStore.category)")
+                                .font(.title)
+                                .foregroundColor(
+                                    Color(
+                                        #colorLiteral(
+                                            red: 0.9154241085,
+                                            green: 0.2969468832,
+                                            blue: 0.2259359956,
+                                            alpha: 1)
+                                    )
+                                )
+                        }
+                        .padding(.vertical)
+                    }
+                    .confirmationDialog(
+                        self.store.scope(state: \.actionSheet),
+                        dismiss: .actionSheetDismissed
+                    )
+
+                    Toggle(
+                        isOn: viewStore.binding(
+                            get: \.liveLocationToggleisOn,
+                            send: EventFormView.ViewAction.liveLocationToggleChanged
+                        )
+                    ) {
+                        VStack(alignment: .leading) {
+                            Text("Event address")
+                                .font(.body)
+                                .fontWeight(.medium)
+                                .padding(.vertical, 3)
+
+
+                            Text("\(viewStore.state.eventAddress)")
+                                .padding(.bottom, 10)
+                                .onTapGesture {
+                                    viewStore.send(.isLocationSearch(navigate: true))
+                                }
+
+                        }
+                    }
+
+                    if viewStore.state.liveLocationToggleisOn {
+                        Text(liveLocationNote)
+                            .font(.system(size: 13, weight: .light, design: .rounded))
+                            .foregroundColor(Color.red)
+                            .padding([.top, .bottom], 10)
+                    }
+
+                    Spacer()
+                }
+            }
+            .padding(.top, 50)
+            .padding(.bottom, 50)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .gesture(
+                DragGesture().onChanged { _ in UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                }
+            )
+            .disabled(viewStore.state.isPostRequestOnFly)
+
+            if viewStore.state.isEventCreatedSuccessfully {
+                successfullyCreatedNoticeView(viewStore)
+                    .padding(.top, 30)
+            } else {
+                sendButton(viewStore)
+                    .padding(.bottom, 100)
+            }
+
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+          .onAppear { ViewStore(self.store).send(.onAppear) }
+          
+          .alert(self.store.scope(state: { $0.alert }), dismiss: .alertDismissed)
+          .navigationTitle("Hangout Form")
+          .navigationBarTitleDisplayMode(.inline)
+          .background(
+            NavigationLink(
+              destination: IfLetStore(
+                self.store.scope(
+                  state: \.locationSearchState,
+                  action: HangoutForm.Action.locationSearch
                 )
+              ) {
+                  LocationSearchView(store: $0)
+              },
+              isActive: viewStore.binding(
+                get: \.isLocationSearchNavigate,
+                send: { .isLocationSearch(navigate: $0) }
               )
-              .padding(5)
-              .font(Font.system(size: 25, weight: .medium, design: .serif))
-              // .hideKeyboardOnTap()
-              .lineLimit(3)
-              //              .background(
-              //                colorScheme == .dark ?
-              //                  Color(#colorLiteral(red: 0.2549019754, green: 0.2745098174, blue: 0.3019607961, alpha: 1))
-              //                  : Color(.systemGray6)
-              //              )
-              .foregroundColor(Color(UIColor.systemRed))
+            ) {}
+          )
+    //      .sheet(
+    //        store.scope(state: \.locationSearchState, action: HangoutForm.Action.locationSearch),
+    //        mapState: replayNonNil(),
+    //        onDismiss: { ViewStore(store.stateless).send(.isSearchSheet(isPresented: true)) },
+    //        content: LocationSearchView.init(store:)
+    //      )
+          .edgesIgnoringSafeArea(.all)
+
+        }
+    }
+
+    fileprivate func titleInput(_ viewStore: ViewStore<EventFormView.ViewState, EventFormView.ViewAction>) -> some View {
+
+        let isValid = viewStore.maxTitleCharacters <= 27
+
+        if #available(iOS 16.0, *) {
+            return TextField(
+                "Hangout Name",
+                text: viewStore.binding(
+                    get: \.title,
+                    send: EventFormView.ViewAction.titleChanged
+                )
+                .removeDuplicates(),
+                axis: .vertical
+            )
+            .padding()
+            .padding(.leading, -5)
+            .font(Font.system(size: 25, weight: .medium, design: .serif))
+            .lineLimit(2)
+            .background(
+              colorScheme == .dark ?
+              Color(#colorLiteral(red: 0.2549019754, green: 0.2745098174, blue: 0.3019607961, alpha: 1))
+              : Color(.systemGray6)
+            )
+            .foregroundColor(isValid ? Color.blue : Color(UIColor.systemRed))
+            .accentColor(Color.green)
+            .overlay(
+              RoundedRectangle(cornerRadius: 10)
+                .stroke(isValid ? Color.blue : Color(UIColor.systemRed), lineWidth: 1)
+            )
+            .padding(.vertical, 10)
+
+        } else {
+            return TextViewFromUIKit(
+                text: viewStore.binding(
+                    get: \.title,
+                    send: EventFormView.ViewAction.titleChanged
+                )
+                .removeDuplicates()
+              )
+              .padding(.leading, 5)
+              .padding(.top, 5)
+              .padding(.bottom, -5)
+              .background(
+                colorScheme == .dark ?
+                Color(#colorLiteral(red: 0.2549019754, green: 0.2745098174, blue: 0.3019607961, alpha: 1))
+                : Color(.systemGray6)
+              )
+              .foregroundColor(isValid ? Color.blue : Color(UIColor.systemRed))
               .accentColor(Color.green)
-//              .textFieldStyle(.roundedBorder)
               .overlay(
                 RoundedRectangle(cornerRadius: 10)
-                  .stroke(Color.gray, lineWidth: 1)
+                    .stroke(isValid ? Color.blue : Color(UIColor.systemRed), lineWidth: 1)
               )
-            }
-            .padding(.vertical)
-
-            HStack {
-              Text("Event Duration")
-                .font(.title).bold()
-
-              Text(viewStore.durationRawValue)
-                .font(.title).bold()
-                .foregroundColor(
-                  Color(
-                    #colorLiteral(
-                      red: 0.9154241085, green: 0.2969468832, blue: 0.2259359956, alpha: 1)))
-            }
-            .padding(.vertical)
-
-            Picker(
-              "Duration",
-              selection: viewStore.binding(
-                get: \.selectedDutaionButtons,
-                send: ViewAction.selectedDurations
-              ).animation()
-            ) {
-              ForEach(DurationButtons.allCases, id: \.self) { button in
-                Text(button.rawValue).tag(button)
-              }
-            }
-            .pickerStyle(SegmentedPickerStyle())
-            .padding(.vertical)
-
-            Button {
-              viewStore.send(.actionSheetButtonTapped)
-            } label: {
-              HStack {
-                VStack(alignment: .leading) {
-                  Text("Select your")
-                  Text("Categoris")
-                }
-                Spacer()
-                Text("⇡ \(viewStore.category)")
-//                  .font(.title)
-//                  .foregroundColor(
-//                    Color(
-//                      #colorLiteral(
-//                        red: 0.9154241085,
-//                        green: 0.2969468832,
-//                        blue: 0.2259359956,
-//                        alpha: 1)
-//                    )
-//                  )
-              }
-              .padding(.vertical)
-            }
-            .confirmationDialog(
-              self.store.scope(state: \.actionSheet),
-              dismiss: .actionSheetDismissed
-            )
-
-            Toggle(
-              isOn: viewStore.binding(
-                get: \.liveLocationToggleisOn,
-                send: ViewAction.liveLocationToggleChanged
-              )
-            ) {
-              HStack {
-                VStack(alignment: .leading) {
-                  Text("Your event address \(viewStore.state.eventAddress)" as String)
-                    .onTapGesture {
-                      viewStore.send(.isSearchSheet(isPresented: true))
-                    }
-                }
-                Spacer()
-                Text("\(viewStore.state.liveLocationToggleisOn ? "  On" : "  Off")").font(.title)
-              }
-            }
-
-            if viewStore.state.liveLocationToggleisOn {
-              // swiftlint:disable line_length
-              Text(
-                "📍 we will use your curent location as your event location if you want to choice other place then please click and turn off to get new window for choice your EVENT location"
-              )
-              .font(.system(size: 13, weight: .light, design: .rounded))
-              .foregroundColor(Color.red)
-              .padding([.top, .bottom], 10)
-            }
-          }
+              .padding(.vertical, 10)
         }
-        .padding(.bottom, 20)
-        .disabled(viewStore.state.isPostRequestOnFly)
-
-        if viewStore.state.isEventCreatedSuccessfully {
-          successfullyCreatedNoticeView(viewStore)
-        } else {
-          sendButton(viewStore)
-        }
-      }
-      .alert(self.store.scope(state: { $0.alert }), dismiss: .alertDismissed)
-      .navigationTitle("Event Form")
-      .navigationBarTitleDisplayMode(.inline)
-      .onAppear {
-        viewStore.send(.didAppear)
-      }
-      .sheet(
-        store.scope(state: \.locationSearchState, action: HangoutForm.Action.locationSearch),
-        mapState: replayNonNil(),
-        onDismiss: { ViewStore(store.stateless).send(.isSearchSheet(isPresented: true)) },
-        content: LocationSearchView.init(store:)
-      )
-      .edgesIgnoringSafeArea(.all)
     }
-  }
 
-  fileprivate func sendButton(
-    _ viewStore: ViewStore<EventFormView.ViewState, EventFormView.ViewAction>
-  ) -> some View {
+    fileprivate func sendButton(_ viewStore: ViewStore<EventFormView.ViewState, EventFormView.ViewAction>) -> some View {
     return VStack {
       Button {
         viewStore.send(.submitButtonTapped)
       } label: {
-        if viewStore.state.isAllFeildsAreValid {
+        if viewStore.isAllFeildsAreValid {
           HStack(spacing: 10) {
             Text("Submit")
               .foregroundColor(.white)
-              .padding(.leading, 10)
-
-            Image(systemName: "chevron.right")
-              .padding(.trailing, 8)
-              .font(.system(size: 30, weight: .bold, design: .rounded))
-              .foregroundColor(.white)
+              .padding(.horizontal, 10)
           }
           .font(.system(size: 26, weight: .bold, design: .rounded))
           .padding(10)
 
-        } else {
-          Image(systemName: "dot.circle")
-            .foregroundColor(.white)
-            .padding()
-            .background(Color.red)
         }
       }
-      .background(viewStore.state.isAllFeildsAreValid ? Color.blue : Color.red)
-      .clipShape(viewStore.state.isAllFeildsAreValid ? AnyShape(Capsule()) : AnyShape(Circle()))
+      .background(viewStore.isAllFeildsAreValid ? Color.blue : Color.red)
+      .clipShape(viewStore.isAllFeildsAreValid ? AnyShape(Capsule()) : AnyShape(Circle()))
       .animation(.default)
-      .disabled(!viewStore.state.isAllFeildsAreValid)
-      .opacity(!viewStore.state.isAllFeildsAreValid && !viewStore.isPostRequestOnFly ? 0 : 1)
+      .disabled(!viewStore.isAllFeildsAreValid)
+      .opacity(!viewStore.isAllFeildsAreValid && !viewStore.isPostRequestOnFly ? 0 : 1)
       .overlay(
         ActivityIndicator()
           .frame(maxWidth: .infinity)
@@ -288,9 +371,7 @@ public struct EventFormView: View {
     }
   }
 
-  fileprivate func successfullyCreatedNoticeView(
-    _ viewStore: ViewStore<EventFormView.ViewState, EventFormView.ViewAction>
-  ) -> some View {
+  fileprivate func successfullyCreatedNoticeView(_ viewStore: ViewStore<EventFormView.ViewState, EventFormView.ViewAction>) -> some View {
     VStack(alignment: .leading, spacing: 16) {
       VStack {
         HStack {
@@ -318,13 +399,13 @@ public struct EventFormView: View {
 
 struct EventFormView_Previews: PreviewProvider {
     static var store = Store(
-        initialState: HangoutForm.State(),
+        initialState: HangoutForm.State.validEventForm,
         reducer: HangoutForm()
     )
 
   static var previews: some View {
-    Text("Background").sheet(isPresented: .constant(true)) {
-      EventFormView(store: store)
+    NavigationView {
+        EventFormView(store: store)
     }
   }
 }

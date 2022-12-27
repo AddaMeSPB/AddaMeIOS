@@ -44,7 +44,7 @@ public class ImageLoader: ObservableObject {
         receiveCancel: { self.onFinished() }
       )
       .subscribe(on: Self.imageProcessingQueue)
-      .receive(on: RunLoop.main)
+      .receive(on: DispatchQueue.main)
       .delay(for: 6, scheduler: DispatchQueue.main)
       .sink(receiveValue: { [weak self] result in
         self?.image = result

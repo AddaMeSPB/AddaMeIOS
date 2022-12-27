@@ -14,50 +14,39 @@ import AddaSharedModels
 import BSON
 
 extension HangoutForm.State {
+
+   private static var placeMarkDemo: Placemark {
+        let location = CLLocationCoordinate2D(latitude: 60.02071653, longitude: 30.38745188)
+        let mkPlacemark = MKPlacemark(coordinate: location)
+        let mk = MKMapItem(placemark: mkPlacemark)
+        let placemark = Placemark(rawValue: mk.placemark)
+        return placemark
+    }
+
   public static let validEventForm = Self(
-    title: "Walk around",
+    title: "",
     durationRawValue: "7200",
-    eventAddress: "188839, Первомайское, СНТ Славино-2 Поселок, 31 Первомайское Россия", isPostRequestOnFly: false,
-    isEventCreatedSuccessfully: false
+    placeMark: placeMarkDemo,
+    eventAddress: "188839, Первомайское, СНТ Славино-2 Поселок, 31 Первомайское Россия",
+    categories: .init(uniqueElements: [CategoryResponse.exploreAreaDraff]),
+//        CategoryResponse.exploreAreaDraff,
+//        CategoryResponse.lookingForAcompanyDraff,
+//        CategoryResponse.runningDraff
+//    ],
+    isPostRequestOnFly: false,
+    isEventCreatedSuccessfully: true,
+    currentUser: .demo
   )
 
-  public static let inValidEventForm = Self(
+  public static let invalidEventForm = Self(
     title: "Walk around Walk around Walk around Walk around Walk around",
     durationRawValue: "4hr",
+    placeMark: placeMarkDemo,
+    eventAddress: "",
     isPostRequestOnFly: false,
-    isEventCreatedSuccessfully: false
+    isEventCreatedSuccessfully: false,
+    currentUser: .demo
   )
 }
 
 extension CategoryResponse: Identifiable {}
-
-
-extension HangoutForm.State {
-  var view: EventFormView.ViewState {
-    EventFormView.ViewState(
-      title: title,
-      textFieldHeight: textFieldHeight,
-      durationRawValue: durationRawValue,
-      selectedDurationIndex: selectedDurationIndex,
-      selectedCateforyID: selectedCateforyID,
-      showCategorySheet: showCategorySheet,
-      liveLocationToggleisOn: liveLocationToggleisOn,
-      moveMapView: moveMapView,
-      selectLocationtoggleisOn: selectLocationtoggleisOn,
-      selectedTag: selectedTag,
-      showSuccessActionSheet: showSuccessActionSheet,
-      placeMark: placeMark,
-      selectedPlace: selectedPlace,
-      currentPlace: currentPlace,
-      eventAddress: eventAddress,
-      selectedDutaionButtons: selectedDutaionButtons,
-      actionSheet: actionSheet,
-      alert: alert,
-      locationSearchState: locationSearchState,
-      isPostRequestOnFly: isPostRequestOnFly,
-      isEventCreatedSuccessfully: isEventCreatedSuccessfully,
-      category: category,
-      currentUser: currentUser
-    )
-  }
-}

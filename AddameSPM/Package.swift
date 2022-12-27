@@ -453,6 +453,7 @@ let package = Package(
         .product(name: "ComposablePresentation", package: "swift-composable-presentation"),
         .product(name: "AddaSharedModels", package: "AddaSharedModels"),
         .product(name: "CommonTCALibraries", package: "CommonTCALibraries"),
+        .product(name: "ComposableCoreLocation", package: "composable-core-location"),
         "ComposableArchitectureHelpers"
       ]
     ),
@@ -484,6 +485,7 @@ let package = Package(
             .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
             .product(name: "CommonTCALibraries", package: "CommonTCALibraries"),
             .product(name: "ComposableCoreLocation", package: "composable-core-location"),
+            "AddaSharedModels"
         ]
     )
 

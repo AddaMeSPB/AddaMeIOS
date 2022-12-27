@@ -9,21 +9,7 @@ import ComposableArchitecture
 import MapKit
 import SwiftUI
 
-public enum LocationSearchAction: Equatable, Hashable {
-  case onAppear
-  case onDisappear
-  case searchTextInputChanged(String)
-  case textFieldHeightChanged(CGFloat)
-  case isEditing(Bool)
-  case locationSearchManager(LocalSearchManager.Action)
-  case cleanSearchText(Bool)
-  case didSelect(address: MKLocalSearchCompletion)
-  case pointOfInterest(index: LocationSearchState.ID, address: MKLocalSearchCompletion)
-
-  case eventCoordinate(Result<CLPlacemark, Never>)
-}
-
-extension LocationSearchAction {
+extension LocationSearch.Action {
   // swiftlint:disable cyclomatic_complexity superfluous_disable_command
   static func view(_ localAction: LocationSearchView.ViewAction) -> Self {
     switch localAction {
@@ -31,6 +17,8 @@ extension LocationSearchAction {
       return onAppear
     case .onDisappear:
       return onDisappear
+    case .alertDismissed:
+        return alertDismissed
     case let .searchTextInputChanged(inputText):
       return searchTextInputChanged(inputText)
     case let .textFieldHeightChanged(height):
@@ -45,6 +33,10 @@ extension LocationSearchAction {
       return .didSelect(address: results)
     case let .pointOfInterest(index: index, address: address):
       return .pointOfInterest(index: index, address: address)
+    case .region(let cr):
+        return .region(cr)
+    case .backToformView:
+        return .backToformView
     }
   }
 }

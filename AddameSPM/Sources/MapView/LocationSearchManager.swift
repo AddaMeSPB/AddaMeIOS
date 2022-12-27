@@ -27,19 +27,19 @@ public struct LocalSearchManager {
     }
   }
 
-  var create:
-    (
-      AnyHashable, MKLocalSearchCompleter.ResultType
-    ) -> Effect<Action, Never> = { _, _ in _unimplemented("create") }
+  var create: (AnyHashable, MKLocalSearchCompleter.ResultType, CLLocationCoordinate2D, CLLocationDistance) -> Effect<Action, Never> = { _, _, _, _ in _unimplemented("create") }
 
   var destroy: (AnyHashable) -> Effect<Never, Never> = { _ in _unimplemented("destroy") }
 
   var query: (AnyHashable, String) -> Effect<Never, Never> = { _, _ in _unimplemented("query") }
 
-  public func create(id: AnyHashable, resultTypes: MKLocalSearchCompleter.ResultType) -> Effect<
-    Action, Never
-  > {
-    create(id, resultTypes)
+  public func create(
+    id: AnyHashable,
+    resultTypes: MKLocalSearchCompleter.ResultType,
+    center: CLLocationCoordinate2D,
+    radius: CLLocationDistance
+  ) -> Effect<Action, Never> {
+    create(id, resultTypes, center, radius)
   }
 
   public func destroy(id: AnyHashable) -> Effect<Never, Never> {
@@ -56,12 +56,16 @@ extension LocalSearchManager {
 
     var manager = LocalSearchManager()
 
-    manager.create = { id, resultTypes in
+    manager.create = { id, resultTypes, center, radius in
       .run { subscriber in
         let localSearchCompleter = MKLocalSearchCompleter()
+
         let delegate = LocalSearchManagerDelegate(subscriber)
         localSearchCompleter.resultTypes = resultTypes
         localSearchCompleter.delegate = delegate
+        localSearchCompleter.region = MKCoordinateRegion(center: center,
+                                                      latitudinalMeters: radius,
+                                                      longitudinalMeters: radius)
 
         dependencies[id] = Dependencies(
           delegate: delegate,
@@ -142,4 +146,44 @@ public func _unimplemented(
     file: file,
     line: line
   )
+}
+
+final class LocalSearchService {
+    let localSearchPublisher = PassthroughSubject<[MKMapItem], Never>()
+    private let center: CLLocationCoordinate2D
+    private let radius: CLLocationDistance
+
+    init(in center: CLLocationCoordinate2D,
+         radius: CLLocationDistance = 350_000) {
+        self.center = center
+        self.radius = radius
+    }
+
+    public func searchCities(searchText: String) {
+        request(resultType: .address, searchText: searchText)
+    }
+
+    public func searchPointOfInterests(searchText: String) {
+        request(searchText: searchText)
+    }
+
+    private func request(resultType: MKLocalSearch.ResultType = .pointOfInterest,
+                         searchText: String) {
+        let request = MKLocalSearch.Request()
+        request.naturalLanguageQuery = searchText
+        request.pointOfInterestFilter = .includingAll
+        request.resultTypes = resultType
+        request.region = MKCoordinateRegion(center: center,
+                                            latitudinalMeters: radius,
+                                            longitudinalMeters: radius)
+        let search = MKLocalSearch(request: request)
+
+        search.start { [weak self](response, _) in
+            guard let response = response else {
+                return
+            }
+
+            self?.localSearchPublisher.send(response.mapItems)
+        }
+    }
 }

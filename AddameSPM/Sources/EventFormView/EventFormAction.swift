@@ -15,36 +15,37 @@ import BSON
 
 extension HangoutForm.Action {
   // swiftlint:disable cyclomatic_complexity
-  static func view(_ localAction: EventFormView.ViewAction) -> Self {
-    switch localAction {
-    case .didAppear:
-      return didAppear
-    case .didDisappear:
-      return didDisappear
+ init(action: EventFormView.ViewAction) {
+    switch action {
+    case .onAppear:
+      self = .onAppear
+    case .onDisappear:
+      self = .onDisappear
     case let .titleChanged(string):
-      return titleChanged(string)
+      self = .titleChanged(string)
     case let .textFieldHeightChanged(value):
-      return textFieldHeightChanged(value)
+      self = .textFieldHeightChanged(value)
     case let .selectedDurations(duration):
-      return selectedDurations(duration)
+      self = .selectedDurations(duration)
     case let .selectedDurationIndex(int):
-      return selectedDurationIndex(int)
+      self = .selectedDurationIndex(int)
     case let .selectedCategory(category):
-        return selectedCategory(category)
+        self = .selectedCategory(category)
     case let .showCategorySheet(isPresent):
-      return showCategorySheet(isPresent)
+      self = .showCategorySheet(isPresent)
     case let .liveLocationToggleChanged(liveLocationEnabled):
-      return liveLocationToggleChanged(liveLocationEnabled)
-    case let .isSearchSheet(isPresented: isPresented):
-      return isSearchSheet(isPresented: isPresented)
+      self = .liveLocationToggleChanged(liveLocationEnabled)
+    case let .isLocationSearch(navigate: active):
+      self = .isLocationSearch(navigate: active)
     case let .locationSearch(action):
-      return locationSearch(action)
+      self = .locationSearch(action)
     case .submitButtonTapped:
-      return .submitButtonTapped
+      self = .submitButtonTapped
     case .actionSheetButtonTapped:
-      return actionSheetButtonTapped
+      self = .actionSheetButtonTapped
     case .actionSheetDismissed:
-      return actionSheetDismissed
+      self = .actionSheetDismissed
+
     }
   }
 }

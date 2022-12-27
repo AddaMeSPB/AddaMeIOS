@@ -60,7 +60,7 @@ extension HangoutsView {
             self.myEvent = state.myEvent
             self.event = state.event
             self.hangoutFormState = state.hangoutFormState
-            self.isHangoutNavigationActive = state.isHangoutNavigationActive
+            self.isHangoutNavigationActive = state.hangoutFormState != nil
             self.locationState = state.locationState
         }
 
@@ -126,9 +126,7 @@ public struct HangoutsView: View {
         self.store = store
     }
 
-    public func locationAndLoadingStatus(
-        viewStore: ViewStore<HangoutsView.ViewState, HangoutsView.ViewAction>
-    ) -> some View {
+    public func locationAndLoadingStatus(viewStore: ViewStore<HangoutsView.ViewState, HangoutsView.ViewAction>) -> some View {
 
         return HStack {
             ActivityIndicator()
@@ -158,9 +156,7 @@ public struct HangoutsView: View {
 
     }
 
-    public func isLocationAuthorizedView(
-        viewStore: ViewStore<HangoutsView.ViewState, HangoutsView.ViewAction>
-    ) -> some View {
+    public func isLocationAuthorizedView(viewStore: ViewStore<HangoutsView.ViewState, HangoutsView.ViewAction>) -> some View {
 
         return VStack {
             Text("""
@@ -190,7 +186,7 @@ public struct HangoutsView: View {
     }
 
     public var body: some View {
-        // self.store, observe: ViewState.init, send: NewGame.Action.init
+
         WithViewStore(self.store, observe: ViewState.init, send: Hangouts.Action.init) { viewStore in
 
             ZStack(alignment: .bottomTrailing) {
@@ -268,10 +264,9 @@ public struct HangoutsView: View {
                   ) {
                       EventFormView(store: $0)
                   },
-//                  viewStore.binding(\.$property, as:\.viewStateProperty)
                   isActive: viewStore.binding(
                     get: \.isHangoutNavigationActive,
-                    send: Hangouts.Action.hangoutFormView(isNavigate:)
+                    send: { .hangoutFormView(isNavigate: $0) }
                   )
                 ) {}
             )
@@ -308,9 +303,7 @@ public struct HangoutsView: View {
 //        )
     }
 
-    private func toolbarItemTrailingButton(
-        _ viewStore: ViewStore<HangoutsView.ViewState, HangoutsView.ViewAction>
-    ) -> some View {
+    private func toolbarItemTrailingButton(_ viewStore: ViewStore<HangoutsView.ViewState, HangoutsView.ViewAction>) -> some View {
         Button {
             viewStore.send(.hangoutFormView(isNavigate: true))
         } label: {
@@ -381,17 +374,4 @@ struct EventsListView: View {
             }
         }
     }
-}
-
-public extension ViewStore {
-  func binding<ParentState, Value>(
-    _ parentKeyPath: WritableKeyPath<ParentState, BindableState<Value>>,
-    as keyPath: KeyPath<State, Value>
-  ) -> Binding<Value>
-    where Action: BindableAction, Action.State == ParentState, Value: Equatable {
-    binding(
-      get: { $0[keyPath: keyPath] },
-      send: { .binding(.set(parentKeyPath, $0)) }
-    )
-  }
 }

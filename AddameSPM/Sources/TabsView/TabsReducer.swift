@@ -110,7 +110,13 @@ public struct TabReducer: ReducerProtocol {
             return .none
         case .tabViewIsHidden(_):
             return .none
-        case .hangouts(_):
+
+        case let .hangouts(.hangoutFormView(isNavigate: active)):
+            state.isHidden = active
+            
+//            UITabBar.appearance().isHidden = active
+            return .none
+        case .hangouts:
             return .none
         case .conversations(_):
             return .none

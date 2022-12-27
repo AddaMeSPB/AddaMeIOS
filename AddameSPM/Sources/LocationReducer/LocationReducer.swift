@@ -1,6 +1,12 @@
 import ComposableArchitecture
 import CoreLocation
 import ComposableCoreLocation
+import MapKit
+import AddaSharedModels
+
+extension String: LocalizedError {
+    public var errorDescription: String? { return self }
+}
 
 extension LocationManager: TestDependencyKey {
     public static let previewValue: Self = .live
@@ -29,7 +35,7 @@ public struct LocationReducer: ReducerProtocol {
         public var isRequestingCurrentLocation = false
         public var isConnected = false
         public var location: Location? = nil
-        public var placeMark: CLPlacemark? = nil
+        public var placeMark: Placemark? = nil
 
         public init(coordinate: CLLocation? = nil) {
             self.coordinate = coordinate
@@ -43,7 +49,7 @@ public struct LocationReducer: ReducerProtocol {
         case getLocation
         case askLocationPermission
         case tearDown
-        case placeMarkResponse(TaskResult<CLPlacemark>)
+        case placeMarkResponse(TaskResult<Placemark>)
     }
 
     @Dependency(\.locationManager) var locationManager
@@ -53,73 +59,17 @@ public struct LocationReducer: ReducerProtocol {
 
     public func reduce(into state: inout State, action: Action) -> Effect<Action, Never> {
 
-//        var requestLocation: Effect<Action, Never> {
-//          guard locationManager.locationServicesEnabled() else {
-////            state.alert = .init(title: TextState("Location services are turned off."))
-////            state.waitingForUpdateLocation = false
-//            return .none
-//          }
-//
-//          switch locationManager.authorizationStatus() {
-//          case .notDetermined:
-//            state.isRequestingCurrentLocation = true
-//            state.waitingForUpdateLocation = true
-//            #if os(macOS)
-//              return environment.locationManager
-//                .requestAlwaysAuthorization()
-//                .fireAndForget()
-//            #else
-//              return locationManager
-//                .requestWhenInUseAuthorization()
-//                .fireAndForget()
-//            #endif
-//
-//          case .restricted:
-//              state.isLocationAuthorized = false
-//            return .none
-//
-//          case .denied:
-//              state.isLocationAuthorized = false
-//            return .none
-//
-//          case .authorizedAlways, .authorizedWhenInUse:
-//            state.isLocationAuthorized = true
-//            state.isConnected = true
-//            state.waitingForUpdateLocation = false
-//
-////            return locationManager.set(
-////                activityType: nil,//CLActivityType? = nil,
-////                allowsBackgroundLocationUpdates: true,
-////                desiredAccuracy: kCLLocationAccuracyBest,//CLLocationAccuracy? = nil,
-////                distanceFilter: 20,//CLLocationDistance? = nil,
-////                headingFilter: nil,//CLLocationDegrees? = nil,
-////                headingOrientation: nil,// CLDeviceOrientation? = nil,
-////                pausesLocationUpdatesAutomatically: false,//Bool? = nil,
-////                showsBackgroundLocationIndicator: false //Bool? = nil
-////            )
-////            .fireAndForget()
-//
-//              return locationManager
-//                  .startUpdatingLocation()
-//                  .fireAndForget()
-//
-//          @unknown default:
-//            return .none
-//          }
-//        }
+        @Sendable func getPlacemark(_ location: Location) async throws -> Placemark {
 
-        @Sendable func getPlacemark(_ location: Location) async throws -> CLPlacemark {
-
-          let address = CLGeocoder()
-          let placeMarks = try await address.reverseGeocodeLocation(
-            CLLocation(
-              latitude: location.coordinate.latitude,
-              longitude: location.coordinate.longitude
-            )
-          )
-
-          return placeMarks[0]
-      }
+            do {
+                let address = CLGeocoder()
+                let placemarks = try await address.reverseGeocodeLocation(location.rawValue)
+                let new_placemark: MKPlacemark = MKPlacemark(placemark: placemarks[0])
+                return Placemark(rawValue: new_placemark)
+            } catch {
+                throw("Placemark is empty")
+            }
+        }
 
         enum LocationManagerId {}
 
@@ -133,25 +83,17 @@ public struct LocationReducer: ReducerProtocol {
         case let .locationManager(.didUpdateLocations(locations)):
             state.isRequestingCurrentLocation = false
             guard let location = locations.first else { return .none }
-            let coordinate = location.coordinate
             state.location = location
 
-            state.coordinate = .init(latitude: coordinate.latitude, longitude: coordinate.longitude)
-
-            return  .task {
+            return .task {
                 .placeMarkResponse(
                   await TaskResult {
                       try await getPlacemark(location)
+
+                      //await send(.locationManager(.didEnterRegion() ))
                   }
                 )
             }
-
-        case .placeMarkResponse(.success(let plackMark)):
-            state.placeMark = plackMark
-            return .none
-
-        case .placeMarkResponse(.failure(_)):
-            return .none
 
         case let .locationManager(.didChangeAuthorization(clAuthorizationStatus)):
             if clAuthorizationStatus != .notDetermined {
@@ -175,81 +117,87 @@ public struct LocationReducer: ReducerProtocol {
             }
 
             return .none
-
+            
         case .locationManager:
             return .none
 
         case .delegate:
             return locationManager.delegate()
-                    .map(Action.locationManager)
-                    .cancellable(id: LocationManagerId.self)
+                .map(Action.locationManager)
+                .cancellable(id: LocationManagerId.self)
 
         case .tearDown:
             return .cancel(id: LocationManagerId.self)
 
         case .askLocationPermission:
-          #if os(macOS)
+            #if os(macOS)
             return locationManager
-              .requestAlwaysAuthorization()
-              .fireAndForget()
-          #else
+                .requestAlwaysAuthorization()
+                .fireAndForget()
+            #else
             return locationManager
-              .requestWhenInUseAuthorization()
-              .fireAndForget()
-          #endif
+                .requestWhenInUseAuthorization()
+                .fireAndForget()
+            #endif
 
         case .getLocation:
             switch locationManager.authorizationStatus() {
             case .notDetermined:
-               state.isRequestingCurrentLocation = true
-               state.waitingForUpdateLocation = true
+                state.isRequestingCurrentLocation = true
+                state.waitingForUpdateLocation = true
 
-              #if os(macOS)
+                #if os(macOS)
                 return locationManager
-                  .requestAlwaysAuthorization()
-                  .fireAndForget()
-              #else
+                    .requestAlwaysAuthorization()
+                    .fireAndForget()
+                #else
                 return locationManager
-                  .requestWhenInUseAuthorization()
-                  .fireAndForget()
-              #endif
+                    .requestWhenInUseAuthorization()
+                    .fireAndForget()
+                #endif
 
             case .restricted, .denied:
-              state.isLocationAuthorized = false
-              state.alert = .init(title: TextState("Please give us access to your location in settings."))
-              return .none
+                state.isLocationAuthorized = false
+                state.alert = .init(title: TextState("Please give us access to your location in settings."))
+                return .none
 
             case .authorizedAlways, .authorizedWhenInUse:
                 state.isLocationAuthorized = true
                 state.isConnected = true
                 state.waitingForUpdateLocation = false
 
-//                return locationManager.set(
-//                    activityType: nil,//CLActivityType? = nil,
-//                    allowsBackgroundLocationUpdates: true,
-//                    desiredAccuracy: nil,//CLLocationAccuracy? = nil,
-//                    distanceFilter: 20,//CLLocationDistance? = nil,
-//                    headingFilter: nil,//CLLocationDegrees? = nil,
-//                    headingOrientation: nil,// CLDeviceOrientation? = nil,
-//                    pausesLocationUpdatesAutomatically: false,//Bool? = nil,
-//                    showsBackgroundLocationIndicator: false //Bool? = nil
-//                )
-//                .fireAndForget()
-
-//                locationManager.startUpdatingLocation()
-//                locationManager.allowsBackgroundLocationUpdates = true
-//                locationManager.pausesLocationUpdatesAutomatically = false
-//                locationManager.desiredAccuracy = kCLLocationAccuracyBest
-//                locationManager.distanceFilter = 20.0 // 20.0 meters
+                //  return locationManager.set(
+                //      activityType: nil,//CLActivityType? = nil,
+                //      allowsBackgroundLocationUpdates: true,
+                //      desiredAccuracy: nil,//CLLocationAccuracy? = nil,
+                //      distanceFilter: 20,//CLLocationDistance? = nil,
+                //      headingFilter: nil,//CLLocationDegrees? = nil,
+                //      headingOrientation: nil,// CLDeviceOrientation? = nil,
+                //      pausesLocationUpdatesAutomatically: false,//Bool? = nil,
+                //      showsBackgroundLocationIndicator: false //Bool? = nil
+                //  )
+                //  .fireAndForget()
+                //  locationManager.startUpdatingLocation()
+                //  locationManager.allowsBackgroundLocationUpdates = true
+                //  locationManager.pausesLocationUpdatesAutomatically = false
+                //  locationManager.desiredAccuracy = kCLLocationAccuracyBest
+                //  locationManager.distanceFilter = 20.0 // 20.0 meters
 
                 return locationManager
                     .startUpdatingLocation()
                     .fireAndForget()
 
             @unknown default:
-              return .none
+                return .none
             }
 
+        case let .placeMarkResponse(.success(placemarkNewValue)):
+            state.placeMark = placemarkNewValue
+            return .cancel(id: LocationManagerId.self)
+
+        case .placeMarkResponse(.failure):
+            // handle error
+            return .none
         }
     }
 

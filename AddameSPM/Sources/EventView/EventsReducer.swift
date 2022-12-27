@@ -59,7 +59,7 @@ public struct Hangouts: ReducerProtocol {
 
         public var alert: AlertState<Hangouts.Action>?
         public var isConnected = true
-        public var isLoadingPage = false
+        public var isLoadingPage = true
         public var isLoadingMyEvent = false
         public var canLoadMorePages = true
         public var isMovingChatRoom: Bool = false
@@ -104,12 +104,9 @@ public struct Hangouts: ReducerProtocol {
 
         case fetchEventOnAppear
         case fetchMoreEventsIfNeeded(item: EventResponse?)
-        case addressResponse(Result<String, Never>)
-
         case currentLocationButtonTapped
         case locationManager(LocationManager.Action)
         case eventsResponse(TaskResult<EventsResponse>)
-        case eventPlacemarkResponse(Result<CLPlacemark, Never>)
         case eventTapped(EventResponse)
         case myEventsResponse(TaskResult<EventsResponse>)
 
@@ -124,12 +121,11 @@ public struct Hangouts: ReducerProtocol {
     @Dependency(\.userDefaults) var userDefaults
     @Dependency(\.keychainClient) var keychainClient
     @Dependency(\.apiClient) var apiClient
+    @Dependency(\.build) var build
 
     public init() {}
 
-
     enum LocationManagerId: Hashable {}
-
 
     public var body: some ReducerProtocol<State, Action> {
 
@@ -138,49 +134,52 @@ public struct Hangouts: ReducerProtocol {
         }
 
         Reduce(self.core)
+            .ifLet(\.hangoutFormState, action: /Hangouts.Action.hangoutForm) {
+                HangoutForm()
+            }
     }
 
     func core(state: inout State, action: Action) -> EffectTask<Action> {
 
-          var fetchEvents: Effect<Action, Never> {
-            guard state.isConnected && state.canLoadMorePages,
-                  let location = state.locationState.location
-            else {
-              return .none
-            }
+        var fetchEvents: Effect<Action, Never> {
+        guard state.isConnected && state.canLoadMorePages,
+                let location = state.locationState.location
+        else {
+            return .none
+        }
 
-            let getDistanceType = userDefaults.integerForKey("typee") //userDefaults.integerForKey("typee")
-            let maxDistance = getDistanceType == 0 ? (300 * 1000) : (300 / 1.609) * 1609
-            let distanceType: String = getDistanceType == 0 ? "kilometers" : "miles"
-            let getDistance = userDefaults.doubleForKey("distanceType")
-            var distanceInMeters: Double = 0.0
+        let getDistanceType = userDefaults.integerForKey("typee") //userDefaults.integerForKey("typee")
+        let maxDistance = getDistanceType == 0 ? (300 * 1000) : (300 / 1.609) * 1609
+        let distanceType: String = getDistanceType == 0 ? "kilometers" : "miles"
+        let getDistance = userDefaults.doubleForKey("distanceType")
+        var distanceInMeters: Double = 0.0
 
-            if getDistance != 0.0 {
-              if getDistanceType == 0 {
-                distanceInMeters = getDistance * 1000
-              } else {
-                distanceInMeters = getDistance * 1609
-              }
+        if getDistance != 0.0 {
+            if getDistanceType == 0 {
+            distanceInMeters = getDistance * 1000
             } else {
-              if distanceType == "kilometers" {
-                distanceInMeters = maxDistance
-              } else {
-                distanceInMeters = maxDistance
-              }
+            distanceInMeters = getDistance * 1609
             }
+        } else {
+            if distanceType == "kilometers" {
+            distanceInMeters = maxDistance
+            } else {
+            distanceInMeters = maxDistance
+            }
+        }
 
-              let lat = location.coordinate.latitude
-              let long = location.coordinate.longitude
+            let lat = location.coordinate.latitude
+            let long = location.coordinate.longitude
 
-              let query = EventPageRequest(
-                  page: state.currentPage,
-                  par: 10,
-                  lat: lat, long: long,
-                  distance: distanceInMeters
-              )
+            let query = EventPageRequest(
+                page: state.currentPage,
+                par: 10,
+                lat: lat, long: long,
+                distance: distanceInMeters
+            )
 
-              return  .task {
-                  .eventsResponse(
+            return  .task {
+                .eventsResponse(
                     await TaskResult {
                         try await apiClient.request(
                             for: .eventEngine(.events(.list(query: query))),
@@ -188,17 +187,16 @@ public struct Hangouts: ReducerProtocol {
                             decoder: .iso8601
                         )
                     }
-                  )
-              }
-          }
-
-
+                )
+            }
+        }
 
         switch action {
         case .onAppear:
+
             return .run { send in
                 await send(.location(.callDelegateThenGetLocation))
-                try await self.mainQueue.sleep(for: .seconds(2))
+                try await self.mainQueue.sleep(for: .seconds(0.3))
                 await send(.fetchEventOnAppear)
             }
 
@@ -208,9 +206,26 @@ public struct Hangouts: ReducerProtocol {
             return .none
         case .dismissEventDetails:
             return .none
-        case .hangoutFormView(isNavigate: let isNavigate):
+        case .hangoutFormView(isNavigate: let active):
+            guard let placeMark = state.locationState.placeMark
+            else {
+              // pop alert let user know about issue
+              return .none
+            }
+
+            state.hangoutFormState = active ? HangoutForm.State(placeMark: placeMark) : nil
+
             return .none
-        case .hangoutForm(_):
+
+      case let .hangoutForm(.eventResponse(.success(event))):
+        state.events.insert(event, at: 0)
+        return .none
+
+        case .hangoutForm(.backToPVAfterCreatedEventSuccessfully):
+            state.hangoutFormState = nil
+            return .none
+
+        case .hangoutForm:
             return .none
         case .eventDetailsView(isPresented: let isPresented):
             return .none
@@ -238,13 +253,12 @@ public struct Hangouts: ReducerProtocol {
 
             return .none
 
-        case .addressResponse(_):
-            return .none
         case .currentLocationButtonTapped:
             return .none
         case .locationManager(_):
             return .none
         case .eventsResponse(.success(let eventArray)):
+            
             state.locationState.waitingForUpdateLocation = false
 
             state.isLoadingPage = false
@@ -265,8 +279,6 @@ public struct Hangouts: ReducerProtocol {
         case .eventsResponse(.failure(_)):
             return .none
 
-        case .eventPlacemarkResponse(_):
-            return .none
         case .eventTapped(_):
             return .none
 
@@ -282,6 +294,7 @@ public struct Hangouts: ReducerProtocol {
             return .none
 
         }
+
     }
 }
 
