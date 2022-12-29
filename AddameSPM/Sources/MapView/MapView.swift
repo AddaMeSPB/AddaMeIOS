@@ -7,6 +7,7 @@
 
 import MapKit
 import SwiftUI
+import AddaSharedModels
 
 #if os(macOS)
   public typealias ViewRepresentable = NSViewRepresentable
@@ -17,16 +18,16 @@ import SwiftUI
 public struct MapView: ViewRepresentable {
   var pointsOfInterest: [PointOfInterest]
   @Binding var region: CoordinateRegion?
-  let isEventDetailsView: Bool
+  let isHangoutDetailsView: Bool
 
   public init(
     pointsOfInterest: [PointOfInterest],
     region: Binding<CoordinateRegion?>,
-    isEventDetailsView: Bool = false
+    isHangoutDetailsView: Bool = false
   ) {
     self.pointsOfInterest = pointsOfInterest
     _region = region
-    self.isEventDetailsView = isEventDetailsView
+    self.isHangoutDetailsView = isHangoutDetailsView
   }
 
   #if os(macOS)
@@ -59,7 +60,7 @@ public struct MapView: ViewRepresentable {
     let mapView = MKMapView(frame: .zero)
     mapView.showsUserLocation = true
 
-    if isEventDetailsView {
+    if isHangoutDetailsView {
       //      mapView.isZoomEnabled = false
       mapView.isScrollEnabled = false
     }
@@ -191,42 +192,6 @@ public struct PointOfInterest: Equatable, Hashable {
     self.coordinate = coordinate
     self.subtitle = subtitle
     self.title = title
-  }
-}
-
-extension CoordinateRegion: Hashable {
-    /// hashable not complete here do it!
-    public func hash(into hasher: inout Hasher) {
-        hasher.combine(center)
-    }
-}
-
-public struct CoordinateRegion: Equatable {
-  public var center: CLLocationCoordinate2D
-  public var span: MKCoordinateSpan
-
-  public init(
-    center: CLLocationCoordinate2D,
-    span: MKCoordinateSpan
-  ) {
-    self.center = center
-    self.span = span
-  }
-
-  public init(coordinateRegion: MKCoordinateRegion) {
-    center = coordinateRegion.center
-    span = coordinateRegion.span
-  }
-
-  public var asMKCoordinateRegion: MKCoordinateRegion {
-    .init(center: center, span: span)
-  }
-
-  public static func == (lhs: Self, rhs: Self) -> Bool {
-    lhs.center.latitude == rhs.center.latitude
-      && lhs.center.longitude == rhs.center.longitude
-      && lhs.span.latitudeDelta == rhs.span.latitudeDelta
-      && lhs.span.longitudeDelta == rhs.span.longitudeDelta
   }
 }
 

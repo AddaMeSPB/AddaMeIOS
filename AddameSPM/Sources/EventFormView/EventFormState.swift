@@ -29,10 +29,6 @@ extension HangoutForm.State {
     placeMark: placeMarkDemo,
     eventAddress: "188839, Первомайское, СНТ Славино-2 Поселок, 31 Первомайское Россия",
     categories: .init(uniqueElements: [CategoryResponse.exploreAreaDraff]),
-//        CategoryResponse.exploreAreaDraff,
-//        CategoryResponse.lookingForAcompanyDraff,
-//        CategoryResponse.runningDraff
-//    ],
     isPostRequestOnFly: false,
     isEventCreatedSuccessfully: true,
     currentUser: .demo

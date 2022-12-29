@@ -5,7 +5,7 @@ import AsyncImageLoder
 import ChatView
 import ComposableArchitectureHelpers
 import ComposableCoreLocation
-import EventDetailsView
+import HangoutDetailsFeature
 import EventFormView
 import MapKit
 import AddaSharedModels
@@ -15,35 +15,6 @@ import AdSupport
 import AppTrackingTransparency
 import LocationReducer
 import SwiftUIHelpers
-
-//public struct HangoutsView: View {
-//    @Environment(\.colorScheme) var colorScheme
-//
-//    public init(store: StoreOf<Hangouts>) {
-//        self.store = store
-//    }
-//
-//    public let store: StoreOf<Hangouts>
-//
-//    public var body: some View {
-//        WithViewStore(
-//            self.store.scope(
-//                state: { $0.view },
-//                action: Hangouts.Action.view
-//            )
-//        ) { viewStore in
-//            VStack {
-//                if let coordinate = viewStore.locationState.coordinate {
-//                    Text("Location: \(coordinate.coordinate.longitude), \(coordinate.coordinate.latitude)")
-//                }
-//            }
-//            .navigationTitle("Hangouts")
-//            .background(colorScheme == .dark ? Color.gray.edgesIgnoringSafeArea(.all) : nil)
-//        }
-//
-//    }
-//
-//}
 
 extension HangoutsView {
     public struct ViewState: Equatable {
@@ -61,6 +32,7 @@ extension HangoutsView {
             self.event = state.event
             self.hangoutFormState = state.hangoutFormState
             self.isHangoutNavigationActive = state.hangoutFormState != nil
+            self.isHangoutDetailsSheetPresented = state.isHangoutDetailsSheetPresented
             self.locationState = state.locationState
         }
 
@@ -78,9 +50,10 @@ extension HangoutsView {
 
         public var hangoutFormState: HangoutForm.State?
         public var isHangoutNavigationActive: Bool
+        public var isHangoutDetailsSheetPresented: Bool
         public var locationState: LocationReducer.State
-        //        public var eventDetailsState: EventDetailsState?
-        //        public var isEventDetailsSheetPresented: Bool { eventDetailsState != nil }
+        //        public var eventDetailsState: HangoutDetailsState?
+        //        public var isHangoutDetailsSheetPresented: Bool { eventDetailsState != nil }
         //        public var chatState: ChatState?
         //        public var conversation: ConversationOutPut?
 
@@ -89,7 +62,7 @@ extension HangoutsView {
 
     public enum ViewAction: Equatable {
         case alertDismissed
-        case dismissEventDetails
+        case dismissHangoutDetails
 
         case event(index: EventResponse.ID, action: EventAction)
 
@@ -97,8 +70,8 @@ extension HangoutsView {
         case hangoutFormView(isNavigate: Bool)
         case hangoutForm(HangoutForm.Action)
 
-        case eventDetailsView(isPresented: Bool)
-        //        case eventDetails(EventDetailsAction)
+        case hangoutDetailsSheet(isPresented: Bool)
+        case hangoutDetails(HangoutDetails.Action)
 
         case chatView(isNavigate: Bool)
         case chat(ChatAction)
@@ -108,7 +81,6 @@ extension HangoutsView {
         case currentLocationButtonTapped
         case eventTapped(EventResponse)
 
-//        case idfaAuthorizationStatus(ATTrackingManager.AuthorizationStatus)
         case popupSettings
         case dismissEvent
         case onAppear
@@ -191,7 +163,7 @@ public struct HangoutsView: View {
 
             ZStack(alignment: .bottomTrailing) {
 //                VStack {
-//                    if viewStore.isEventDetailsSheetPresented
+//                    if viewStore.isHangoutDetailsSheetPresented
 //                        && viewStore.isMovingChatRoom {
 //                        ProgressView()
 //                            .frame(width: 150.0, height: 150.0)
@@ -270,29 +242,24 @@ public struct HangoutsView: View {
                   )
                 ) {}
             )
+            .sheet(
+              isPresented: viewStore.binding(
+                get: \.isHangoutDetailsSheetPresented,
+                send: { .hangoutDetailsSheet(isPresented: $0) }
+              )
+            ) {
+              IfLetStore(
+                self.store.scope(
+                  state: \.hangoutDetailsState,
+                  action: Hangouts.Action.hangoutDetails
+                )
+              ) {
+                HangoutDetailsView(store: $0)
+              } else: {
+                ProgressView()
+              }
+            }
         }
-//        .sheet(
-//            store.scope(state: \.eventDetailsState, action: Hangouts.Action.eventDetails),
-//            mapState: replayNonNil(),
-//            onDismiss: {
-//                ViewStore(store.stateless).send(.eventDetailsView(isPresented: false))
-//            },
-//            content: EventDetailsView.init(store:)
-//        )
-//        .sheet(
-//            store.scope(state: \.eventFormState, action: Hangouts.Action.eventForm),
-//            mapState: replayNonNil(),
-//            onDismiss: { ViewStore(store.stateless).send(.eventFormView(isNavigate: false)) },
-//            content: EventFormView.init(store:)
-//        )
-        //    .navigationLink(
-        //      store.scope(state: \.eventFormState, action: EventsAction.eventForm),
-        //      state: replayNonNil(),
-        //      onDismiss: {
-        //        ViewStore(store.stateless).send(.eventFormView(isNavigate: false))
-        //      },
-        //      destination: EventFormView.init(store:)
-        //    )
 //        .background(
 //            NavigationLinkWithStore(
 //                store.scope(state: \.chatState, action: Hangouts.Action.chat),
@@ -311,12 +278,12 @@ public struct HangoutsView: View {
                 Image(systemName: "plus.circle")
                     .font(.title)
                     .foregroundColor(colorScheme == .dark ? .white : .blue)
-//                    .opacity(viewStore.isEventDetailsSheetPresented ? 0 : 1)
+//                    .opacity(viewStore.isHangoutDetailsSheetPresented ? 0 : 1)
 //                    .overlay(
 //                        ProgressView()
 //                            .frame(width: 150.0, height: 150.0)
 //                            .padding(50.0)
-//                            .opacity(viewStore.isEventDetailsSheetPresented ? 1 : 0)
+//                            .opacity(viewStore.isHangoutDetailsSheetPresented ? 1 : 0)
 //                    )
             } else {
                 Image(systemName: "plus.circle")

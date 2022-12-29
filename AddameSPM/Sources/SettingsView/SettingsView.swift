@@ -164,7 +164,7 @@ import AuthenticationView
 ////        onDismiss: { ViewStore(store.stateless)
 ////          .send(.termsView(isPresented: false))
 ////        },
-////        destination: EventDetailsView.init(store:)
+////        destination: HangoutDetailsFeature.init(store:)
 ////      )
 //    }
 //    .background(Color(UIColor.systemBackground).edgesIgnoringSafeArea(.all))

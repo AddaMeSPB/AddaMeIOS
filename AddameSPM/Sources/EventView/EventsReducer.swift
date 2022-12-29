@@ -4,7 +4,7 @@ import ComposableArchitecture
 import ComposableArchitectureHelpers
 import ComposableCoreLocation
 import Contacts
-import EventDetailsView
+import HangoutDetailsFeature
 import EventFormView
 import AddaSharedModels
 import SwiftUI
@@ -19,6 +19,7 @@ import UserDefaultsClient
 import APIClient
 
 public struct Hangouts: ReducerProtocol {
+
     public struct State: Equatable {
         public init(
             alert: AlertState<Hangouts.Action>? = nil,
@@ -78,26 +79,29 @@ public struct Hangouts: ReducerProtocol {
         public var locationState: LocationReducer.State
         
         public var hangoutFormState: HangoutForm.State?
+        public var isHangoutDetailsSheetPresented: Bool { hangoutDetailsState != nil }
+
+
+        public var hangoutDetailsState: HangoutDetails.State?
         public var isHangoutNavigationActive: Bool = false
-        //          public var eventDetailsState: EventDetailsState?
         //          public var chatState: ChatState?
 
-        //          public var isEventDetailsSheetPresented: Bool { eventDetailsState != nil }
+
     }
 
     public enum Action: Equatable {
         case onAppear
         case onDisAppear
         case alertDismissed
-        case dismissEventDetails
+        case dismissHangoutDetails
 
         case event(index: EventResponse.ID, action: EventAction)
 
         case hangoutFormView(isNavigate: Bool)
         case hangoutForm(HangoutForm.Action)
 
-        case eventDetailsView(isPresented: Bool)
-        //case eventDetails(EventDetailsAction)
+        case hangoutDetailsSheet(isPresented: Bool)
+        case hangoutDetails(HangoutDetails.Action)
 
         case chatView(isNavigate: Bool)
         case chat(ChatAction)
@@ -136,6 +140,9 @@ public struct Hangouts: ReducerProtocol {
         Reduce(self.core)
             .ifLet(\.hangoutFormState, action: /Hangouts.Action.hangoutForm) {
                 HangoutForm()
+            }
+            .ifLet(\.hangoutDetailsState, action: /Hangouts.Action.hangoutDetails) {
+                HangoutDetails()
             }
     }
 
@@ -191,6 +198,14 @@ public struct Hangouts: ReducerProtocol {
             }
         }
 
+          func presentChatView() -> Effect<Action, Never> {
+            state.hangoutDetailsState = nil
+//            state.chatState = nil
+            return Effect(value: Action.chatView(isNavigate: true))
+              .receive(on: mainQueue)
+              .eraseToEffect()
+          }
+
         switch action {
         case .onAppear:
 
@@ -204,7 +219,7 @@ public struct Hangouts: ReducerProtocol {
             return .none
         case .alertDismissed:
             return .none
-        case .dismissEventDetails:
+        case .dismissHangoutDetails:
             return .none
         case .hangoutFormView(isNavigate: let active):
             guard let placeMark = state.locationState.placeMark
@@ -227,10 +242,23 @@ public struct Hangouts: ReducerProtocol {
 
         case .hangoutForm:
             return .none
-        case .eventDetailsView(isPresented: let isPresented):
+    
+        case  let .hangoutDetailsSheet(isPresented: isPresented):
+
+            guard let event = state.event else { return .none }
+
+            state.hangoutDetailsState = isPresented ? HangoutDetails.State(event: event) : nil
             return .none
+
+        case .eventTapped(let hangout):
+            state.event = hangout
+            return .run { send in
+                await send(.hangoutDetailsSheet(isPresented: true))
+            }
+
         case .chatView(isNavigate: let isNavigate):
             return .none
+
         case .chat(_):
             return .none
         case .fetchEventOnAppear:
@@ -278,10 +306,6 @@ public struct Hangouts: ReducerProtocol {
 
         case .eventsResponse(.failure(_)):
             return .none
-
-        case .eventTapped(_):
-            return .none
-
         case .myEventsResponse:
             return .none
         
@@ -293,6 +317,36 @@ public struct Hangouts: ReducerProtocol {
         case .location:
             return .none
 
+        case .hangoutDetails(let hdAction):
+            switch hdAction {
+            case .onAppear:
+                return .none
+            case .alertDismissed:
+                return .none
+            case .moveToChatRoom:
+                return .none
+            case .updateRegion:
+                return .none
+            case .startChat:
+                return presentChatView()
+            case .askJoinRequest(let boolean):
+                state.isMovingChatRoom = boolean
+                return .none
+
+            case .joinToEvent(.success):
+                return presentChatView()
+            case .joinToEvent(.failure):
+                /// handle error here
+                return .none
+            case let .conversationResponse(.success(conversationItem)):
+                state.conversation = conversationItem
+                return .none
+            case .conversationResponse(.failure):
+                /// handle error here
+                return .none
+            case .userResponse:
+                return .none
+            }
         }
 
     }
@@ -304,7 +358,7 @@ public struct Hangouts: ReducerProtocol {
 // import ComposableArchitectureHelpers
 // import ComposableCoreLocation
 // import Contacts
-// import EventDetailsView
+// import HangoutDetailsFeature
 // import EventFormView
 // import HTTPRequestKit
 // import MapKit
@@ -566,7 +620,7 @@ public struct Hangouts: ReducerProtocol {
 //
 //    return .none
 //
-//  case .dismissEventDetails:
+//  case .dismissHangoutDetails:
 //    state.event = nil
 //    state.eventDetailsState = nil
 //    return .none
@@ -611,9 +665,9 @@ public struct Hangouts: ReducerProtocol {
 //    guard let event = state.event else { return .none }
 //
 //    if present {
-//      let eventDetailsOverlayState = EventDetailsOverlayState(alert: nil, event: event)
+//      let eventDetailsOverlayState = HangoutDetailsOverlayState(alert: nil, event: event)
 //
-//      state.eventDetailsState = EventDetailsState(
+//      state.eventDetailsState = HangoutDetailsState(
 //        event: event,
 //        eventDetailsOverlayState: eventDetailsOverlayState
 //      )
@@ -693,7 +747,7 @@ public struct Hangouts: ReducerProtocol {
 //  state: .keyPath(\.eventDetailsState),
 //  id: .notNil(),
 //  action: /EventsAction.eventDetails,
-//  environment: { _ in EventDetailsEnvironment.live }
+//  environment: { _ in HangoutDetailsEnvironment.live }
 // )
 // .debug()
 //

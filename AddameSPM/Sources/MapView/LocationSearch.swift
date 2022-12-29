@@ -15,14 +15,6 @@ import MapKit
 import ComposableCoreLocation
 import AddaSharedModels
 
-extension CLLocationCoordinate2D: Hashable {
-    public func hash(into hasher: inout Hasher) {
-        hasher.combine(longitude)
-        hasher.combine(latitude)
-    }
-}
-
-
 private struct LocationManagerId: Hashable {}
 
 public struct LocationSearch: ReducerProtocol {

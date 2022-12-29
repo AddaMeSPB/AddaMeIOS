@@ -1,17 +1,5 @@
-////
-////  EventDetailsOverlayReducer.swift
-////
-////
-////  Created by Saroar Khandoker on 12.07.2021.
-////
-//
-// import ComposableArchitecture
-// import KeychainClient
-// import AddaSharedModels
-// import HTTPRequestKit
-//
 // public let eventDetailsOverlayReducer = Reducer<
-//  EventDetailsOverlayState, EventDetailsOverlayAction, EventDetailsEnvironment
+//  HangoutDetailsOverlayState, HangoutDetailsOverlayAction, HangoutDetailsEnvironment
 // > { state, action, environment in
 //  switch action {
 //  case .onAppear:
@@ -19,7 +7,7 @@
 ////      return environment.conversationClient.find("", state.event.conversationsId.hexString)
 ////      .receive(on: environment.mainQueue)
 ////      .catchToEffect()
-////      .map(EventDetailsOverlayAction.conversationResponse)
+////      .map(HangoutDetailsOverlayAction.conversationResponse)
 //
 //      return .none
 ////          .task { [state] in
@@ -27,9 +15,9 @@
 ////              let conversationOutput = try await environment.conversationClient
 ////                  .find(state.event.conversationsId.hexString)
 ////
-////              return EventDetailsOverlayAction.conversationResponse(.success(conversationOutput))
+////              return HangoutDetailsOverlayAction.conversationResponse(.success(conversationOutput))
 ////          } catch {
-////              return EventDetailsOverlayAction.conversationResponse(.failure(.custom("", error)))
+////              return HangoutDetailsOverlayAction.conversationResponse(.failure(.custom("", error)))
 ////          }
 ////      }
 //
@@ -60,14 +48,14 @@
 ////      .addUserToConversation(adduser, "\(conversationId)/users/\(usersId)")
 ////      .receive(on: environment.mainQueue)
 ////      .catchToEffect()
-////      .map(EventDetailsOverlayAction.joinToEvent)
+////      .map(HangoutDetailsOverlayAction.joinToEvent)
 //
 //      return .task {
 //          do {
 //              let addMe = try await environment.conversationClient.addUserToConversation(adduser)
-//              return EventDetailsOverlayAction.joinToEvent(.success(addMe))
+//              return HangoutDetailsOverlayAction.joinToEvent(.success(addMe))
 //          } catch {
-//              return EventDetailsOverlayAction.joinToEvent(.failure(.custom("", error)))
+//              return HangoutDetailsOverlayAction.joinToEvent(.failure(.custom("", error)))
 //          }
 //      }
 //

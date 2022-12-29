@@ -1,7 +1,7 @@
 // import ChatView
 // import ComposableArchitecture
 // import ComposableCoreLocation
-// import EventDetailsView
+// import HangoutDetailsFeature
 // import EventFormView
 // import MapKit
 // import AddaSharedModels
@@ -32,10 +32,10 @@
 //  public var conversation: ConversationOutPut?
 //
 //  public var eventFormState: EventFormState?
-//  public var eventDetailsState: EventDetailsState?
+//  public var eventDetailsState: HangoutDetailsState?
 //  public var chatState: ChatState?
 //
-//  public var isEventDetailsSheetPresented: Bool { eventDetailsState != nil }
+//  public var isHangoutDetailsSheetPresented: Bool { eventDetailsState != nil }
 //
 //  public init(
 //    alert: AlertState<EventsAction>? = nil, isConnected: Bool = true,
@@ -52,7 +52,7 @@
 //    location: Location? = nil, events: IdentifiedArrayOf<EventResponse> = [],
 //    myEvent: EventResponse? = nil, event: EventResponse? = nil,
 //    eventFormState: EventFormState? = nil,
-//    eventDetailsState: EventDetailsState? = nil,
+//    eventDetailsState: HangoutDetailsState? = nil,
 //    chatState: ChatState? = nil
 //  ) {
 //    self.alert = alert

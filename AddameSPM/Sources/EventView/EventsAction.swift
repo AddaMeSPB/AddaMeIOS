@@ -1,7 +1,7 @@
 import ChatView
 import ComposableArchitecture
 import ComposableCoreLocation
-import EventDetailsView
+import HangoutDetailsFeature
 import EventFormView
 import Foundation
 import HTTPRequestKit
@@ -19,8 +19,8 @@ extension Hangouts.Action {
         switch action {
         case .alertDismissed:
             self =  .alertDismissed
-        case .dismissEventDetails:
-            self =  .dismissEventDetails
+        case .dismissHangoutDetails:
+            self =  .dismissHangoutDetails
         case let .hangoutFormView(isNavigate):
             self =  .hangoutFormView(isNavigate: isNavigate)
         case let .hangoutForm(hFormAction):
@@ -45,14 +45,12 @@ extension Hangouts.Action {
             self =  .onAppear
         case .onDisAppear:
             self =  .onDisAppear
-        case let .eventDetailsView(isPresented: isPresented):
-            self =  .eventDetailsView(isPresented: isPresented)
-//        case let .eventDetails(action):
-//            self =  .eventDetails(action)
+        case let .hangoutDetailsSheet(isPresented: isPresented):
+            self = .hangoutDetailsSheet(isPresented: isPresented)
+        case let .hangoutDetails(action):
+            self =  .hangoutDetails(action)
         case let .fetchMoreEventsIfNeeded(item: item):
             self =  .fetchMoreEventsIfNeeded(item: item)
-//        case .idfaAuthorizationStatus(let status):
-//            self =  .idfaAuthorizationStatus(status)
         }
     }
 }

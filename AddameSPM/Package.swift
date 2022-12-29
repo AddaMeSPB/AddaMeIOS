@@ -47,7 +47,7 @@ let package = Package(
     .library(name: "ConversationsView", targets: ["ConversationsView"]),
     .library(name: "ContactsView", targets: ["ContactsView"]),
     .library(name: "EventView", targets: ["EventView"]),
-    .library(name: "EventDetailsView", targets: ["EventDetailsView"]),
+    .library(name: "HangoutDetailsFeature", targets: ["HangoutDetailsFeature"]),
     .library(name: "EventFormView", targets: ["EventFormView"]),
     .library(name: "ProfileView", targets: ["ProfileView"]),
     .library(name: "TabsView", targets: ["TabsView"]),
@@ -350,7 +350,7 @@ let package = Package(
         .product(name: "AddaSharedModels", package: "AddaSharedModels"),
         .product(name: "CommonTCALibraries", package: "CommonTCALibraries"),
         "APIClient", "EventFormView", "WebSocketClient", "WebSocketClientLive",
-        "AsyncImageLoder", "ChatView", "EventDetailsView",
+        "AsyncImageLoder", "ChatView", "HangoutDetailsFeature",
         "ComposableArchitectureHelpers", "LocationReducer"
       ]
     ),
@@ -394,7 +394,7 @@ let package = Package(
     ),
 
     .target(
-      name: "EventDetailsView",
+      name: "HangoutDetailsFeature",
       dependencies: [
         .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
         .product(name: "ComposableCoreLocation", package: "composable-core-location"),
@@ -402,9 +402,10 @@ let package = Package(
         .product(name: "AddaSharedModels", package: "AddaSharedModels"),
         .product(name: "CommonTCALibraries", package: "CommonTCALibraries"),
         "EventClient", "AsyncImageLoder", "HTTPRequestKit", "ChatClient",
-        "MapView", "ChatView",
+        "MapView", "ChatView", "APIClient",
         "ConversationClient", "ConversationClientLive", "ComposableArchitectureHelpers"
-      ]
+      ],
+      resources: [.process("Resources")]
     ),
 
     .target(
