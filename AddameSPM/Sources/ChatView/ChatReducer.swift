@@ -8,194 +8,220 @@
 import Foundation
 import ComposableArchitecture
 import FoundationExtension
-import InfoPlist
 import KeychainClient
 import AddaSharedModels
-import HTTPRequestKit
 import BSON
+import APIClient
+import WebSocketReducer
 
-public let chatReducer = Reducer<ChatState, ChatAction, ChatEnvironment> {
-  state, action, environment in
+public struct Chat: ReducerProtocol {
 
-  var fetchMoreMessages: Effect<ChatAction, Never> {
-      guard let conversationsID = state.conversation?.id.hexString else {
-      print(#line, "Conversation id missing")
-      return .none
+    public struct State: Equatable {
+        public init(
+            isLoadingPage: Bool = false,
+            currentPage: Int = 1, canLoadMorePages: Bool = true,
+            alert: AlertState<Chat.Action>? = nil,
+            conversation: ConversationOutPut,
+            messages: IdentifiedArrayOf<MessageItem> = [],
+            chatButtomState: ChatBottom.State = .init(),
+            isCurrentUser: Bool = false,
+            currentUser: UserOutput,
+            websocketState: WebSocketReducer.State,
+            messageItem: MessageItem? = nil
+        ) {
+            self.isLoadingPage = isLoadingPage
+            self.currentPage = currentPage
+            self.canLoadMorePages = canLoadMorePages
+            self.alert = alert
+            self.conversation = conversation
+            self.messages = messages
+            self.chatButtomState = chatButtomState
+            self.isCurrentUser = isCurrentUser
+            self.currentUser = currentUser
+            self.websocketState = websocketState
+            self.messageItem = messageItem
+
+        }
+
+      var isLoadingPage = false
+      var currentPage = 1
+      var canLoadMorePages = true
+
+      public var alert: AlertState<Action>?
+      public var conversation: ConversationOutPut
+      public var messages: IdentifiedArrayOf<MessageItem> = []
+      public var chatButtomState: ChatBottom.State = .init()
+      public var isCurrentUser = false
+      public var currentUser: UserOutput
+      public var messageItem: MessageItem?
+      public var websocketState: WebSocketReducer.State
     }
 
-    let query = QueryItem(page: state.currentPage, per: 10)
+    public enum Action: Equatable {
+      case onAppear
+      case alertDismissed
+      case fetchMessages
+      case messagesResponse(TaskResult<MessagePage>)
+      case fetchMoreMessageIfNeeded(currentItem: MessageItem?)
+      case fetchMoreMessage(currentItem: MessageItem)
+      case message(index: MessageItem.ID, action: ChatRow.Action)
+      case webSocketReducer(WebSocketReducer.Action)
+      case chatButtom(ChatBottom.Action)
+    }
 
-      return .none
-//          .task {
-//          do {
-//              let messages = try await environment.chatClient.messages(query, conversationsID)
-//              return ChatAction.messagesResponse(messages)
-//          } catch {
-//             return ChatAction.messagesResponseError(HTTPRequest.HRError.networkError(error))
-//          }
-//      }
+    @Dependency(\.mainQueue) var mainQueue
+    @Dependency(\.keychainClient) var keychainClient
+    @Dependency(\.build) var build
+    @Dependency(\.apiClient) var apiClient
+    @Dependency(\.webSocket) var webSocket
+    private enum WebSocketID {}
+    
+    public init() {}
 
-  }
+    public var body: some ReducerProtocol<State, Action> {
 
-  var receiveSocketMessageEffect: Effect<ChatAction, Never> {
-      return environment.websocketClient.receive(environment.currentUser.id!.hexString)
-      .subscribe(on: environment.backgroundQueue)
-      .receive(on: environment.mainQueue)
-      .catchToEffect()
-      .map(ChatAction.receivedSocketMessage)
-      .cancellable(id: environment.currentUser.id)
-  }
+        Scope(state: \.websocketState, action: /Action.webSocketReducer) {
+            WebSocketReducer()
+        }
 
-  var sendPingEffect: Effect<ChatAction, Never> {
-      return environment.websocketClient.sendPing(environment.currentUser.id!.hexString)
-      .subscribe(on: environment.backgroundQueue)
-      .receive(on: environment.mainQueue)
-      .delay(for: 10, scheduler: environment.mainQueue)
-      .map(ChatAction.pingResponse)
-      .eraseToEffect()
-      .cancellable(id: environment.currentUser.id)
-  }
+        Scope(state: \.chatButtomState, action: /Action.chatButtom) {
+            ChatBottom()
+        }
 
-  switch action {
-  case .onAppear:
-      // print(#line, state.conversation?.title)
+        Reduce(self.core)
+    }
 
-    return fetchMoreMessages
+    func core(state: inout State, action: Action) -> EffectTask<Action> {
+        var fetchMoreMessages: Effect<Action, Never> {
+            let conversationsID = state.conversation.id.hexString
+            let query = QueryItem(page: state.currentPage, per: 10)
 
-  case .alertDismissed:
-    state.alert = nil
-    return .none
+            return .task {
+                .messagesResponse(
+                    await TaskResult {
+                        try await apiClient.request(
+                            for: .chatEngine(.conversations(.conversation(id: conversationsID, route: .messages(.list(query: query))))),
+                            as: MessagePage.self,
+                            decoder: .iso8601
+                        )
+                    }
+                )
+            }
 
-  case let .conversation(converstion):
-    state.conversation = converstion
-    return fetchMoreMessages
+        }
 
-  case let .messagesResponse(response):
+        switch action {
+        case .onAppear:
+            return .run { send in
+                await send(.fetchMessages)
+            }
+        case .fetchMessages:
+            return fetchMoreMessages
 
-    state.isLoadingPage = false
+        case .alertDismissed:
+          state.alert = nil
+          return .none
 
-      response.items.forEach {
-          if state.messages[id: $0.id] != $0 {
-              state.messages.append($0)
-          } else if state.messages.isEmpty {
-              state.messages.append(contentsOf: response.items)
+        case let .messagesResponse(.success(response)):
+
+          state.isLoadingPage = false
+
+            response.items.forEach {
+                if state.messages[id: $0.id] != $0 {
+                    state.messages.append($0)
+                } else if state.messages.isEmpty {
+                    state.messages.append(contentsOf: response.items)
+                }
+            }
+
+            _ = state.messages
+                .sorted(by: { $0.createdAt?.compare($1.createdAt ?? Date()) == .orderedDescending })
+
+            state.canLoadMorePages = state.messages.count < response.metadata.total
+            if state.canLoadMorePages {
+              state.currentPage += 1
+            }
+
+          return .none
+
+        case let .messagesResponse(.failure(error)):
+          state.alert = .init(title: TextState("\(error.localizedDescription)"))
+          return .none
+
+        case let .fetchMoreMessageIfNeeded(currentItem: currentItem):
+          guard let item = currentItem, state.messages.count > 5 else {
+            return fetchMoreMessages
           }
-      }
 
-      _ = state.messages
-          .sorted(by: { $0.createdAt?.compare($1.createdAt ?? Date()) == .orderedDescending })
+          let threshouldIndex = state.messages.index(state.messages.endIndex, offsetBy: -5) - 3
+          if state.messages.firstIndex(where: { $0.id == item.id }) == threshouldIndex {
+            return fetchMoreMessages
+          }
+          return .none
 
-      state.canLoadMorePages = state.messages.count < response.metadata.total
-      if state.canLoadMorePages {
-        state.currentPage += 1
-      }
+        case let .fetchMoreMessage(currentItem: item):
 
-    return .none
+          let threshouldIndex = state.messages.index(state.messages.endIndex, offsetBy: -7)
+          if state.messages.firstIndex(where: { $0.id == item.id }) == threshouldIndex {
+            return fetchMoreMessages
+          }
 
-  case let .messagesResponseError(error):
-    state.alert = .init(title: TextState("\(error.description)"))
-    return .none
+            let localMessage = MessageItem(
+              id: ObjectId(),
+              conversationId: state.conversation.id,
+              messageBody: state.chatButtomState.composedMessage,
+              messageType: .text,
+              isRead: false,
+              isDelivered: false,
+              sender: state.currentUser,
+              recipient: nil,
+              createdAt: nil, updatedAt: nil, deletedAt: nil
+            )
 
-  case let .fetchMoreMessageIfNeeded(currentItem: currentItem):
-    guard let item = currentItem, state.messages.count > 5 else {
-      return fetchMoreMessages
+          state.messages.insert(localMessage, at: 0)
+
+            return .none
+
+        case .webSocketReducer:
+            return .none
+
+        case .chatButtom(let cb):
+            switch cb {
+
+            case .sendButtonTapped:
+
+                let conversationsID = state.conversation.id
+                let currentDate = Date()
+                let localMessage = MessageItem(
+                  id: ObjectId(),
+                  conversationId: conversationsID,
+                  messageBody: state.chatButtomState.messageToSend,
+                  messageType: .text,
+                  isRead: false,
+                  isDelivered: false,
+                  sender: state.currentUser,
+                  recipient: nil,
+                  createdAt: currentDate, updatedAt: currentDate,
+                  deletedAt: nil
+                )
+
+                state.messages.insert(localMessage, at: 0)
+                state.messageItem = localMessage
+                
+                state.chatButtomState.messageToSend = ""
+
+                guard let sendServerMsgJsonString = ChatOutGoingEvent.message(localMessage).jsonString else {
+                  print(#line, "json String convert issue")
+                  return .none
+                }
+                
+                return .run { send in
+                    await send(.webSocketReducer(.messageToSendChanged(sendServerMsgJsonString)))
+                }
+
+            case .messageToSendChanged:
+                return .none
+            }
+        }
     }
-
-    let threshouldIndex = state.messages.index(state.messages.endIndex, offsetBy: -5) - 3
-    if state.messages.firstIndex(where: { $0.id == item.id }) == threshouldIndex {
-      return fetchMoreMessages
-    }
-    return .none
-
-  case let .fetchMoreMessage(currentItem: item):
-
-    let threshouldIndex = state.messages.index(state.messages.endIndex, offsetBy: -7)
-    if state.messages.firstIndex(where: { $0.id == item.id }) == threshouldIndex {
-      return fetchMoreMessages
-    }
-    return .none
-
-  case let .sendResponse(error):
-      if error != nil {
-        state.alert = .init(title: .init("Could not send socket message. Try again."))
-      }
-
-      return .merge(
-        receiveSocketMessageEffect,
-        sendPingEffect
-      )
-
-  case let .webSocket(.didClose(code, _)):
-    // state.connectivityState = .disconnected
-    return .cancel(id: environment.currentUser.id)
-
-  case let .webSocket(.didBecomeInvalidWithError(error)),
-    let .webSocket(.didCompleteWithError(error)):
-    // state.connectivityState = .disconnected
-
-    if error != nil {
-      state.alert = .init(title: .init("Disconnected from socket for some reason. Try again."))
-    }
-    return .cancel(id: environment.currentUser.id)
-
-  case .webSocket(.didOpenWithProtocol):
-    // state.connectivityState = .connected
-    return .merge(
-      receiveSocketMessageEffect,
-      sendPingEffect
-    )
-
-  case .pingResponse:
-    // Ping the socket again in 10 seconds
-    return sendPingEffect
-
-  case .receivedSocketMessage:
-    return .none
-
-  case let .messageToSendChanged(message):
-    state.messageToSend = message
-
-    return .none
-
-  case .sendButtonTapped:
-    let composedMessage = state.messageToSend
-    state.messageToSend = ""
-
-    guard let conversationsID = state.conversation?.id else {
-      print(#line, "conversation id missing")
-      return .none
-    }
-
-      guard let currentUserID = environment.currentUser.id?.hexString else {
-        print(#line, "currentUser id missing")
-        return .none
-      }
-
-      let localMessage = MessageItem(
-        id: ObjectId(),
-        conversationId: conversationsID,
-        messageBody: composedMessage,
-        messageType: .text,
-        isRead: false,
-        isDelivered: false,
-        sender: environment.currentUser,
-        recipient: nil,
-        createdAt: nil, updatedAt: nil, deletedAt: nil
-      )
-
-    guard let sendServerMsgJsonString = ChatOutGoingEvent.message(localMessage).jsonString else {
-      print(#line, "jsonString convert issue")
-      return .none
-    }
-
-    state.messages.insert(localMessage, at: 0)
-
-    return environment.websocketClient.send(
-        currentUserID,
-        .string(sendServerMsgJsonString)
-    )
-    .receive(on: environment.mainQueue)
-    .eraseToEffect()
-    .map(ChatAction.sendResponse)
-  }
 }

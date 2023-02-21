@@ -7,7 +7,6 @@
 
 import AsyncImageLoder
 import ComposableArchitecture
-import HTTPRequestKit
 import KeychainClient
 import AddaSharedModels
 import SwiftUI
@@ -63,68 +62,101 @@ struct AvatarView: View {
   }
 }
 
+public struct ChatRow: ReducerProtocol {
+    public typealias State = MessageItem
+
+    public enum Action: Equatable {}
+
+    public var currentUser: UserOutput
+
+    public init(currentUser: UserOutput) {
+        self.currentUser = currentUser
+
+        do {
+            self.currentUser = try self.keychainClient.readCodable(.user, self.build.identifier(), UserOutput.self)
+        } catch {}
+    }
+
+    @Dependency(\.keychainClient) var keychainClient
+    @Dependency(\.build) var build
+
+    public var body: some ReducerProtocol<State, Action> {
+        Reduce(self.core)
+    }
+
+    func core(state: inout State, action: Action) -> EffectTask<Action> {
+        switch action {}
+    }
+}
+
 struct ChatRowView: View {
-  @Environment(\.colorScheme) var colorScheme
-  let store: Store<MessageItem, MessageAction>
-
-  @ViewBuilder func currentUserRow(
-    viewStore: ViewStore<MessageItem, MessageAction>
-  ) -> some View {
-    HStack {
-      Group {
-        AvatarView(avatarUrl: viewStore.sender?.lastAvatarURLString)
-
-        Text(viewStore.messageBody)
-          .bold()
-          .padding(10)
-          .foregroundColor(Color.white)
-          .background(Color.blue)
-          .cornerRadius(10)
-      }
-      .background(Color(.systemBackground))
-      Spacer()
+    @Environment(\.colorScheme) var colorScheme
+    let store: StoreOf<ChatRow>
+    
+    @Dependency(\.keychainClient) var keychainClient
+    @Dependency(\.build) var build
+    
+    @ViewBuilder func currentUserRow(
+        viewStore: ViewStore<MessageItem, ChatRow.Action>
+    ) -> some View {
+        HStack {
+            Group {
+                AvatarView(avatarUrl: viewStore.sender?.lastAvatarURLString)
+                
+                Text(viewStore.messageBody)
+                    .bold()
+                    .padding(10)
+                    .foregroundColor(Color.white)
+                    .background(Color.blue)
+                    .cornerRadius(10)
+            }
+            .background(Color(.systemBackground))
+            Spacer()
+        }
+        .background(Color(.systemBackground))
     }
-    .background(Color(.systemBackground))
-  }
-
-  @ViewBuilder func opponentUsersRow(
-    viewStore: ViewStore<MessageItem, MessageAction>
-  ) -> some View {
-    HStack {
-      Group {
-        Spacer()
-        Text(viewStore.messageBody)
-          .bold()
-          .foregroundColor(Color.white)
-          .padding(10)
-          .background(Color.red)
-          .cornerRadius(10)
-
-        AvatarView(avatarUrl: viewStore.recipient?.lastAvatarURLString)
-      }
+    
+    @ViewBuilder func opponentUsersRow(
+        viewStore: ViewStore<MessageItem, ChatRow.Action>
+    ) -> some View {
+        HStack {
+            Group {
+                Spacer()
+                Text(viewStore.messageBody)
+                    .bold()
+                    .foregroundColor(Color.white)
+                    .padding(10)
+                    .background(Color.red)
+                    .cornerRadius(10)
+                
+                AvatarView(avatarUrl: viewStore.recipient?.lastAvatarURLString)
+            }
+        }
+        .background(Color(.systemBackground))
     }
-    .background(Color(.systemBackground))
-  }
-
+    
     @ViewBuilder
     var body: some View {
-        WithViewStore(self.store) { _ in
+        WithViewStore(self.store) { viewStore in
+            
             Group {
-//                if isCurrentUser(userId: viewStore.sender!.id!.hexString) {
-//                    opponentUsersRow(viewStore: viewStore)
-//                        .listRowSeparatorHiddenIfAvaibale()
-//                } else {
-//                    currentUserRow(viewStore: viewStore)
-//                        .listRowSeparatorHiddenIfAvaibale()
-//                }
+                if isCurrentUser(userId: viewStore.sender!.id.hexString) {
+                    opponentUsersRow(viewStore: viewStore)
+                        .listRowSeparatorHidden()
+                } else {
+                    currentUserRow(viewStore: viewStore)
+                        .listRowSeparatorHidden()
+                }
             }
         }
     }
-
-//    private func isCurrentUser(userId: String) -> Bool {
-//        if let currentUSER: UserGetObject = KeychainClient.readCodable(.user) {
-//            return currentUSER.id!.hexString == userId ? true : false
-//        }
-//        return false
-//    }
+    
+    func isCurrentUser(userId: String) -> Bool {
+        do {
+            let currentUSER = try keychainClient.readCodable(.user, build.identifier(), UserOutput.self)
+            return currentUSER.id.hexString == userId ? true : false
+        } catch {
+            return false
+        }
+    }
 }

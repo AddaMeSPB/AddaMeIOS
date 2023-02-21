@@ -10,7 +10,6 @@ import MapKit
 import SwiftUI
 import BSON
 import ComposableArchitecture
-import ComposablePresentation
 import ComposableArchitectureHelpers
 import MapView
 import AddaSharedModels
@@ -48,7 +47,7 @@ extension EventFormView {
 
         public var isSheetPresented: Bool
         public var isAllFeildsAreValid: Bool
-        public var currentUser: UserGetObject
+        public var currentUser: UserOutput
         public var isLocationSearchNavigate: Bool
 
         init(state: HangoutForm.State) {

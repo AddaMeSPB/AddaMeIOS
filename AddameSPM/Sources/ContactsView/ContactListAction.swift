@@ -7,15 +7,15 @@
 
 import ChatView
 import Contacts
-import HTTPRequestKit
 import AddaSharedModels
+import ComposableArchitecture
 
 // public enum ChatAction: Equatable {}
 
 public enum ContactListAction: Equatable {
   case onAppear
-  case contactRow(id: String, action: ContactRowAction)
-  case contactsResponse(Result<[ContactOutPut], HTTPRequest.HRError>)
+    case contactRow(id: String, action: ContactRow.Action)
+  case contactsResponse(TaskResult<[ContactOutPut]>)
 }
 
 // extension ContactListAction {

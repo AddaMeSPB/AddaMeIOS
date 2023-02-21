@@ -9,8 +9,6 @@
 // import ComposableArchitecture
 // import ComposableCoreLocation
 // import Contacts
-// import EventClient
-// import EventClientLive
 // import PathMonitorClient
 // import UserDefaultsClient
 // import IDFAClient

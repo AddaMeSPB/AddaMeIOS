@@ -15,12 +15,13 @@ public struct Settings: ReducerProtocol {
     public struct State: Equatable {
         public init(
             alert: AlertState<Settings.Action>? = nil,
-            currentUser: UserGetObject = .demo,
+            currentUser: UserOutput = .withFirstName,
             buildNumber: Build.Number? = nil,
             enableNotifications: Bool = false,
             userNotificationSettings: UserNotificationClient.Notification.Settings? = nil,
             userSettings: UserSettings = UserSettings(),
-            locationState: LocationReducer.State = .init()
+            locationState: LocationReducer.State = .init(),
+            distanceState: Distance.State = .init()
         ) {
             self.alert = alert
             self.currentUser = currentUser
@@ -29,14 +30,16 @@ public struct Settings: ReducerProtocol {
             self.userNotificationSettings = userNotificationSettings
             self.userSettings = userSettings
             self.locationState = locationState
+            self.distanceState = distanceState
         }
 
         @BindableState public var alert: AlertState<Action>?
-        public var currentUser: UserGetObject = .demo
+        public var currentUser: UserOutput = .withFirstName
         public var buildNumber: Build.Number?
 
         @BindableState public var enableNotifications: Bool
         public var userNotificationSettings: UserNotificationClient.Notification.Settings?
+        public var distanceState: Distance.State
         @BindableState public var userSettings: UserSettings
         @BindableState public var locationState: LocationReducer.State
     }
@@ -50,7 +53,9 @@ public struct Settings: ReducerProtocol {
         case userNotificationSettingsResponse(UserNotificationClient.Notification.Settings)
         case leaveUsAReviewButtonTapped
         case reportABugButtonTapped
+        case logOutButtonTapped
         case location(LocationReducer.Action)
+        case distance(Distance.Action)
     }
 
     @Dependency(\.applicationClient) var applicationClient
@@ -64,7 +69,13 @@ public struct Settings: ReducerProtocol {
 
     public var body: some ReducerProtocol<State, Action> {
         CombineReducers {
+
             BindingReducer()
+
+            Scope(state: \.distanceState, action: /Action.distance) {
+                Distance()
+            }
+
             Reduce { state, action in
 
                 switch action {
@@ -116,9 +127,9 @@ public struct Settings: ReducerProtocol {
                     state.buildNumber = self.build.number()
 
                     do {
-                        state.currentUser = try keychainClient.readCodable(.user, self.build.identifier(), UserGetObject.self)
+                        state.currentUser = try keychainClient.readCodable(.user, self.build.identifier(), UserOutput.self)
                     } catch {
-                        fatalError("Do soemthing from SettingsFeature!")
+                        // fatalError("Do soemthing from SettingsFeature!")
                     }
 
                     return .merge(
@@ -197,6 +208,10 @@ public struct Settings: ReducerProtocol {
                         _ = await self.applicationClient.open(components.url!, [:])
                     }
                 case .location(_):
+                    return .none
+                case .distance(_):
+                    return .none
+                case .logOutButtonTapped:
                     return .none
                 }
             }

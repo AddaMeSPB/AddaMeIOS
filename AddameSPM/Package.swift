@@ -22,23 +22,13 @@ let package = Package(
 
     // Client
     .library(name: "APIClient", targets: ["APIClient"]),
-    .library(name: "AttachmentClient", targets: ["AttachmentClient"]),
-    .library(name: "AttachmentClientLive", targets: ["AttachmentClientLive"]),
-
-    .library(name: "ChatClient", targets: ["ChatClient"]),
-    .library(name: "ChatClientLive", targets: ["ChatClientLive"]),
+    .library(name: "AttachmentS3Client", targets: ["AttachmentS3Client"]),
     .library(name: "ContactClient", targets: ["ContactClient"]),
     .library(name: "ContactClientLive", targets: ["ContactClientLive"]),
-    .library(name: "ConversationClient", targets: ["ConversationClient"]),
-    .library(name: "ConversationClientLive", targets: ["ConversationClientLive"]),
     .library(name: "CoreDataClient", targets: ["CoreDataClient"]),
     .library(name: "DeviceClient", targets: ["DeviceClient"]),
-    .library(name: "EventClient", targets: ["EventClient"]),
-    .library(name: "EventClientLive", targets: ["EventClientLive"]),
-    .library(name: "UserClient", targets: ["UserClient"]),
-    .library(name: "UserClientLive", targets: ["UserClientLive"]),
     .library(name: "WebSocketClient", targets: ["WebSocketClient"]),
-    .library(name: "WebSocketClientLive", targets: ["WebSocketClientLive"]),
+    .library(name: "WebSocketReducer", targets: ["WebSocketReducer"]),
     .library(name: "LocationSearchClient", targets: ["LocationSearchClient"]),
 
     // MARK: Views
@@ -73,8 +63,6 @@ let package = Package(
     .package(url: "https://github.com/pointfreeco/composable-core-location.git", .branch("main")),
     .package(url: "https://github.com/pointfreeco/xctest-dynamic-overlay", from: "0.1.0"),
     .package(url: "https://github.com/AddaMeSPB/CombineContacts.git", .branch("async")),
-    .package(url: "https://github.com/AddaMeSPB/HTTPRequestKit.git", from: "3.0.0"),
-    .package(url: "https://github.com/saroar/swift-composable-presentation.git", .branch("foundation")),
     .package(url: "https://github.com/pointfreeco/swift-tagged", from: "0.6.0"),
     .package(path: "/Users/alif/Developer/Swift/MySideProjects/CommonTCALibraries")
   ],
@@ -85,12 +73,10 @@ let package = Package(
       dependencies: [
         .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
         .product(name: "CommonTCALibraries", package: "CommonTCALibraries"),
-        "APIClient", "AttachmentClient", "ChatClient",
-        "ConversationClient", "EventClient", "WebSocketClient",
+        "APIClient", "AttachmentS3Client",
         "EventView", "ConversationsView", "ProfileView", "TabsView",
         "AuthenticationView", "SettingsView", "ContactClient",
-        "UserClient", "UserClientLive", "SettingsFeature",
-        "LocationReducer"
+        "SettingsFeature", "LocationReducer"
       ]
     ),
 
@@ -133,7 +119,7 @@ let package = Package(
       name: "CoreDataClient",
       dependencies: [
         .product(name: "AddaSharedModels", package: "AddaSharedModels"),
-        "CoreDataStore", "ContactClient", "ContactClientLive"
+        "CoreDataStore"
       ]
     ),
 
@@ -146,33 +132,21 @@ let package = Package(
     ),
 
     .target(
-      name: "AttachmentClient",
+      name: "AttachmentS3Client",
       dependencies: [
 //        .product(name: "S3", package: "AWSSDKSwift"),
         .product(name: "SotoS3", package: "soto"),
         .product(name: "AddaSharedModels", package: "AddaSharedModels"),
         .product(name: "CommonTCALibraries", package: "CommonTCALibraries"),
-        "HTTPRequestKit"
       ]
     ),
-    .target(name: "AttachmentClientLive", dependencies: ["AttachmentClient"]),
-
-    .target(
-      name: "ChatClient",
-      dependencies: [
-        .product(name: "AddaSharedModels", package: "AddaSharedModels"),
-        .product(name: "CommonTCALibraries", package: "CommonTCALibraries"),
-        "HTTPRequestKit"
-      ]
-    ),
-    .target(name: "ChatClientLive", dependencies: ["ChatClient"]),
 
     .target(
       name: "ContactClient",
       dependencies: [
         .product(name: "AddaSharedModels", package: "AddaSharedModels"),
         .product(name: "CommonTCALibraries", package: "CommonTCALibraries"),
-        "HTTPRequestKit", "PhoneNumberKit", "CombineContacts"
+         "PhoneNumberKit", "CombineContacts"
       ]
     ),
     .target(
@@ -184,50 +158,17 @@ let package = Package(
     ),
 
     .target(
-      name: "ConversationClient",
-      dependencies: [
-        .product(name: "AddaSharedModels", package: "AddaSharedModels"),
-        .product(name: "CommonTCALibraries", package: "CommonTCALibraries"),
-        "HTTPRequestKit"
-      ]),
-
-    .target(
-      name: "ConversationClientLive",
-      dependencies: ["ConversationClient"]),
-
-    .target(
-      name: "EventClient",
-      dependencies: [
-        .product(name: "AddaSharedModels", package: "AddaSharedModels"),
-        .product(name: "CommonTCALibraries", package: "CommonTCALibraries"),
-        "HTTPRequestKit"
-      ]),
-
-    .target(
-      name: "EventClientLive",
-      dependencies: ["EventClient"]),
-
-    .target(
-      name: "UserClient",
-      dependencies: [
-        .product(name: "AddaSharedModels", package: "AddaSharedModels"),
-        .product(name: "CommonTCALibraries", package: "CommonTCALibraries"),
-        "HTTPRequestKit"
-      ]),
-
-    .target(name: "UserClientLive", dependencies: ["UserClient"]),
-
-    .target(
       name: "WebSocketClient",
       dependencies: [
         .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
         .product(name: "AddaSharedModels", package: "AddaSharedModels"),
         .product(name: "CommonTCALibraries", package: "CommonTCALibraries"),
-        "HTTPRequestKit"
+        "APIClient"
       ]
     ),
+
     .target(
-      name: "WebSocketClientLive",
+      name: "WebSocketReducer",
       dependencies: [
         .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
         "WebSocketClient"
@@ -277,12 +218,7 @@ let package = Package(
       dependencies: [
         .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
         .product(name: "CommonTCALibraries", package: "CommonTCALibraries"),
-        "UserClient", "UserClientLive",
-        "EventClient", "EventClientLive", "AttachmentClient", "AttachmentClientLive",
-        "ConversationClient",
-        "ConversationClientLive",
         "EventView", "ConversationsView", "ProfileView",
-        "WebSocketClient", "WebSocketClientLive",
         "DeviceClient", "CombineHelpers"
       ]
     ),
@@ -293,9 +229,7 @@ let package = Package(
         .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
         .product(name: "AddaSharedModels", package: "AddaSharedModels"),
         .product(name: "CommonTCALibraries", package: "CommonTCALibraries"),
-        "WebSocketClient", "ConversationClient", "ChatClient", "AsyncImageLoder",
-        "HTTPRequestKit", "ChatClientLive", "ConversationClientLive",
-        "WebSocketClientLive"
+        "APIClient", "AsyncImageLoder", "WebSocketReducer"
       ]
     ),
 
@@ -303,13 +237,10 @@ let package = Package(
       name: "ConversationsView",
       dependencies: [
         .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
-        .product(name: "ComposablePresentation", package: "swift-composable-presentation"),
         .product(name: "AddaSharedModels", package: "AddaSharedModels"),
         .product(name: "CommonTCALibraries", package: "CommonTCALibraries"),
-        "WebSocketClient", "ChatClient", "ChatClientLive",
-        "AsyncImageLoder",
-        "HTTPRequestKit", "ConversationClient", "ConversationClientLive",
-        "WebSocketClientLive", "ChatView", "ComposableArchitectureHelpers",
+        "APIClient", "AsyncImageLoder",
+         "ChatView", "ComposableArchitectureHelpers",
         "ContactClient", "ContactClientLive", "ContactsView", "CoreDataClient"
       ]
     ),
@@ -318,12 +249,9 @@ let package = Package(
       name: "ContactsView",
       dependencies: [
         .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
-        .product(name: "ComposablePresentation", package: "swift-composable-presentation"),
         .product(name: "AddaSharedModels", package: "AddaSharedModels"),
         .product(name: "CommonTCALibraries", package: "CommonTCALibraries"),
-        "AsyncImageLoder", "HTTPRequestKit",
-        "ContactClient", "ContactClientLive", "WebSocketClient",
-        "WebSocketClientLive", "ChatClient", "ChatClientLive",
+        "AsyncImageLoder", "ContactClient", "ContactClientLive",
         "CoreDataStore", "CoreDataClient",
         "ChatView", "ComposableArchitectureHelpers"
       ]
@@ -333,9 +261,8 @@ let package = Package(
       name: "ContactsViewTests",
       dependencies: [
         .product(name: "AddaSharedModels", package: "AddaSharedModels"),
-        "AsyncImageLoder", "HTTPRequestKit",
-        "ContactClient", "ContactClientLive", "WebSocketClient",
-        "WebSocketClientLive", "ChatClient", "ChatClientLive",
+        "AsyncImageLoder",
+        "ContactClient", "ContactClientLive",
         "CoreDataStore", "CoreDataClient",
         "ChatView", "ComposableArchitectureHelpers", "ContactsView"
       ]
@@ -346,10 +273,9 @@ let package = Package(
       dependencies: [
         .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
         .product(name: "ComposableCoreLocation", package: "composable-core-location"),
-        .product(name: "ComposablePresentation", package: "swift-composable-presentation"),
         .product(name: "AddaSharedModels", package: "AddaSharedModels"),
         .product(name: "CommonTCALibraries", package: "CommonTCALibraries"),
-        "APIClient", "EventFormView", "WebSocketClient", "WebSocketClientLive",
+        "APIClient", "EventFormView",
         "AsyncImageLoder", "ChatView", "HangoutDetailsFeature",
         "ComposableArchitectureHelpers", "LocationReducer"
       ]
@@ -359,7 +285,7 @@ let package = Package(
       dependencies: [
         .product(name: "AddaSharedModels", package: "AddaSharedModels"),
         .product(name: "CommonTCALibraries", package: "CommonTCALibraries"),
-        "EventView", "HTTPRequestKit"
+        "EventView",
       ]
     ),
 
@@ -368,7 +294,6 @@ let package = Package(
       dependencies: [
         .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
         .product(name: "ComposableCoreLocation", package: "composable-core-location"),
-        .product(name: "ComposablePresentation", package: "swift-composable-presentation"),
         .product(name: "AddaSharedModels", package: "AddaSharedModels"),
         .product(name: "CommonTCALibraries", package: "CommonTCALibraries"),
         "APIClient", "AsyncImageLoder", "MapView"
@@ -379,7 +304,7 @@ let package = Package(
 //      name: "EventFormViewTests",
 //      dependencies: [
 //        .product(name: "AddaSharedModels", package: "AddaSharedModels"),
-//        "EventFormView", "HTTPRequestKit", "KeychainService",
+//        "EventFormView",  "KeychainService",
 //      ]
 //    ),
 
@@ -398,12 +323,10 @@ let package = Package(
       dependencies: [
         .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
         .product(name: "ComposableCoreLocation", package: "composable-core-location"),
-        .product(name: "ComposablePresentation", package: "swift-composable-presentation"),
         .product(name: "AddaSharedModels", package: "AddaSharedModels"),
         .product(name: "CommonTCALibraries", package: "CommonTCALibraries"),
-        "EventClient", "AsyncImageLoder", "HTTPRequestKit", "ChatClient",
-        "MapView", "ChatView", "APIClient",
-        "ConversationClient", "ConversationClientLive", "ComposableArchitectureHelpers"
+        "AsyncImageLoder", "MapView", "ChatView", "APIClient",
+        "ComposableArchitectureHelpers"
       ],
       resources: [.process("Resources")]
     ),
@@ -412,15 +335,10 @@ let package = Package(
       name: "ProfileView",
       dependencies: [
         .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
-        .product(name: "ComposablePresentation", package: "swift-composable-presentation"),
         .product(name: "AddaSharedModels", package: "AddaSharedModels"),
         .product(name: "CommonTCALibraries", package: "CommonTCALibraries"),
-         "EventClient", "AttachmentClient",
-        "UserClient", "AsyncImageLoder",
-        "HTTPRequestKit", "AuthenticationView",
-        "AttachmentClientLive", "UserClientLive",
-        "EventClientLive", "SettingsView", "ComposableArchitectureHelpers",
-        "ImagePicker", "MyEventsView"
+        "AsyncImageLoder", "AuthenticationView", "SettingsView", "ComposableArchitectureHelpers",
+        "ImagePicker", "MyEventsView", "AttachmentS3Client"
       ]
       // resources: [.process("Images")]
     ),
@@ -430,7 +348,6 @@ let package = Package(
       dependencies: [
         .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
         .product(name: "XCTestDynamicOverlay", package: "xctest-dynamic-overlay"),
-        .product(name: "ComposablePresentation", package: "swift-composable-presentation"),
         .product(name: "AddaSharedModels", package: "AddaSharedModels"),
         .product(name: "CommonTCALibraries", package: "CommonTCALibraries"),
         "AuthenticationView"
@@ -451,7 +368,6 @@ let package = Package(
       dependencies: [
         .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
         .product(name: "XCTestDynamicOverlay", package: "xctest-dynamic-overlay"),
-        .product(name: "ComposablePresentation", package: "swift-composable-presentation"),
         .product(name: "AddaSharedModels", package: "AddaSharedModels"),
         .product(name: "CommonTCALibraries", package: "CommonTCALibraries"),
         .product(name: "ComposableCoreLocation", package: "composable-core-location"),
@@ -489,7 +405,6 @@ let package = Package(
             "AddaSharedModels"
         ]
     )
-
 
   ]
 )

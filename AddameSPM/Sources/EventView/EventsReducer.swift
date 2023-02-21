@@ -17,6 +17,7 @@ import LocationReducer
 
 import UserDefaultsClient
 import APIClient
+import WebSocketReducer
 
 public struct Hangouts: ReducerProtocol {
 
@@ -27,7 +28,6 @@ public struct Hangouts: ReducerProtocol {
             isLoadingPage: Bool = false,
             isLoadingMyEvent: Bool = false,
             canLoadMorePages: Bool = true,
-            isMovingChatRoom: Bool = false,
             isEFromNavigationActive: Bool = false,
             isIDFAAuthorized: Bool = false,
             isLocationAuthorizedCount: Int = 0,
@@ -38,14 +38,15 @@ public struct Hangouts: ReducerProtocol {
             myEvent: EventResponse? = nil,
             event: EventResponse? = nil,
             conversation: ConversationOutPut? = nil,
-            locationState: LocationReducer.State = .init()
+            locationState: LocationReducer.State = .init(),
+            chatState: Chat.State? = nil,
+            websocketState: WebSocketReducer.State
         ) {
             self.alert = alert
             self.isConnected = isConnected
             self.isLoadingPage = isLoadingPage
             self.isLoadingMyEvent = isLoadingMyEvent
             self.canLoadMorePages = canLoadMorePages
-            self.isMovingChatRoom = isMovingChatRoom
             self.isEFromNavigationActive = isEFromNavigationActive
             self.isIDFAAuthorized = isIDFAAuthorized
             self.isLocationAuthorizedCount = isLocationAuthorizedCount
@@ -56,6 +57,8 @@ public struct Hangouts: ReducerProtocol {
             self.event = event
             self.conversation = conversation
             self.locationState = locationState
+            self.chatState = chatState
+            self.websocketState = websocketState
         }
 
         public var alert: AlertState<Hangouts.Action>?
@@ -63,7 +66,7 @@ public struct Hangouts: ReducerProtocol {
         public var isLoadingPage = true
         public var isLoadingMyEvent = false
         public var canLoadMorePages = true
-        public var isMovingChatRoom: Bool = false
+
         public var isEFromNavigationActive = false
         public var isIDFAAuthorized = false
         public var isLocationAuthorizedCount = 0
@@ -81,11 +84,13 @@ public struct Hangouts: ReducerProtocol {
         public var hangoutFormState: HangoutForm.State?
         public var isHangoutDetailsSheetPresented: Bool { hangoutDetailsState != nil }
 
-
         public var hangoutDetailsState: HangoutDetails.State?
         public var isHangoutNavigationActive: Bool = false
-        //          public var chatState: ChatState?
+        public var chatState: Chat.State?
+        public var isMovingChatRoom: Bool { chatState != nil }
 
+
+        public var websocketState: WebSocketReducer.State
 
     }
 
@@ -104,7 +109,7 @@ public struct Hangouts: ReducerProtocol {
         case hangoutDetails(HangoutDetails.Action)
 
         case chatView(isNavigate: Bool)
-        case chat(ChatAction)
+        case chat(Chat.Action)
 
         case fetchEventOnAppear
         case fetchMoreEventsIfNeeded(item: EventResponse?)
@@ -113,6 +118,7 @@ public struct Hangouts: ReducerProtocol {
         case eventsResponse(TaskResult<EventsResponse>)
         case eventTapped(EventResponse)
         case myEventsResponse(TaskResult<EventsResponse>)
+        case addUserResponse(TaskResult<AddUser>)
 
         //case idfaAuthorizationStatus(ATTrackingManager.AuthorizationStatus)
 
@@ -138,6 +144,9 @@ public struct Hangouts: ReducerProtocol {
         }
 
         Reduce(self.core)
+            .ifLet(\.chatState, action: /Hangouts.Action.chat) {
+                Chat()
+            }
             .ifLet(\.hangoutFormState, action: /Hangouts.Action.hangoutForm) {
                 HangoutForm()
             }
@@ -200,10 +209,10 @@ public struct Hangouts: ReducerProtocol {
 
           func presentChatView() -> Effect<Action, Never> {
             state.hangoutDetailsState = nil
-//            state.chatState = nil
-            return Effect(value: Action.chatView(isNavigate: true))
-              .receive(on: mainQueue)
-              .eraseToEffect()
+              return .run { send in
+                  try await self.mainQueue.sleep(for: .seconds(0.3))
+                  await send(.chatView(isNavigate: true))
+              }
           }
 
         switch action {
@@ -257,6 +266,14 @@ public struct Hangouts: ReducerProtocol {
             }
 
         case .chatView(isNavigate: let isNavigate):
+            guard let conversation = state.conversation else { return .none }
+
+            state.chatState = isNavigate ? Chat.State(
+                conversation: conversation,
+                currentUser: state.websocketState.user,
+                websocketState: state.websocketState
+            ) : nil
+
             return .none
 
         case .chat(_):
@@ -283,8 +300,9 @@ public struct Hangouts: ReducerProtocol {
 
         case .currentLocationButtonTapped:
             return .none
-        case .locationManager(_):
+        case .locationManager:
             return .none
+
         case .eventsResponse(.success(let eventArray)):
             
             state.locationState.waitingForUpdateLocation = false
@@ -316,7 +334,12 @@ public struct Hangouts: ReducerProtocol {
 
         case .location:
             return .none
-
+        case .addUserResponse(.success):
+            return .run { send in
+                await send(.hangoutDetails(.startChat(true)))
+            }
+        case .addUserResponse(.failure):
+            return .none
         case .hangoutDetails(let hdAction):
             switch hdAction {
             case .onAppear:
@@ -330,8 +353,51 @@ public struct Hangouts: ReducerProtocol {
             case .startChat:
                 return presentChatView()
             case .askJoinRequest(let boolean):
-                state.isMovingChatRoom = boolean
-                return .none
+                //!state.hangoutFormState.isMember && !state.hangoutFormState.isAdmin
+
+                guard let conversationId = state.event?.conversationsId else {
+                    return .none
+                }
+
+                return .task {
+                    .addUserResponse(
+                        await TaskResult {
+                            try await apiClient.request(for: .chatEngine(.conversations(.conversation(id: conversationId.hexString, route: .joinuser))))
+                        }
+                    )
+                }
+
+//                return  .task {
+//                    .eventsResponse(
+//                        await TaskResult {
+//                            try await apiClient.request(
+//                                for: .eventEngine(.events(.list(query: query))),
+//                                as: EventsResponse.self,
+//                                decoder: .iso8601
+//                            )
+//                        }
+//                    )
+//                }
+
+//                guard let currentUSER: User = KeychainService.loadCodable(for: .user),
+//                      let conversation = state.conversation
+//                    else {
+//                      return .none
+//                    }
+//
+//                    state.isMovingChatRoom = bool
+//                    let adduser = AddUser(
+//                      conversationsId: conversation.id,
+//                      usersId: currentUSER.id
+//                    )
+//
+//                    return environment.conversationClient
+//                      .addUserToConversation(adduser, "\(conversation.id)/users/\(currentUSER.id)")
+//                      .receive(on: environment.mainQueue)
+//                      .catchToEffect()
+//                      .map(EventDetailsOverlayAction.joinToEvent)
+//
+//                return .none
 
             case .joinToEvent(.success):
                 return presentChatView()
@@ -348,7 +414,6 @@ public struct Hangouts: ReducerProtocol {
                 return .none
             }
         }
-
     }
 }
 
@@ -360,7 +425,7 @@ public struct Hangouts: ReducerProtocol {
 // import Contacts
 // import HangoutDetailsFeature
 // import EventFormView
-// import HTTPRequestKit
+// 
 // import MapKit
 // import AddaSharedModels
 // import SwiftUI

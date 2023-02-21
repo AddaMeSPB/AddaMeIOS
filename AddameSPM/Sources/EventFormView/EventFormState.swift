@@ -31,7 +31,7 @@ extension HangoutForm.State {
     categories: .init(uniqueElements: [CategoryResponse.exploreAreaDraff]),
     isPostRequestOnFly: false,
     isEventCreatedSuccessfully: true,
-    currentUser: .demo
+    currentUser: .withFirstName
   )
 
   public static let invalidEventForm = Self(
@@ -41,7 +41,7 @@ extension HangoutForm.State {
     eventAddress: "",
     isPostRequestOnFly: false,
     isEventCreatedSuccessfully: false,
-    currentUser: .demo
+    currentUser: .withNumber
   )
 }
 

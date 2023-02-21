@@ -5,7 +5,7 @@ import AddaSharedModels
 
 extension URLRequest {
 
-   fileprivate mutating func getToken() -> String? {
+    public mutating func getToken() -> String? {
         let identifier = DependencyValues._current.build.identifier()
         let token = try? DependencyValues._current
             .keychainClient

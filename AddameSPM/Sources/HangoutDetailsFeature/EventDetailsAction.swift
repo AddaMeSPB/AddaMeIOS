@@ -6,8 +6,6 @@
 //
 
 import ComposableArchitecture
-import ConversationClient
-import HTTPRequestKit
 import KeychainClient
 import MapView
 import AddaSharedModels

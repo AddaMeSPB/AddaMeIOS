@@ -9,7 +9,7 @@ import Combine
 import CombineContacts
 import Contacts
 import Foundation
-import HTTPRequestKit
+
 import AddaSharedModels
 
 extension ContactClient {
@@ -19,33 +19,21 @@ extension ContactClient {
     },
     buidContacts: {
         MobileNumbersInput(mobileNumber: [""])
-    },
-    getRegisterUsersFromServer: { _ in
-        [UserOutput.withNumber, UserOutput.withFirstName, UserOutput.withAttachments]
     }
   )
 
   public static let restricted = Self(
     authorization: { CNAuthorizationStatus.restricted },
-    buidContacts: { MobileNumbersInput(mobileNumber: [""]) },
-    getRegisterUsersFromServer: { _ in
-        [UserOutput.withNumber, UserOutput.withFirstName, UserOutput.withAttachments]
-    }
+    buidContacts: { MobileNumbersInput(mobileNumber: [""]) }
   )
 
   public static let denied = Self(
     authorization: { CNAuthorizationStatus.denied },
-    buidContacts: { MobileNumbersInput(mobileNumber: [""]) },
-    getRegisterUsersFromServer: { _ in
-        [UserOutput.withNumber, UserOutput.withFirstName, UserOutput.withAttachments]
-    }
+    buidContacts: { MobileNumbersInput(mobileNumber: [""]) }
   )
 
   public static let authorized = Self(
     authorization: { CNAuthorizationStatus.authorized },
-    buidContacts: { MobileNumbersInput(mobileNumber: [""]) },
-    getRegisterUsersFromServer: { _ in
-        [UserOutput.withNumber, UserOutput.withFirstName, UserOutput.withAttachments]
-    }
+    buidContacts: { MobileNumbersInput(mobileNumber: ["+79218821217"]) }
   )
 }

@@ -74,7 +74,7 @@ extension HangoutsView {
         case hangoutDetails(HangoutDetails.Action)
 
         case chatView(isNavigate: Bool)
-        case chat(ChatAction)
+        case chat(Chat.Action)
 
         case fetchMoreEventsIfNeeded(item: EventResponse?)
 
@@ -87,7 +87,6 @@ extension HangoutsView {
         case onDisAppear
     }
 }
-
 
 public struct HangoutsView: View {
     @Environment(\.colorScheme) var colorScheme
@@ -242,6 +241,22 @@ public struct HangoutsView: View {
                   )
                 ) {}
             )
+            .background(
+                NavigationLink(
+                  destination: IfLetStore(
+                    self.store.scope(
+                      state: \.chatState,
+                      action: Hangouts.Action.chat
+                    )
+                  ) {
+                      ChatView(store: $0)
+                  },
+                  isActive: viewStore.binding(
+                    get: \.isMovingChatRoom,
+                    send: { .chatView(isNavigate: $0) }
+                  )
+                ) {}
+            )
             .sheet(
               isPresented: viewStore.binding(
                 get: \.isHangoutDetailsSheetPresented,
@@ -299,7 +314,7 @@ public struct HangoutsView: View {
 struct HangoutsView_Previews: PreviewProvider {
 
     static let store = Store(
-        initialState: Hangouts.State(),
+        initialState: Hangouts.State(websocketState: .init(user: .withFirstName)),
         reducer: Hangouts()
     )
 
@@ -316,13 +331,6 @@ struct EventsListView: View {
     let store: StoreOf<Hangouts>
 
     var body: some View {
-//        WithViewStore(
-//            self.store.scope(
-//                state: { $0.view },
-//                action: Hangouts.Action.view
-//            )
-//        )
-
         WithViewStore(self.store, observe: HangoutsView.ViewState.init, send: Hangouts.Action.init) { viewStore in
             ForEachStore(
                 self.store.scope(state: \.events, action: Hangouts.Action.event)

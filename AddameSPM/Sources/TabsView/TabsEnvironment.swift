@@ -7,11 +7,11 @@
 
 import Combine
 import ComposableArchitecture
-import HTTPRequestKit
+
 import InfoPlist
 import KeychainClient
 import AddaSharedModels
-import WebSocketClient
+
 import DeviceClient
 import Foundation
 

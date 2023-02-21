@@ -19,7 +19,7 @@ public struct HangoutDetails: ReducerProtocol {
         public init(
             alert: AlertState<HangoutDetails.Action>? = nil,
             event: EventResponse,
-            owner: UserOutput? = nil,
+            owner: UserOutput = .withFirstName,
             pointsOfInterest: [PointOfInterest] = [],
             region: CoordinateRegion? = nil,
             conversation: ConversationOutPut? = nil,
@@ -48,7 +48,7 @@ public struct HangoutDetails: ReducerProtocol {
 
         public var alert: AlertState<HangoutDetails.Action>?
         public let event: EventResponse
-        public var owner: UserOutput?
+        public var owner: UserOutput
         public var pointsOfInterest: [PointOfInterest] = []
         public var region: CoordinateRegion?
         public var conversation: ConversationOutPut?
@@ -89,10 +89,7 @@ public struct HangoutDetails: ReducerProtocol {
                 let latitude = state.event.coordinates[0]
                 let longitude = state.event.coordinates[1]
 
-                let coordinate = CLLocationCoordinate2D(
-                    latitude: latitude,
-                    longitude: longitude
-                )
+                let coordinate = CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
 
                 state.region = CoordinateRegion(
                     center: coordinate,
@@ -102,6 +99,11 @@ public struct HangoutDetails: ReducerProtocol {
                 state.pointsOfInterest = [
                     .init(coordinate: coordinate, subtitle: state.event.addressName, title: state.event.name)
                 ]
+
+                if let members = state.conversation?.members {
+                    state.chatMembers = members.count
+                    state.isMember = members.contains(where: { $0.id == state.owner.id })
+                }
 
                 return .task { [ownerId = state.event.ownerId.hexString] in
                     .userResponse(
@@ -117,39 +119,37 @@ public struct HangoutDetails: ReducerProtocol {
 
             case .alertDismissed:
                 return .none
-            case let .moveToChatRoom(bool):
+            case .moveToChatRoom:
                 return .none
-            case let .updateRegion(coordinateRegion):
+            case .updateRegion:
                 return .none
-
             case .startChat:
                 return .none
             case .askJoinRequest:
                 return .none
             case .joinToEvent:
                 return .none
+
             case let .conversationResponse(.success(conversationItem)):
 
                 state.conversation = conversationItem
 
-                var currentUser: UserGetObject = .demo
-
                 do {
-                    currentUser = try self.keychainClient.readCodable(.user, self.build.identifier(), UserGetObject.self)
+                    state.owner = try self.keychainClient.readCodable(.user, self.build.identifier(), UserOutput.self)
                 } catch {
+                    state.alert = .init(title: .init("\(#line) cant user!"))
                     print("something....")
+                    return .none
                 }
-
 
                 if let members = conversationItem.members {
                     state.chatMembers = members.count
-                    state.isMember = members.contains(where: { $0.id == currentUser.id })
+                    state.isMember = members.contains(where: { $0.id == state.owner.id })
                 }
 
                 if let admins = conversationItem.admins {
-                    state.isAdmin = admins.contains(where: { $0.id == currentUser.id })
+                    state.isAdmin = admins.contains(where: { $0.id == state.owner.id })
                 }
-
 
                 return .none
 
@@ -159,7 +159,17 @@ public struct HangoutDetails: ReducerProtocol {
             case let .userResponse(.success(userOutput)):
                 state.owner = userOutput
                 state.conversationOwnerName = userOutput.fullName ?? ""
-                return .none
+                return .task { [conversationID = state.event.conversationsId] in
+                        .conversationResponse(
+                            await TaskResult {
+                                try await apiClient.request(
+                                    for: .chatEngine(.conversations(.conversation(id: conversationID.hexString))),
+                                    as: ConversationOutPut.self,
+                                    decoder: .iso8601
+                                )
+                            }
+                        )
+                    }
 
             case .userResponse(.failure):
                 // handle error

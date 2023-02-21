@@ -8,55 +8,109 @@
 import SwiftUI
 import ComposableArchitecture
 import AddaSharedModels
-import EventClient
-import EventClientLive
+import APIClient
+import KeychainClient
 
-public struct MyEventsEnvironment {
-    public init(eventClient: EventClient, mainQueue: AnySchedulerOf<DispatchQueue>) {
-        self.eventClient = eventClient
-        self.mainQueue = mainQueue
+public struct MyEvents: ReducerProtocol {
+
+    public struct State: Equatable {
+        public init(
+            isLoadingPage: Bool = false,
+            canLoadMorePages: Bool = true,
+            currentPage: Int = 1,
+            index: Int = 0,
+            myEvents: IdentifiedArrayOf<EventResponse> = [],
+            user: UserOutput = .withFirstName
+        ) {
+            self.isLoadingPage = isLoadingPage
+            self.canLoadMorePages = canLoadMorePages
+            self.currentPage = currentPage
+            self.index = index
+            self.myEvents = myEvents
+            self.user = user
+        }
+
+        public var isLoadingPage = false
+        public var canLoadMorePages = true
+        public var currentPage = 1
+        public var index = 0
+        public var myEvents: IdentifiedArrayOf<EventResponse> = []
+        public var user: UserOutput
     }
 
-    public var eventClient: EventClient
-    public var mainQueue: AnySchedulerOf<DispatchQueue>
-}
+    public enum MyEventAction: Equatable {}
 
-extension MyEventsEnvironment {
-  public static let live: MyEventsEnvironment = .init(
-    eventClient: .live,
-    mainQueue: .main
-  )
-}
+    public enum Action: Equatable {
+        case onApper
+        case event(id: EventResponse.ID, action: MyEventAction)
+        case myEventsResponse(TaskResult<EventsResponse>)
+    }
 
-public let myEventsReducer = Reducer<MyEventsState, MyEventsAction, MyEventsEnvironment> { state, action, _ in
-//    func fetchMoreMyEvents() -> Effect<MyEventsAction, Never> {
-//      guard !state.isLoadingPage, state.canLoadMorePages else { return .none }
-//
-//      state.isLoadingPage = true
-//
-//      let query = QueryItem(page: "\(state.currentPage)", per: "10")
-//
-//      return environment.eventClient.events(query, "my")
-//        .retry(3)
-//        .receive(on: environment.mainQueue)
-//        .removeDuplicates()
-//        .catchToEffect(MyEventsAction.myEventsResponse)
-//    }
+    @Dependency(\.mainQueue) var mainQueue
+    @Dependency(\.apiClient) var apiClient
+    @Dependency(\.keychainClient) var keychainClient
+    @Dependency(\.build) var build
 
-    switch action {
-    case .onApper:
-        return .none
-        // fetchMoreMyEvents()
+    public init() {}
 
-    case let .myEventsResponse(.success(element)):
-            state.canLoadMorePages = state.myEvents.count < element.metadata.total
+    public var body: some ReducerProtocol<State, Action> {
+        Reduce(self.core)
+    }
+
+    func core(state: inout State, action: Action) -> EffectTask<Action> {
+
+        var fetchMoreMyEvents: Effect<Action, Never> {
+          guard !state.isLoadingPage, state.canLoadMorePages else { return .none }
+
+          state.isLoadingPage = true
+
+          let queryItem = QueryItem(page: state.currentPage, per: 10)
+
+            do {
+                state.user = try self.keychainClient.readCodable(.user, self.build.identifier(), UserOutput.self)
+            } catch {
+                //fatalError("must have user")
+                return .none
+            }
+
+            return .task {
+                .myEventsResponse(
+                    await TaskResult {
+                        try await apiClient.request(
+                            for: .eventEngine(.events(.findOwnerEvetns(query: queryItem))),
+                            as: EventsResponse.self,
+                            decoder: .iso8601
+                        )
+                    }
+                )
+            }
+        }
+
+        switch action {
+        case .onApper:
+
+            return fetchMoreMyEvents
+
+        case let .myEventsResponse(.success(elements)):
+
+            if elements.items.isEmpty && state.currentPage > 1 {
+                state.currentPage = 1
+                state.canLoadMorePages = true
+                return .none
+            }
+
+            state.canLoadMorePages = state.myEvents.count < elements.metadata.total
             state.isLoadingPage = false
             state.currentPage += 1
 
-            state.myEvents = .init(uniqueElements: element.items)
-        return .none
-    case let .myEventsResponse(.failure(error)):
-        // handle error
-        return .none
+            state.myEvents = .init(uniqueElements: elements.items)
+
+            return .none
+
+        case .myEventsResponse(.failure):
+            // handle error
+            return .none
+        }
     }
+
 }

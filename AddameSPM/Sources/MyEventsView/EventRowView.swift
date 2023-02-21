@@ -12,11 +12,11 @@ import AddaSharedModels
 public struct MyEventRowView: View {
   @Environment(\.colorScheme) var colorScheme
 
-  public init(store: Store<EventResponse, MyEventAction>) {
+    public init(store: Store<EventResponse, MyEvents.MyEventAction>) {
     self.store = store
   }
 
-  public let store: Store<EventResponse, MyEventAction>
+    public let store: Store<EventResponse, MyEvents.MyEventAction>
 
   public var body: some View {
     WithViewStore(self.store) { viewStore in

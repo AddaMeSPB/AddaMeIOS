@@ -7,10 +7,5 @@
 
 import ChatView
 import Contacts
-import HTTPRequestKit
 import AddaSharedModels
 
-public enum ContactRowAction: Equatable {
-  case moveToChatRoom(Bool)
-  case chatWith(name: String, phoneNumber: String)
-}

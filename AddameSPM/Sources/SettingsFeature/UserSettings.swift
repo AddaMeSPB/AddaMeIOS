@@ -37,7 +37,6 @@ public struct UserSettings: Codable, Equatable {
 // import UserDefaultsClient
 // import ComposableUserNotifications
 // import AddaSharedModels
-// import ComposablePresentation
 // import AuthenticationView
 //
 // public struct UserSettings: Codable, Equatable {

@@ -165,7 +165,8 @@ public struct Login: ReducerProtocol {
                             await TaskResult {
                                 try await apiClient.decodedResponse(
                                     for: .authEngine(.authentication(.verifyEmail(input))),
-                                    as: SuccessfulLoginResponse.self
+                                    as: SuccessfulLoginResponse.self,
+                                    decoder: .iso8601
                                 ).value
                             }
                         )
@@ -213,8 +214,12 @@ public struct Login: ReducerProtocol {
                         }
 
                         group.addTask {
-                            try await keychainClient.saveCodable(loginRes.user, .user, build.identifier())
-                            try await keychainClient.saveCodable(loginRes.access, .token, build.identifier())
+                            do {
+                                try await keychainClient.saveCodable(loginRes.user, .user, build.identifier())
+                                try await keychainClient.saveCodable(loginRes.access, .token, build.identifier())
+                            } catch {
+                                print(error.localizedDescription)
+                            }
                         }
                     }
                 }

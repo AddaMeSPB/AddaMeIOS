@@ -5,25 +5,51 @@
 //  Created by Saroar Khandoker on 25.06.2021.
 //
 
-import ChatClient
-import ChatClientLive
 import ChatView
 import Combine
 import ComposableArchitecture
 import ComposableArchitectureHelpers
-import HTTPRequestKit
+
 import AddaSharedModels
 import SwiftUI
 
 public struct ContactRowEnvironment {}
 
-public let contactRowReducer = Reducer<ContactRowState, ContactRowAction, ContactRowEnvironment> {
-  _, action, _ in
+public struct ContactRow: ReducerProtocol {
+    public struct State: Equatable, Identifiable {
+      public init(
+        id: String? = UUID().uuidString,
+        isMoving: Bool = false,
+        contact: ContactOutPut
+      ) {
+        self.id = id
+        self.isMoving = isMoving
+        self.contact = contact
+      }
 
-  switch action {
+      public var id: String?
+      public var isMoving: Bool = false
+      public var contact: ContactOutPut
+    }
 
-  case let .moveToChatRoom(present): return .none
-  case let .chatWith(name: name, phoneNumber: phoneNumber):
-      return .none
-  }
+    public enum Action: Equatable {
+      case moveToChatRoom(Bool)
+      case chatWith(name: String, phoneNumber: String)
+    }
+
+
+    public init() {}
+
+    public var body: some ReducerProtocol<State, Action> {
+
+        Reduce(self.core)
+    }
+
+    func core(state: inout State, action: Action) -> EffectTask<Action> {
+        switch action {
+
+        case .moveToChatRoom: return .none
+        case .chatWith: return .none
+        }
+    }
 }

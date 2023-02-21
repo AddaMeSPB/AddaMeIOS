@@ -13,7 +13,7 @@ import SotoS3
 import AddaSharedModels
 import UIKit
 import Combine
-import HTTPRequestKit
+
 import InfoPlist
 
 public enum AWSS3Helper {
@@ -44,14 +44,14 @@ public enum AWSS3Helper {
     _ image: UIImage,
     conversationId: String? = nil,
     userId: String? = nil
-  ) -> Combine.Future<String, HTTPRequest.HRError> {
+  ) -> Combine.Future<String, Error> {
 
-    return Combine.Future<String, HTTPRequest.HRError> { promise in
+    return Combine.Future<String, Error> { promise in
       let data = image.compressImage(conversationId == nil ? .highest : .medium)
 
       let imageFormat = data.1
       guard let imageData = data.0 else {
-        promise(.failure(HTTPRequest.HRError.custom("Data compressImage error", .none)))
+        promise(.failure("Data compressImage error"))
         return
       }
 
@@ -78,7 +78,7 @@ public enum AWSS3Helper {
 
       futureOutput.whenFailure { error in
         print(#line, self, error)
-        promise(.failure(HTTPRequest.HRError.networkError(error)))
+        promise(.failure(error))
       }
     }
   }

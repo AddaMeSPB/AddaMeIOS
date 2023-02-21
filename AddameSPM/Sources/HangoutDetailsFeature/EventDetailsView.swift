@@ -10,7 +10,7 @@ import ChatView
 import ComposableArchitecture
 import ComposableArchitectureHelpers
 import ComposableCoreLocation
-import ConversationClient
+
 import KeychainClient
 import MapKit
 import MapView
@@ -50,7 +50,7 @@ extension HangoutDetailsView {
 
         public var alert: AlertState<HangoutDetails.Action>?
         public let event: EventResponse
-        public var owner: UserOutput?
+        public var owner: UserOutput = .withFirstName
         public var pointsOfInterest: [PointOfInterest] = []
         public var region: CoordinateRegion?
         public var conversation: ConversationOutPut?

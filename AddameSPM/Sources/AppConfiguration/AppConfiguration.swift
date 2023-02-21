@@ -12,8 +12,11 @@ public struct AppConfiguration {
         var url: String {
             switch self {
             case .development:
-                return "http://10.0.1.4:8080"
-//                return "http://192.168.1.29:8080"
+//                return "http://172.16.1.136:8080"
+                //return "http://10.0.0.81:8080"
+//                return "http://172.20.10.4:8080"
+//                return "http://10.0.1.4:8080"
+                return "http://192.168.9.78:8080"
             case .production:
 //                ROOT_URL = https://addame.com/v1
 //                WEB_SOCKET_URL = ws:/$()/addame.com/v1/chat

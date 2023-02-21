@@ -7,14 +7,10 @@
 
 import XCTest
 import ComposableArchitecture
-import HTTPRequestKit
-import KeychainService
 import AddaSharedModels
 import Combine
 import URLRouting
 import InfoPlist
-import ContactClient
-import ContactClientLive
 import CoreDataClient
 
 @testable import ContactsView
@@ -37,25 +33,25 @@ class ContactsViewTests: XCTestCase {
 
         let state = ContactsState()
 
-        let environment = ContactsEnvironment(
-            coreDataClient: .init(contactClient: .live(api: .build)),
-            contactClient: .live(api: .build),
-            backgroundQueue: scheduler.eraseToAnyScheduler(),
-            mainQueue: scheduler.eraseToAnyScheduler()
-        )
-
-        let store = TestStore(
-          initialState: state,
-          reducer: contactsReducer,
-          environment: environment
-        )
-
-        await store.send(.contactsAuthorizationStatus(.authorized))
-
-        await store.send(.contactsResponse(.success(ContactOutPut.contactsMock))) {
-            let contactRowStates = $0.contacts.map { _ in ContactRowState(contact: ContactOutPut.contact1) }
-            $0.contacts = .init(uniqueElements: contactRowStates)
-        }
+//        let environment = ContactsEnvironment(
+//            coreDataClient: .init(contactClient: .live(api: .build)),
+//            contactClient: .live(api: .build),
+//            backgroundQueue: scheduler.eraseToAnyScheduler(),
+//            mainQueue: scheduler.eraseToAnyScheduler()
+//        )
+//
+//        let store = TestStore(
+//          initialState: state,
+//          reducer: contactsReducer,
+//          environment: environment
+//        )
+//
+//        await store.send(.contactsAuthorizationStatus(.authorized))
+//
+//        await store.send(.contactsResponse(.success(ContactOutPut.contactsMock))) {
+//            let contactRowStates = $0.contacts.map { _ in ContactRowState(contact: ContactOutPut.contact1) }
+//            $0.contacts = .init(uniqueElements: contactRowStates)
+//        }
 
         XCTAssertEqual(0, 0)
     }

@@ -10,15 +10,13 @@
 // import AuthClient
 // import AuthClientLive
 // import ComposableArchitecture
-// import EventClient
-// import EventClientLive
 // import AddaSharedModels
 // import UserClient
 // import UserClientLive
 // import UIKit
 // import KeychainService
 // import Combine
-// import HTTPRequestKit
+// 
 //
 // public struct ProfileEnvironment {
 //  public var userClient: UserClient

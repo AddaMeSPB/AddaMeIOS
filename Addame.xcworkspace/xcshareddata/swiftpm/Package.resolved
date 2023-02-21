@@ -47,15 +47,6 @@
         }
       },
       {
-        "package": "HTTPRequestKit",
-        "repositoryURL": "https://github.com/AddaMeSPB/HTTPRequestKit.git",
-        "state": {
-          "branch": null,
-          "revision": "d2e387fe13eb3e9dd551f5530aa549284517e5c6",
-          "version": "3.0.0"
-        }
-      },
-      {
         "package": "jmespath.swift",
         "repositoryURL": "https://github.com/adam-fowler/jmespath.swift.git",
         "state": {
@@ -134,15 +125,6 @@
           "branch": null,
           "revision": "c9259b5f74892690cb04a9a8088b4a1789b05a7d",
           "version": "0.47.2"
-        }
-      },
-      {
-        "package": "swift-composable-presentation",
-        "repositoryURL": "https://github.com/saroar/swift-composable-presentation.git",
-        "state": {
-          "branch": "foundation",
-          "revision": "a5361bfe9babcec2c13a738c028129ae5a0be9cd",
-          "version": null
         }
       },
       {

@@ -42,6 +42,8 @@ public struct AppReducer: ReducerProtocol {
     @Dependency(\.userDefaults) var userDefaults
     @Dependency(\.userNotifications) var userNotifications
     @Dependency(\.mainRunLoop) var mainRunLoop
+    @Dependency(\.keychainClient) var keychainClient
+    @Dependency(\.build) var build
 
     public init() {}
 
@@ -80,6 +82,25 @@ public struct AppReducer: ReducerProtocol {
 
             case .login:
                 return .none
+
+            case .tab(.profile(.settings(.logOutButtonTapped))):
+
+                state.loginState = Login.State()
+                return .run(priority: .background) { _ in
+
+                    await withThrowingTaskGroup(of: Void.self) { group in
+                        group.addTask {
+                            await userDefaults.setBool(
+                                false,
+                                UserDefaultKey.isAuthorized.rawValue
+                            )
+                        }
+
+                        group.addTask {
+                            try await keychainClient.logout()
+                        }
+                    }
+                }
 
             case .tab:
                 return .none

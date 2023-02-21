@@ -9,7 +9,6 @@ import ComposableArchitecture
 import KeychainClient
 import SwiftUI
 import ComposableUserNotifications
-import ComposablePresentation
 import AuthenticationView
 
 // extension SettingsView {

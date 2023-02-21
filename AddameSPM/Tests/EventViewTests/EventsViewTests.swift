@@ -8,7 +8,7 @@
 import XCTest
 import ComposableArchitecture
 import ComposableCoreLocation
-import HTTPRequestKit
+
 import KeychainService
 import AddaSharedModels
 import PathMonitorClient

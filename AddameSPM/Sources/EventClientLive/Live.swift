@@ -6,7 +6,7 @@
 //
 
 import Combine
-import EventClient
+
 import Foundation
 import InfoPlist
 import AddaSharedModels

@@ -1,5 +1,5 @@
 //
-//  ImagePicker.swift
+//  ImagePickerViewRepresentable.swift
 //  
 //
 //  Created by Saroar Khandoker on 11.10.2021.
@@ -96,17 +96,17 @@ public struct ImagePickerReducer: ReducerProtocol {
     }
 }
 
-public struct ImagePicker: UIViewControllerRepresentable {
+public struct ImagePickerView: UIViewControllerRepresentable {
   @Environment(\.presentationMode) var presentationMode
 
-    let viewStore: ViewStore<ImagePickerReducer.State, ImagePickerReducer.Action>
+    let viewStore: ViewStoreOf<ImagePickerReducer>
 
-    public init(store: Store<ImagePickerReducer.State, ImagePickerReducer.Action>) {
-    self.viewStore = ViewStore(store)
-  }
+    public init(store: StoreOf<ImagePickerReducer>) {
+        self.viewStore = ViewStore(store)
+    }
 
   public func makeUIViewController(
-    context: UIViewControllerRepresentableContext<ImagePicker>
+    context: UIViewControllerRepresentableContext<ImagePickerView>
   ) -> some UIViewController {
     var config = PHPickerConfiguration()
     config.filter = PHPickerFilter.images
@@ -124,9 +124,9 @@ public struct ImagePicker: UIViewControllerRepresentable {
   }
 
   public class Coordinator: PHPickerViewControllerDelegate {
-    let parent: ImagePicker
+    let parent: ImagePickerView
 
-    init(_ parent: ImagePicker) {
+    init(_ parent: ImagePickerView) {
       self.parent = parent
     }
 

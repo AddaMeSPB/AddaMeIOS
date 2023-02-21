@@ -86,7 +86,12 @@ public struct TabsView: View {
                 .tag(TabReducer.State.Tab.hangouts)
 
                 NavigationView {
-                    Text("Welcome ChatsView")
+                    ConversationsView(
+                        store: store.scope(
+                            state: \.conversations,
+                            action: TabReducer.Action.conversations
+                        )
+                    )
                     .onAppear {
                         ViewStore(store.stateless).send(.conversations(.onAppear))
                     }

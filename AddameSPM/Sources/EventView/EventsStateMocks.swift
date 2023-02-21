@@ -17,7 +17,8 @@ extension Hangouts.State {
         timestamp: Date(timeIntervalSince1970: 0),
         verticalAccuracy: 0
       ),
-      events: .init(uniqueElements: EventsResponse.draff.items)
+      events: .init(uniqueElements: EventsResponse.draff.items),
+      websocketState: .init(user: .withFirstName)
     )
 
     public static let fetchEvents = Self(
@@ -32,7 +33,8 @@ extension Hangouts.State {
         timestamp: Date(timeIntervalSince1970: 0),
         verticalAccuracy: 0
       ),
-      events: .init(uniqueElements: EventsResponse.draff.items)
+      events: .init(uniqueElements: EventsResponse.draff.items),
+      websocketState: .init(user: .withFirstName)
     )
 
 
@@ -46,6 +48,7 @@ extension Hangouts.State {
         timestamp: Date(timeIntervalSince1970: 0),
         verticalAccuracy: 0
       ),
-      event: EventResponse.exploreAreaDraff
+      event: EventResponse.exploreAreaDraff,
+      websocketState: .init(user: .withFirstName)
     )
  }

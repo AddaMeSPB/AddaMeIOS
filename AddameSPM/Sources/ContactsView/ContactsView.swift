@@ -4,52 +4,61 @@ import Combine
 import CombineContacts
 import ComposableArchitecture
 import ComposableArchitectureHelpers
-import ContactClient
-import ContactClientLive
 import Contacts
 import CoreData
 import CoreDataClient
 import CoreDataStore
 import Foundation
-import HTTPRequestKit
+
 import AddaSharedModels
 import SwiftUI
+import ContactClient
 
 extension ContactsView {
-  public struct ViewState: Equatable {
-    public var alert: AlertState<ContactsAction>?
-    public var contacts: IdentifiedArrayOf<ContactOutPut> = []
-    public var isAuthorizedContacts: Bool = false
-    public var invalidPermission: Bool = false
-    public var isLoading: Bool = false
-  }
+    public struct ViewState: Equatable {
+        public var alert: AlertState<ContactsReducer.Action>?
+        public var contacts: IdentifiedArrayOf<ContactRow.State>
+        public var isAuthorizedContacts: Bool = false
+        public var invalidPermission: Bool = false
+        public var isLoading: Bool = false
+        public var isActivityIndicatorVisible: Bool = false
 
-  public enum ViewAction: Equatable {
-    case onAppear
-    case alertDismissed
-    case contactRow(id: String?, action: ContactRowAction)
-    case contactsAuthorizationStatus(CNAuthorizationStatus)
-    case contactsResponse(Result<[ContactOutPut], HTTPRequest.HRError>)
-  }
+        public init(state: ContactsReducer.State) {
+//            self.alert = state.alert
+            self.contacts = state.contacts
+            self.isAuthorizedContacts = state.isAuthorizedContacts
+            self.invalidPermission = state.invalidPermission
+            self.isLoading = state.isLoading
+            self.isActivityIndicatorVisible = state.isActivityIndicatorVisible
+        }
+
+      }
+
+      public enum ViewAction: Equatable {
+        case onAppear
+        case alertDismissed
+          case contactRow(id: String?, action: ContactRow.Action)
+        case contactsAuthorizationStatus(CNAuthorizationStatus)
+        case contactsResponse(TaskResult<[ContactOutPut]>)
+      }
 }
 
 public struct ContactsView: View {
-  public let store: Store<ContactsState, ContactsAction>
+  public let store: StoreOf<ContactsReducer>
 
-  public init(store: Store<ContactsState, ContactsAction>) {
+  public init(store: StoreOf<ContactsReducer>) {
     self.store = store
   }
 
   public var body: some View {
-    WithViewStore(self.store) { viewStore in
+    WithViewStore(self.store, observe: ViewState.init, send: ContactsReducer.Action.init) { viewStore in
       ZStack {
         List {
           ContactListView(
             store: viewStore.isLoading
               ? Store(
-                initialState: ContactsState.contactsPlaceholder,
-                reducer: .empty,
-                environment: ()
+                initialState: ContactsReducer.State.contactsPlaceholder,
+                reducer: ContactsReducer()
               )
               : self.store
           )
@@ -59,7 +68,7 @@ public struct ContactsView: View {
           viewStore.send(.onAppear)
         }
       }
-      .alert(self.store.scope(state: { $0.alert }), dismiss: .alertDismissed)
+      //.alert(self.store.scope(state: \.alert ), dismiss: .alertDismissed)
       .navigationBarTitle("Contacts", displayMode: .automatic)
     }
     //    .navigate(
@@ -75,27 +84,40 @@ public struct ContactsView: View {
   }
 }
 
-// struct ContactsView_Previews: PreviewProvider {
-//  static let environment = ContactsEnvironment(
-//    coreDataClient: .init(contactClient: .authorized),
-//    backgroundQueue: .immediate,
-//    mainQueue: .immediate
-//  )
-//
-//  static let store = Store(
-//    initialState: ContactsState.contactsPlaceholder,
-//    reducer: contactsReducer,
-//    environment: environment
-//  )
-//
-//  static var previews: some View {
-//    TabView {
-//      NavigationView {
-//        ContactsView(store: store)
-//          .redacted(reason: .placeholder)
-//          .redacted(reason: EventsState.events.isLoadingPage ? .placeholder : [])
-//          .environment(\.colorScheme, .dark)
-//      }
-//    }
-//  }
-// }
+extension ContactsReducer.Action {
+    init(action: ContactsView.ViewAction) {
+        switch action {
+
+        case .onAppear:
+            self = .onAppear
+        case .alertDismissed:
+            self = .alertDismissed
+        case .contactRow(id: let id, action: let action):
+            self = .contact(id: id, action: action)
+        case .contactsAuthorizationStatus(let status):
+            self = .contactsAuthorizationStatus(status)
+        case .contactsResponse(let response):
+            self = .contactsResponse(response)
+        }
+    }
+}
+
+struct ContactsView_Previews: PreviewProvider {
+
+    static let store = Store(
+        initialState: ContactsReducer.State(),
+        reducer: ContactsReducer()
+            .dependency(\.contactClient, .authorized)
+    )
+
+    static var previews: some View {
+        TabView {
+            NavigationView {
+                ContactsView(store: store)
+                    .redacted(reason: .placeholder)
+//                    .redacted(reason: Events.State.events.isLoadingPage ? .placeholder : [])
+                    .environment(\.colorScheme, .dark)
+            }
+        }
+    }
+}

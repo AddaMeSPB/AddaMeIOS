@@ -6,7 +6,6 @@
 //
 
 import ComposableArchitecture
-import ComposablePresentation
 import Foundation
 import MapView
 import AddaSharedModels
@@ -57,7 +56,7 @@ public struct HangoutForm: ReducerProtocol {
 
         public var isPostRequestOnFly: Bool = false
         public var isEventCreatedSuccessfully: Bool = false
-        public var currentUser: UserGetObject = .demo
+        public var currentUser: UserOutput = .withFirstName
         public var isAllFeildsAreValid: Bool = false
 
         public init(
@@ -79,7 +78,7 @@ public struct HangoutForm: ReducerProtocol {
             alert: AlertState<HangoutForm.Action>? = nil,
             locationSearchState: LocationSearch.State? = nil, isPostRequestOnFly: Bool = false,
             isEventCreatedSuccessfully: Bool = false,
-            currentUser: UserGetObject = .demo
+            currentUser: UserOutput = .withFirstName
         ) {
             self.title = title
             self.textFieldHeight = textFieldHeight
@@ -153,16 +152,14 @@ public struct HangoutForm: ReducerProtocol {
 
                 state.eventAddress = state.placeMark.title ?? ""
                 state.eventCoordinate = state.placeMark.coordinate
-                var currentUser: UserGetObject = .demo
 
                 do {
-                    currentUser = try self.keychainClient.readCodable(.user, self.build.identifier(), UserGetObject.self)
+                    state.currentUser = try self.keychainClient.readCodable(.user, self.build.identifier(), UserOutput.self)
                 } catch {
-                    print("something....")
+                    state.alert = .init(title: .init("\(#line) cant find user"))
+                    return .none
                 }
 
-                state.currentUser = currentUser
-                
                 return  .task {
                     .categoryResponse(
                         await TaskResult {

@@ -18,30 +18,7 @@ import AddaSharedModels
 import DeviceClient
 import NotificationHelpers
 import BSON
-
-public struct Conversations: ReducerProtocol {
-    public struct State: Equatable {
-        public init() {}
-    }
-
-    public enum Action: Equatable {
-        case onAppear
-    }
-
-    public init() {}
-
-    public var body: some ReducerProtocol<State, Action> {
-        Reduce(self.core)
-    }
-
-    func core(state: inout State, action: Action) -> EffectTask<Action> {
-        switch action {
-
-        case .onAppear:
-            return .none
-        }
-    }
-}
+import WebSocketReducer
 
 public struct TabReducer: ReducerProtocol {
     public struct State: Equatable {
@@ -50,24 +27,27 @@ public struct TabReducer: ReducerProtocol {
         public var profile: Profile.State
         public var isHidden = false
         public var unreadMessageCount: Int = 0
+        public var currentUser: UserOutput = .withFirstName // have to not optional
+        public var websocketState: WebSocketReducer.State
 
         public var selectedTab: Tab = .hangouts
         public enum Tab: Equatable { case hangouts, conversations, profile }
 
         public init(
             selectedTab: TabReducer.State.Tab = .hangouts,
-            hangouts: Hangouts.State = .init(),
-            conversations: Conversations.State = .init(),
+            hangouts: Hangouts.State = .init(websocketState: .init(user: .withFirstName)),
+            conversations: Conversations.State = .init(websocketState: .init(user: .withFirstName)),
             profile: Profile.State = .init(),
-            isHidden: Bool = false
+            isHidden: Bool = false,
+            websocketState: WebSocketReducer.State = .init(user: .withFirstName)
         ) {
             self.selectedTab = selectedTab
             self.hangouts = hangouts
             self.conversations = conversations
             self.profile = profile
             self.isHidden = isHidden
+            self.websocketState = websocketState
         }
-
     }
 
     public enum Action: Equatable {
@@ -76,20 +56,28 @@ public struct TabReducer: ReducerProtocol {
         case hangouts(Hangouts.Action)
         case conversations(Conversations.Action)
         case profile(Profile.Action)
-
-//        case webSocket(WebSocketClient.Action)
-//        case receivedSocketMessage(Result<WebSocketClient.Message, NSError>)
-//        case deviceResponse(Result<DeviceInOutPut, HTTPRequest.HRError>)
-//        case sendResponse(NSError?)
         case tabViewIsHidden(Bool)
+        case webSocketReducer(WebSocketReducer.Action)
 //        case scenePhase(ScenePhase)
     }
+
+    @Dependency(\.keychainClient) var keychainClient
+    @Dependency(\.build) var build
 
     public init() {}
 
     public var body: some ReducerProtocol<State, Action> {
+
+        Scope(state: \.websocketState, action: /Action.webSocketReducer) {
+            WebSocketReducer()
+        }
+
         Scope(state: \.hangouts, action: /Action.hangouts) {
             Hangouts()
+        }
+
+        Scope(state: \.conversations, action: /Action.conversations) {
+            Conversations()
         }
 
         Scope(state: \.profile, action: /Action.profile) {
@@ -101,10 +89,55 @@ public struct TabReducer: ReducerProtocol {
 
     func core(state: inout State, action: Action) -> EffectTask<Action> {
 
+        func handle(_ data: Data) {
+                let chatOutGoingEvent = ChatOutGoingEvent.decode(data: data)
+
+                switch chatOutGoingEvent {
+                case .connect(_):
+                    break
+                case .disconnect(_):
+                    break
+                case .conversation(let lastMessage):
+
+                    guard var findConversation = state.conversations.conversations[id: lastMessage.conversationId]
+                    else { return  }
+
+                    guard let index = state.conversations.conversations.firstIndex(where: { $0.id == findConversation.id })
+                    else { return }
+
+                    findConversation.lastMessage = lastMessage
+                    state.conversations.conversations[id: lastMessage.conversationId] = findConversation
+                    state.conversations.conversations.swapAt(index, 0)
+
+                case .message(let message):
+                    print(#line, message)
+                    state.conversations.chatState?.messages.insert(message, at: 0)
+
+                case .notice(let msg):
+                    print(#line, msg)
+                case .error(let error):
+                    print(#line, error)
+                case .none:
+                    print(#line, "decode error")
+                }
+            }
+
         switch action {
 
         case .onAppear:
-            return .none
+            do {
+                state.currentUser = try self.keychainClient.readCodable(.user, self.build.identifier(), UserOutput.self)
+            } catch {
+                //state.alert = .init(title: TextState("Missing you id! please login again!"))
+                return .none
+            }
+
+            state.websocketState.user = state.currentUser
+
+            return .run { send in
+              await send(.webSocketReducer(.connectButtonTapped))
+            }
+
         case .didSelectTab(let tab):
             state.selectedTab = tab
             return .none
@@ -117,10 +150,34 @@ public struct TabReducer: ReducerProtocol {
 //            UITabBar.appearance().isHidden = active
             return .none
         case .hangouts:
+            state.hangouts.websocketState = state.websocketState
             return .none
-        case .conversations(_):
+        case .conversations:
+            state.conversations.websocketState = state.websocketState
             return .none
-        case .profile(_):
+        case .profile:
+            return .none
+
+        case .webSocketReducer(.receivedSocketMessage(.success(let responseString))):
+
+            switch responseString {
+
+            case .data:
+                return .none
+                
+            case .string(let resString):
+                guard let data = resString.data(using: .utf8) else {
+                    return .none
+                }
+                handle(data)
+                return .none
+            }
+
+        case .webSocketReducer(.webSocket(.didOpen)):
+            let onconnect = ChatOutGoingEvent.connect(state.currentUser).jsonString
+            state.websocketState.messageToSend = onconnect!
+            return .none
+        case .webSocketReducer:
             return .none
         }
     }

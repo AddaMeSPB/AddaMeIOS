@@ -12,12 +12,12 @@ import AddaSharedModels
 import SwiftUI
 import FoundationExtension
 
-public struct ContactRow: View {
+public struct ContactRowView: View {
   @Environment(\.colorScheme) var colorScheme
-  let store: Store<ContactRowState, ContactRowAction>
+  let store: StoreOf<ContactRow>
   @State var isClick: Bool = false
 
-  public init(store: Store<ContactRowState, ContactRowAction>) {
+  public init(store: StoreOf<ContactRow>) {
     self.store = store
   }
 
