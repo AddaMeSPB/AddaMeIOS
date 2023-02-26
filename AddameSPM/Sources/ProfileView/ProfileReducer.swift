@@ -129,14 +129,11 @@ public struct Profile: ReducerProtocol {
                 return .none
             }
 
-            let id = state.user.id.hexString
-
             return .run { send in
                 await send(.getUser)
                 await send(.getUserAttachments)
                 await send(.getUserEvents)
             }
-
 
         case .alertDismissed:
             state.alert = nil
@@ -194,17 +191,7 @@ public struct Profile: ReducerProtocol {
                 )
             }
 
-            //    return environment.attachmentClient.updateUserImageURL(attachment, "")
-            //      .receive(on: environment.mainQueue)
-            //      .catchToEffect()
-            //      .map(ProfileAction.attacmentResponse)
-
         case .resetAuthData:
-//            AppUserDefaults.save(false, forKey: .isAuthorized)
-//            KeychainService.save(codable: UserOutput?.none, for: .user)
-//            KeychainService.save(codable: VerifySMSInOutput?.none, for: .token)
-//            KeychainService.logout()
-//            AppUserDefaults.erase()
 
             return .none
 
@@ -338,33 +325,3 @@ public struct Profile: ReducerProtocol {
         }
     }
 }
-
-//public let profileReducer = Reducer<
-//    ProfileState,
-//    ProfileAction,
-//    ProfileEnvironment>.combine(
-//        myEventsReducer.pullback(
-//            state: \.myEventsState,
-//            action: /ProfileAction.myEvents,
-//            environment: { _ in MyEventsEnvironment.live }
-//        ),
-//        Reducer {state, action, environment in
-//
-//
-//        })
-//
-//    .debug()
-//    .presenting(
-//        settingsReducer,
-//        state: .keyPath(\.settingsState),
-//        id: .notNil(),
-//        action: /ProfileAction.settings,
-//        environment: { _ in SettingsEnvironment.live }
-//    )
-//    .presenting(
-//        imagePickerReducer,
-//        state: .keyPath(\.imagePickerState),
-//        id: .notNil(),
-//        action: /ProfileAction.imagePicker,
-//        environment: { _ in ImagePickerEnvironment.live }
-//    )
