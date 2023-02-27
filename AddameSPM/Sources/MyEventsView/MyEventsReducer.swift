@@ -11,6 +11,17 @@ import AddaSharedModels
 import APIClient
 import KeychainClient
 
+extension MyEvents.State {
+
+    private static var myEvents: IdentifiedArrayOf<EventResponse> = [
+        .walkAroundDraff, .bicyclingDraff, .exploreAreaDraff, .runningDraff
+    ]
+
+    public static let withEvents = Self(
+        myEvents: myEvents
+    )
+}
+
 public struct MyEvents: ReducerProtocol {
 
     public struct State: Equatable {
