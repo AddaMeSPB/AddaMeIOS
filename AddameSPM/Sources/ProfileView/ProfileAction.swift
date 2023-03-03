@@ -1,5 +1,4 @@
 
-import SettingsView
 import AddaSharedModels
 import SwiftUI
 import ImagePicker

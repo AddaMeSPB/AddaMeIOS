@@ -1,4 +1,5 @@
 import ComposableUserNotifications
+import Logging
 import UIKit
 import UserDefaultsClient
 import ComposableStoreKit
@@ -10,6 +11,7 @@ import AddaSharedModels
 import ComposableArchitecture
 import Foundation
 import LocationReducer
+import os
 
 public struct Settings: ReducerProtocol {
     public struct State: Equatable {
@@ -130,6 +132,7 @@ public struct Settings: ReducerProtocol {
                         state.currentUser = try keychainClient.readCodable(.user, self.build.identifier(), UserOutput.self)
                     } catch {
                         // fatalError("Do soemthing from SettingsFeature!")
+                        logger.error("cant get current user from keychainClient ")
                     }
 
                     return .merge(
@@ -245,3 +248,5 @@ extension AlertState where Action == Settings.Action {
     dismissButton: .default(.init("Ok"), action: .send(.set(\.$alert, nil)))
   )
 }
+
+public let logger = Logger(subsystem: "com.addame.AddaMeIOS", category: "settins.reducer")

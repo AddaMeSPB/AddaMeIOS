@@ -41,7 +41,6 @@ let package = Package(
     .library(name: "EventFormView", targets: ["EventFormView"]),
     .library(name: "ProfileView", targets: ["ProfileView"]),
     .library(name: "TabsView", targets: ["TabsView"]),
-    .library(name: "SettingsView", targets: ["SettingsView"]),
     .library(name: "MapView", targets: ["MapView"]),
     .library(name: "MyEventsView", targets: ["MyEventsView"]),
     .library(name: "RegisterFormFeature", targets: ["RegisterFormFeature"]),
@@ -75,7 +74,7 @@ let package = Package(
         .product(name: "CommonTCALibraries", package: "CommonTCALibraries"),
         "APIClient", "AttachmentS3Client",
         "EventView", "ConversationsView", "ProfileView", "TabsView",
-        "AuthenticationView", "SettingsView", "ContactClient",
+        "AuthenticationView", "ContactClient",
         "SettingsFeature", "LocationReducer"
       ]
     ),
@@ -219,7 +218,7 @@ let package = Package(
         .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
         .product(name: "CommonTCALibraries", package: "CommonTCALibraries"),
         "EventView", "ConversationsView", "ProfileView",
-        "DeviceClient", "CombineHelpers"
+        "DeviceClient", "CombineHelpers", "SettingsFeature"
       ]
     ),
 
@@ -337,21 +336,10 @@ let package = Package(
         .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
         .product(name: "AddaSharedModels", package: "AddaSharedModels"),
         .product(name: "CommonTCALibraries", package: "CommonTCALibraries"),
-        "AsyncImageLoder", "AuthenticationView", "SettingsView", "ComposableArchitectureHelpers",
+        "AsyncImageLoder", "AuthenticationView", "ComposableArchitectureHelpers",
         "ImagePicker", "MyEventsView", "AttachmentS3Client"
       ]
       // resources: [.process("Images")]
-    ),
-
-    .target(
-      name: "SettingsView",
-      dependencies: [
-        .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
-        .product(name: "XCTestDynamicOverlay", package: "xctest-dynamic-overlay"),
-        .product(name: "AddaSharedModels", package: "AddaSharedModels"),
-        .product(name: "CommonTCALibraries", package: "CommonTCALibraries"),
-        "AuthenticationView"
-      ]
     ),
 
     .target(

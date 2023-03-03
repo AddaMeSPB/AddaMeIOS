@@ -5,7 +5,7 @@ import Foundation
 import AddaSharedModels
 import Dependencies
 import Foundation
-
+import os
 
 public struct WebSocketReducer: ReducerProtocol {
     public struct State: Equatable {
@@ -14,13 +14,15 @@ public struct WebSocketReducer: ReducerProtocol {
             connectivityState: ConnectivityState = .disconnected,
             messageToSend: String = "",
             receivedMessages: [String] = [],
-            user: UserOutput
+            user: UserOutput,
+            webSocketUrl: String = ""
           ) {
             self.alert = alert
             self.connectivityState = connectivityState
             self.messageToSend = messageToSend
             self.receivedMessages = receivedMessages
             self.user = user
+            self.webSocketUrl = webSocketUrl
         }
 
     public var alert: AlertState<Action>?
@@ -28,6 +30,7 @@ public struct WebSocketReducer: ReducerProtocol {
     public var messageToSend = ""
     public var receivedMessages: [String] = []
     public var user: UserOutput
+    public var webSocketUrl: String = "" //= "ws://10.10.18.148:8080/v1/chat"
 
     public enum ConnectivityState: String {
       case connected
@@ -48,6 +51,8 @@ public struct WebSocketReducer: ReducerProtocol {
 
   @Dependency(\.mainQueue) var mainQueue
   @Dependency(\.webSocket) var webSocket
+  @Dependency(\.appConfiguration) var appConfiguration
+
   private enum WebSocketID {}
 
   public init() {}
@@ -61,16 +66,19 @@ public struct WebSocketReducer: ReducerProtocol {
     case .connectButtonTapped:
       switch state.connectivityState {
       case .connected, .connecting:
-        state.connectivityState = .disconnected
-          
+          state.connectivityState = .disconnected
+          logger.info("webSocket is connected")
           return .cancel(id: WebSocketID.self)
 
-          // ws:/$()/10.0.1.4:8080/v1/chat
       case .disconnected:
-        state.connectivityState = .connecting
-        return .run { send in
+          logger.info("webSocket is disconnected")
+          state.connectivityState = .connecting
+          state.webSocketUrl = appConfiguration.webSocketUrl
+          let webSocketUrl = state.webSocketUrl
+
+          return .run { send in
           let actions = await self.webSocket
-            .open(WebSocketID.self, URL(string: "ws://192.168.9.78:8080/v1/chat")!, "", [])
+                .open(WebSocketID.self, URL(string: webSocketUrl)!, "", [])
           await withThrowingTaskGroup(of: Void.self) { group in
             for await action in actions {
               // NB: Can't call `await send` here outside of `group.addTask` due to task local
@@ -103,6 +111,8 @@ public struct WebSocketReducer: ReducerProtocol {
 
     case let .messageToSendChanged(message):
       state.messageToSend = message
+        logger.info("webSocket is connected")
+
         return .run { send in
             await send(.sendButtonTapped)
         }
@@ -132,6 +142,8 @@ public struct WebSocketReducer: ReducerProtocol {
       return .none
 
     case .sendResponse(didSucceed: true):
+        let status = state.connectivityState.rawValue
+        logger.info("webSocket is connected \(status) ")
       return .none
 
     case .webSocket(.didClose):
@@ -145,11 +157,13 @@ public struct WebSocketReducer: ReducerProtocol {
 
         return .task {
             try await self.webSocket.send(WebSocketID.self, .string(onconnect!))
-          return .sendResponse(didSucceed: true)
+            return .sendResponse(didSucceed: true)
         } catch: { _ in
-          .sendResponse(didSucceed: false)
+            .sendResponse(didSucceed: false)
         }
         .cancellable(id: WebSocketID.self)
     }
   }
 }
+
+public let logger = Logger(subsystem: "com.addame.AddaMeIOS", category: "webSocket.reducer")

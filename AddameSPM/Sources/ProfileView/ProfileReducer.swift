@@ -6,7 +6,6 @@ import Foundation
 import ComposableArchitecture
 import ComposableArchitectureHelpers
 import KeychainClient
-import SettingsView
 import AddaSharedModels
 import ImagePicker
 import MyEventsView
@@ -104,10 +103,6 @@ public struct Profile: ReducerProtocol {
     public init() {}
 
     public var body: some ReducerProtocol<State, Action> {
-        Scope(state: \.settingsState, action: /Action.settings) {
-          Settings()
-        }
-
         Scope(state: \.myEventsState, action: /Action.myEvents) {
             MyEvents()
         }

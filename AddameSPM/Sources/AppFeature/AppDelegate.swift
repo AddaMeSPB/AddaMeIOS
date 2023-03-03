@@ -3,6 +3,9 @@ import ComposableUserNotifications
 import Foundation
 import SettingsFeature
 import RemoteNotificationsClient
+import AddaSharedModels
+import UIKit
+import os
 
 public struct AppDelegateReducer: ReducerProtocol {
   public typealias State = UserSettings
@@ -12,6 +15,9 @@ public struct AppDelegateReducer: ReducerProtocol {
     case didRegisterForRemoteNotifications(TaskResult<Data>)
     case userNotifications(UserNotificationClient.DelegateEvent)
     case userSettingsLoaded(TaskResult<UserSettings>)
+    case deviceResponse(TaskResult<DeviceInOutPut>)
+    case getNotificationSettings
+    case createOrUpdate(deviceToken: Data)
   }
 
   @Dependency(\.apiClient) var apiClient
@@ -38,7 +44,7 @@ public struct AppDelegateReducer: ReducerProtocol {
             switch settings.authorizationStatus {
             case .authorized:
               guard
-                try await self.userNotifications.requestAuthorization([.alert, .sound])
+                try await self.userNotifications.requestAuthorization([.alert, .badge, .sound])
               else { return }
             case .notDetermined, .provisional:
               guard try await self.userNotifications.requestAuthorization(.provisional)
@@ -46,30 +52,55 @@ public struct AppDelegateReducer: ReducerProtocol {
             default:
               return
             }
-            await self.registerForRemoteNotifications()
           }
+
+            group.addTask {
+                await self.registerForRemoteNotifications()
+            }
         }
       }
+
+    case let .didRegisterForRemoteNotifications(.success(data)):
+        return .run { send in
+            await send(.getNotificationSettings)
+            await send(.createOrUpdate(deviceToken: data))
+        }
 
     case .didRegisterForRemoteNotifications(.failure):
       return .none
 
-    case let .didRegisterForRemoteNotifications(.success(tokenData)):
-      let token = tokenData.map { String(format: "%02.2hhx", $0) }.joined()
-      return .fireAndForget {
-        let settings = await self.userNotifications.getNotificationSettings()
-//        _ = try await self.apiClient.apiRequest(
-//          route: .push(
-//            .register(
-//              .init(
-//                authorizationStatus: .init(rawValue: settings.authorizationStatus.rawValue),
-//                build: self.buildNumber(),
-//                token: token
-//              )
-//            )
-//          )
-//        )
-      }
+    case .getNotificationSettings:
+
+        logger.info("\(#line) run getNotificationSettings")
+        return .run { _ in
+           _ = await self.userNotifications.getNotificationSettings()
+        }
+
+    case let .createOrUpdate(deviceToken: data):
+
+        let identifierForVendor = UIDevice.current.identifierForVendor?.uuidString
+        let token = data.toHexString
+
+        let device = DeviceInOutPut(
+          identifierForVendor: identifierForVendor,
+          name: UIDevice.current.name,
+          model: UIDevice.current.model,
+          osVersion: UIDevice.current.systemVersion,
+          token: token,
+          voipToken: ""
+        )
+
+        return .task {
+            .deviceResponse(
+                await TaskResult {
+                    try await apiClient.request(
+                        for: .authEngine(.devices(.createOrUpdate(input: device))),
+                        as: DeviceInOutPut.self,
+                        decoder: .iso8601
+                    )
+                }
+            )
+        }
 
     case let .userNotifications(.willPresentNotification(_, completionHandler)):
       return .fireAndForget {
@@ -87,6 +118,15 @@ public struct AppDelegateReducer: ReducerProtocol {
           await self.setUserInterfaceStyle(state.colorScheme.userInterfaceStyle)
         _ = await setUI
       }
+    case .deviceResponse(.success):
+        logger.info("\(#line) deviceResponse success")
+        return .none
+
+    case .deviceResponse(.failure(let error)):
+        logger.error("\(#line) deviceResponse error \(error.localizedDescription)")
+        return .none
     }
   }
 }
+
+public let logger = Logger(subsystem: "com.addame.AddaMeIOS", category: "appDelegate.reducer")

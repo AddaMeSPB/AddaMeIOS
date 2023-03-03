@@ -9,6 +9,7 @@ import ComposableArchitecture
 import ConversationsView
 import EventView
 import ProfileView
+import SettingsFeature
 import SwiftUI
 import SwiftUIExtension
 import UIKit
@@ -114,6 +115,18 @@ public struct TabsView: View {
                     Text("Profile")
                 }
                 .tag(TabReducer.State.Tab.profile)
+
+                NavigationView {
+                    SettingsView(store: store.scope(state: \.settings, action: TabReducer.Action.settings))
+                        .onAppear {
+                            ViewStore(store.stateless).send(.settings(.onAppear))
+                        }
+                }
+                .tabItem {
+                    Image(systemName: "gear")
+                    Text("Settings")
+                }
+                .tag(TabReducer.State.Tab.settings)
             }
           .onAppear {
             viewStore.send(.onAppear)
@@ -123,14 +136,16 @@ public struct TabsView: View {
 }
 
 #if DEBUG
-//struct TabView_PrevieTabws: PreviewProvider {
-//    static var previews: some View {
-//        TabView(store: StoreOf<TabReducer>(
-//            initialState: TabReducer.State(),
-//            reducer: TabReducer()
-//        ))
-//    }
-//}
+struct TabView_PrevieTabws: PreviewProvider {
+    static var previews: some View {
+        TabsView(
+            store: .init(
+                initialState: TabReducer.State(),
+                reducer: TabReducer()
+            )
+        )
+    }
+}
 #endif
 
 // public struct TabsView: View {

@@ -48,7 +48,7 @@ public struct AppReducer: ReducerProtocol {
     public init() {}
 
     public var body: some ReducerProtocol<State, Action> {
-        Scope(state: \.tabState.profile.settingsState.userSettings, action: /Action.appDelegate) {
+        Scope(state: \.tabState.settings.userSettings, action: /Action.appDelegate) {
             AppDelegateReducer()
         }
 
@@ -83,8 +83,7 @@ public struct AppReducer: ReducerProtocol {
             case .login:
                 return .none
 
-            case .tab(.profile(.settings(.logOutButtonTapped))):
-
+            case .tab(.settings(.logOutButtonTapped)):
                 state.loginState = Login.State()
                 return .run(priority: .background) { _ in
 
