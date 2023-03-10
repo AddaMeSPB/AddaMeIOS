@@ -33,12 +33,16 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
   func application(
     _ application: UIApplication,
     didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data
-  ) {}
+  ) {
+      self.viewStore.send(.appDelegate(.didRegisterForRemoteNotifications(.success(deviceToken))))
+  }
 
   func application(
     _ application: UIApplication,
     didFailToRegisterForRemoteNotificationsWithError error: Error
-  ) {}
+  ) {
+      self.viewStore.send(.appDelegate(.didRegisterForRemoteNotifications(.failure(error))))
+  }
 }
 
 @main
@@ -56,3 +60,4 @@ struct AddameApp: App {
     }
   }
 }
+

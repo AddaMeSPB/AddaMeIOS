@@ -58,6 +58,8 @@ public struct TabReducer: ReducerProtocol {
 
     public enum Action: Equatable {
         case onAppear
+        case connect
+        case disConnect
         case didSelectTab(State.Tab)
         case hangouts(Hangouts.Action)
         case conversations(Conversations.Action)
@@ -104,12 +106,14 @@ public struct TabReducer: ReducerProtocol {
                 let chatOutGoingEvent = ChatOutGoingEvent.decode(data: data)
 
                 switch chatOutGoingEvent {
-                case .connect(_):
+                case .connect:
                     break
+
                 case .disconnect:
                     let warning = state.websocketState.user.id
                     logger.warning("websocker disconnect for user \(warning)")
                     break
+
                 case .conversation(let lastMessage):
 
                     guard var findConversation = state.conversations.conversations[id: lastMessage.conversationId]
@@ -118,9 +122,11 @@ public struct TabReducer: ReducerProtocol {
                     guard let index = state.conversations.conversations.firstIndex(where: { $0.id == findConversation.id })
                     else { return }
 
+                    /// issue is when i get msg we update conversation last msg + chat list
                     findConversation.lastMessage = lastMessage
                     state.conversations.conversations[id: lastMessage.conversationId] = findConversation
                     state.conversations.conversations.swapAt(index, 0)
+
 
                 case .message(let message):
                     print(#line, message)
@@ -147,8 +153,17 @@ public struct TabReducer: ReducerProtocol {
 
             state.websocketState.user = state.currentUser
 
+            return .none
+
+        case .connect:
             return .run { send in
-              await send(.webSocketReducer(.connectButtonTapped))
+                await send(.webSocketReducer(.handshake))
+            }
+            
+        case .disConnect:
+
+            return .run { send in
+                await send(.webSocketReducer(.webSocket(.didClose(code: .goingAway, reason: nil))))
             }
 
         case .didSelectTab(let tab):
@@ -184,10 +199,12 @@ public struct TabReducer: ReducerProtocol {
                 return .none
             }
 
-        case .webSocketReducer(.webSocket(.didOpen)):
-            let onconnect = ChatOutGoingEvent.connect(state.currentUser).jsonString
-            state.websocketState.messageToSend = onconnect!
+        case .webSocketReducer(.receivedSocketMessage(.failure)):
             return .none
+
+        case .webSocketReducer(.webSocket(.didOpen)):
+            return .none
+
         case .webSocketReducer:
             return .none
         case .settings:

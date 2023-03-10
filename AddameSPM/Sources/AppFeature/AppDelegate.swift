@@ -6,6 +6,7 @@ import RemoteNotificationsClient
 import AddaSharedModels
 import UIKit
 import os
+import NotificationHelpers
 
 public struct AppDelegateReducer: ReducerProtocol {
   public typealias State = UserSettings
@@ -22,7 +23,7 @@ public struct AppDelegateReducer: ReducerProtocol {
 
   @Dependency(\.apiClient) var apiClient
   @Dependency(\.build.number) var buildNumber
-  @Dependency(\.remoteNotifications.register) var registerForRemoteNotifications
+  @Dependency(\.remoteNotifications) var remoteNotifications
   @Dependency(\.applicationClient.setUserInterfaceStyle) var setUserInterfaceStyle
   @Dependency(\.userNotifications) var userNotifications
 
@@ -55,7 +56,10 @@ public struct AppDelegateReducer: ReducerProtocol {
           }
 
             group.addTask {
-                await self.registerForRemoteNotifications()
+                await registerForRemoteNotificationsAsync(
+                    remoteNotifications: self.remoteNotifications,
+                    userNotifications: self.userNotifications
+                )
             }
         }
       }
@@ -86,7 +90,7 @@ public struct AppDelegateReducer: ReducerProtocol {
           name: UIDevice.current.name,
           model: UIDevice.current.model,
           osVersion: UIDevice.current.systemVersion,
-          token: token,
+          pushToken: token,
           voipToken: ""
         )
 
@@ -103,21 +107,22 @@ public struct AppDelegateReducer: ReducerProtocol {
         }
 
     case let .userNotifications(.willPresentNotification(_, completionHandler)):
-      return .fireAndForget {
-        completionHandler(.banner)
-      }
+        
+      return .fireAndForget { completionHandler(.banner) }
 
     case .userNotifications:
       return .none
 
     case let .userSettingsLoaded(result):
       state = (try? result.value) ?? state
-      return .fireAndForget { [state] in
+        return .fireAndForget { [state] in
 
-        async let setUI: Void =
-          await self.setUserInterfaceStyle(state.colorScheme.userInterfaceStyle)
-        _ = await setUI
-      }
+            async let setUI: Void =
+            await self.setUserInterfaceStyle(state.colorScheme.userInterfaceStyle)
+            _ = await setUI
+
+        }
+
     case .deviceResponse(.success):
         logger.info("\(#line) deviceResponse success")
         return .none

@@ -229,12 +229,7 @@ public struct Conversations: ReducerProtocol {
             state.alert = .init(title: TextState("Error happens \(error.localizedDescription)"))
           return .none
 
-        case let .updateLastConversation(messageResponse):
-//            print(#line, messageResponse.conversationId)
-//            let updatedIndex = state.conversations.firstIndex(where: { $0.id == messageResponse.id })
-//            state.conversations[id: messageResponse.conversationId]?.lastMessage = messageResponse
-//
-//            state.conversations.sort()
+        case let .updateLastConversation:
             return .none
 
         case .alertDismissed:

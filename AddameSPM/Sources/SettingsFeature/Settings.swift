@@ -12,6 +12,7 @@ import ComposableArchitecture
 import Foundation
 import LocationReducer
 import os
+import NotificationHelpers
 
 public struct Settings: ReducerProtocol {
     public struct State: Equatable {
@@ -66,6 +67,7 @@ public struct Settings: ReducerProtocol {
     @Dependency(\.userDefaults) var userDefaults
     @Dependency(\.build) var build
     @Dependency(\.keychainClient) var keychainClient
+    @Dependency(\.remoteNotifications.unregister) var unRegisterForRemoteNotifications
 
     public init() {}
 
@@ -82,7 +84,7 @@ public struct Settings: ReducerProtocol {
 
                 switch action {
 
-                case .binding(_):
+                case .binding:
                     return .none
 
                 case .binding(\.$enableNotifications):
@@ -102,7 +104,7 @@ public struct Settings: ReducerProtocol {
                         return .task {
                             await .userNotificationAuthorizationResponse(
                                 TaskResult {
-                                    try await self.userNotifications.requestAuthorization([.alert, .sound])
+                                    try await self.userNotifications.requestAuthorization([.alert, .badge, .sound])
                                 }
                             )
                         }
@@ -164,7 +166,9 @@ public struct Settings: ReducerProtocol {
                 case let .userNotificationAuthorizationResponse(.success(granted)):
                     state.enableNotifications = granted
                     return granted
-                    ?  .none // .fireAndForget { await self.registerForRemoteNotifications() }
+                    ?  .fireAndForget {
+                        await self.unRegisterForRemoteNotifications()
+                    }// .fireAndForget { await self.registerForRemoteNotifications() }
                     : .none
 
                 case .userNotificationAuthorizationResponse:
