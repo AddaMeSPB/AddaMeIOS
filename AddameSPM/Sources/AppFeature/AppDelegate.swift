@@ -8,7 +8,7 @@ import UIKit
 import os
 import NotificationHelpers
 
-public struct AppDelegateReducer: ReducerProtocol {
+public struct AppDelegateReducer: Reducer {
   public typealias State = UserSettings
 
   public enum Action: Equatable {
@@ -29,7 +29,7 @@ public struct AppDelegateReducer: ReducerProtocol {
 
   public init() {}
 
-  public func reduce(into state: inout State, action: Action) -> Effect<Action, Never> {
+  public func reduce(into state: inout State, action: Action) -> Effect<Action> {
     switch action {
     case .didFinishLaunching:
       return .run { send in
@@ -94,8 +94,8 @@ public struct AppDelegateReducer: ReducerProtocol {
           voipToken: ""
         )
 
-        return .task {
-            .deviceResponse(
+        return .run { send in
+           await send(.deviceResponse(
                 await TaskResult {
                     try await apiClient.request(
                         for: .authEngine(.devices(.createOrUpdate(input: device))),
@@ -103,20 +103,19 @@ public struct AppDelegateReducer: ReducerProtocol {
                         decoder: .iso8601
                     )
                 }
-            )
+            ))
         }
 
     case let .userNotifications(.willPresentNotification(_, completionHandler)):
         
-      return .fireAndForget { completionHandler(.banner) }
+      return .run { _ in completionHandler(.banner) }
 
     case .userNotifications:
       return .none
 
     case let .userSettingsLoaded(result):
       state = (try? result.value) ?? state
-        return .fireAndForget { [state] in
-
+        return .run { [state] _ in
             async let setUI: Void =
             await self.setUserInterfaceStyle(state.colorScheme.userInterfaceStyle)
             _ = await setUI

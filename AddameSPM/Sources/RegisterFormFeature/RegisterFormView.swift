@@ -20,7 +20,7 @@ public struct RegisterFormView: View {
 
   struct ViewState: Equatable {
 
-    @BindableState var selectedPage: FormTag
+    @BindingState var selectedPage: FormTag
     var waitingForLoginView: Bool
     var locationState: LocationReducer.State?
 
@@ -33,7 +33,7 @@ public struct RegisterFormView: View {
   }
 
   public var body: some View {
-      WithViewStore(self.store.scope(state: ViewState.init(state:))) { viewStore in
+      WithViewStore(self.store, observe: ViewState.init) { viewStore in
       ZStack(alignment: .bottomTrailing) {
               TabView(
                 selection: viewStore.binding(
@@ -50,7 +50,7 @@ public struct RegisterFormView: View {
       }
       .onAppear { viewStore.send(.onApper) }
       }
-    .debug()
+    ._printChanges()
   }
 
 }
@@ -58,9 +58,10 @@ public struct RegisterFormView: View {
 #if DEBUG
 struct RegisterFormView_Previews: PreviewProvider {
     static var store = Store(
-        initialState: RegisterFormReducer.State(),
-        reducer: RegisterFormReducer()
-    )
+        initialState: RegisterFormReducer.State()
+    ) {
+        RegisterFormReducer()
+    }
 
     static var previews: some View {
         RegisterFormView(store: store)

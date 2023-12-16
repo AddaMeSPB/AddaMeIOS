@@ -15,6 +15,16 @@ public enum DistanceType: String, Equatable {
     }
 }
 
+extension DistanceType {
+    func convertToMiles(kilometers: Double) -> Double {
+        return kilometers * 0.621371
+    }
+
+    func convertToKilometers(miles: Double) -> Double {
+        return miles * 1.60934
+    }
+}
+
 public enum DistanceKey: String, Equatable {
     case distance, typee
 }
@@ -24,6 +34,25 @@ extension Distance.State {
         currentDistance: 250
     )
 }
+
+extension DistanceType {
+    public static func fetchCurrentDistanceInMeters(userDefaults: UserDefaultsClient) -> Double {
+        let defaultDistance = 250.0
+        let kilometersToMeters = 1000.0
+        let milesToMeters = 1609.0
+
+        let distanceTypeInt = userDefaults.integerForKey(DistanceKey.typee.rawValue)
+        let distanceType = distanceTypeInt == 0 ? DistanceType.kilometers : .miles
+        let savedDistance = userDefaults.doubleForKey(DistanceKey.distance.rawValue)
+
+        let distanceInMeters = savedDistance != 0.0
+            ? (distanceType == .kilometers ? savedDistance * kilometersToMeters : savedDistance * milesToMeters)
+            : defaultDistance * (distanceType == .kilometers ? kilometersToMeters : milesToMeters)
+
+        return distanceInMeters
+    }
+}
+
 
 extension Distance.State {
     public struct ViewState: Equatable {
@@ -78,7 +107,7 @@ extension DistanceFilterView {
     }
 }
 
-public struct Distance: ReducerProtocol {
+public struct Distance: Reducer {
 
     public enum Action: Equatable {
         case onAppear
@@ -114,41 +143,51 @@ public struct Distance: ReducerProtocol {
     
     public init() {}
 
-    public var body: some ReducerProtocol<State, Action> {
+    public var body: some Reducer<State, Action> {
         Reduce(self.core)
     }
 
-    func core(state: inout State, action: Action) -> EffectTask<Action> {
+    func core(state: inout State, action: Action) -> Effect<Action> {
         switch action {
         case .onAppear:
             let distanceTypeIntValue = userDefaults.integerForKey(DistanceKey.typee.rawValue)
-            state.distanceTypeToggleisOn = distanceTypeIntValue == 0 ? true : false
-            state.distanceType = distanceTypeIntValue == 0 ? .kilometers : .miles
-            state.maxDistance = distanceTypeIntValue == 0 ? 250 : (250 * 1.609)
-            state.currentDistance = userDefaults.doubleForKey(DistanceKey.distance.rawValue)
+            let distanceType = distanceTypeIntValue == 0 ? DistanceType.kilometers : .miles
+            state.distanceType = distanceType
+            state.distanceTypeToggleisOn = distanceType == .kilometers
+
+            let savedDistance = userDefaults.doubleForKey(DistanceKey.distance.rawValue)
+            state.currentDistance = savedDistance != 0 ? savedDistance : 250
+            state.maxDistance = distanceType == .kilometers ? 250 : distanceType.convertToMiles(kilometers: 250)
 
             return .none
 
         case let .distanceTypeToggleChanged(value):
 
+            let newDistanceType = value ? DistanceType.kilometers : .miles
             state.distanceTypeToggleisOn = value
-            state.distanceType = value == true ? .kilometers : .miles
-            state.maxDistance = value == true ? 250 : (250 * 1.609)
+            state.distanceType = newDistanceType
 
-            let distanceIntValue = value == true ? 0 : 1
+            let distanceIntValue = value ? 0 : 1
 
-            switch state.distanceType {
-            case .kilometers:
-                state.currentDistance = 250
-            case .miles:
-                state.currentDistance = 402
+            // Convert current distance to the new unit
+            if newDistanceType == .kilometers {
+                state.currentDistance = DistanceType.miles.convertToKilometers(miles: state.currentDistance)
+            } else {
+                state.currentDistance = DistanceType.kilometers.convertToMiles(kilometers: state.currentDistance)
             }
+            state.maxDistance = newDistanceType == .kilometers ? 250 : newDistanceType.convertToMiles(kilometers: 250)
 
-            return .run { _ in
+            return .run { [currentDistance = state.currentDistance] _ in
+                await userDefaults.setDouble(
+                    currentDistance,
+                    DistanceKey.distance.rawValue
+                )
+
                 await userDefaults.setInteger(
                     distanceIntValue,
                     DistanceKey.typee.rawValue
                 )
+
             }
 
         case let .distance(value):
@@ -201,14 +240,16 @@ public struct DistanceFilterView: View {
                     .font(.system(.headline, design: .rounded))
 
                 HStack {
+
                     Slider(
                         value: viewStore.binding(
                             get: \.currentDistance,
                             send: ViewAction.distance
                         ),
-                        in: 10...viewStore.maxDistance
+                        in: viewStore.distanceType == .kilometers ? 5...250 : 5...DistanceType.kilometers.convertToMiles(kilometers: 250)
                     )
                     .accentColor(.green)
+
                 }
             }
             .padding(.horizontal)
@@ -221,32 +262,14 @@ public struct DistanceFilterView: View {
 }
 
 struct DistanceFilterView_Previews: PreviewProvider {
-    static let env = DistanceEnvironment(
-        mainQueue: .immediate,
-        userDefaults: .noop
-    )
 
     static let store = Store(
-        initialState: Distance.State.disState,
-        reducer: Distance()
-    )
+        initialState: Distance.State.disState
+    ) {
+        Distance()
+    }
 
     static var previews: some View {
         DistanceFilterView(store: store)
     }
 }
-
-public struct DistanceEnvironment {
-    public init(
-        mainQueue: AnySchedulerOf<DispatchQueue>,
-        userDefaults: UserDefaultsClient
-    ) {
-        self.mainQueue = mainQueue
-        self.userDefaults = userDefaults
-    }
-
-    public var mainQueue: AnySchedulerOf<DispatchQueue>
-    public var userDefaults: UserDefaultsClient
-}
-
-// 308/1.609=191.4232

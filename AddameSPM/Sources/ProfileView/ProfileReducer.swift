@@ -12,11 +12,40 @@ import MyEventsView
 import SettingsFeature
 import AttachmentS3Client
 
-public struct Profile: ReducerProtocol {
+public struct Profile: Reducer {
 
     public struct State: Equatable {
-
-        public var alert: AlertState<Profile.Action>?
+        public init(
+            alert: AlertState<Profile.AlertAction>? = nil,
+            isUploadingImage: Bool = false,
+            isImagePickerPresented: Bool = false,
+            inputImage: UIImage? = nil,
+            moveToSettingsView: Bool = false,
+            moveToAuthView: Bool = false,
+            user: UserOutput = .withFirstName,
+            isUserHaveAvatarLink: Bool = false,
+            myEventsState: MyEvents.State = MyEvents.State(),
+            imagePickerState: ImagePickerReducer.State? = nil,
+            imageURLs: [String] = [],
+            settingsState: Settings.State,
+            isSettingsNavigationActive: Bool = false
+        ) {
+            self.alert = alert
+            self.isUploadingImage = isUploadingImage
+            self.isImagePickerPresented = isImagePickerPresented
+            self.inputImage = inputImage
+            self.moveToSettingsView = moveToSettingsView
+            self.moveToAuthView = moveToAuthView
+            self.user = user
+            self.isUserHaveAvatarLink = isUserHaveAvatarLink
+            self.myEventsState = myEventsState
+            self.imagePickerState = imagePickerState
+            self.imageURLs = imageURLs
+            self.settingsState = settingsState
+            self.isSettingsNavigationActive = isSettingsNavigationActive
+        }
+        
+        @PresentationState var alert: AlertState<AlertAction>?
         public var isUploadingImage: Bool = false
         public var isImagePickerPresented = false
         public var inputImage: UIImage?
@@ -31,41 +60,10 @@ public struct Profile: ReducerProtocol {
 
         public var settingsState: Settings.State
         public var isSettingsNavigationActive: Bool = false
-
-        public init(
-            alert: AlertState<Profile.Action>? = nil,
-            isUploadingImage: Bool = false,
-            isImagePickerPresented: Bool = false,
-            inputImage: UIImage? = nil,
-            moveToSettingsView: Bool = false,
-            moveToAuthView: Bool = false,
-            user: UserOutput = .withFirstName,
-            isUserHaveAvatarLink: Bool = false,
-            myEventsState: MyEvents.State = MyEvents.State(),
-            imagePickerState: ImagePickerReducer.State? = nil,
-            imageURLs: [String] = [],
-            isLoadingPage: Bool = false,
-            canLoadMorePages: Bool = true,
-            currentPage: Int = 1,
-            settingsState: Settings.State = .init()
-        ) {
-            self.alert = alert
-            self.isUploadingImage = isUploadingImage
-            self.isImagePickerPresented = isImagePickerPresented
-            self.inputImage = inputImage
-            self.moveToSettingsView = moveToSettingsView
-            self.moveToAuthView = moveToAuthView
-            self.user = user
-            self.isUserHaveAvatarLink = isUserHaveAvatarLink
-            self.myEventsState = myEventsState
-            self.settingsState = settingsState
-            self.imagePickerState = imagePickerState
-            self.imageURLs = imageURLs
-            self.settingsState = settingsState
-        }
     }
 
     public enum Action: Equatable {
+        case alert(PresentationAction<AlertAction>)
         case onAppear
         case alertDismissed
         case isUploadingImage
@@ -92,6 +90,8 @@ public struct Profile: ReducerProtocol {
         case getUserEvents
 
     }
+    
+    public enum AlertAction: Equatable {}
 
     @Dependency(\.mainQueue) var mainQueue
     @Dependency(\.userDefaults) var userDefaults
@@ -102,7 +102,7 @@ public struct Profile: ReducerProtocol {
 
     public init() {}
 
-    public var body: some ReducerProtocol<State, Action> {
+    public var body: some Reducer<State, Action> {
         Scope(state: \.myEventsState, action: /Action.myEvents) {
             MyEvents()
         }
@@ -113,8 +113,10 @@ public struct Profile: ReducerProtocol {
             }
     }
 
-    func core(state: inout State, action: Action) -> EffectTask<Action> {
+    func core(state: inout State, action: Action) -> Effect<Action> {
         switch action {
+        case .alert:
+            return .none
         case .onAppear:
 
             do {
@@ -149,7 +151,7 @@ public struct Profile: ReducerProtocol {
 
             return .none
 
-        case let .uploadAvatar(image):
+        case .uploadAvatar:
             state.isUploadingImage = true
 
             return .none
@@ -158,8 +160,8 @@ public struct Profile: ReducerProtocol {
             state.user.fullName = firstName + " " + lastName
             let input = UserOutput.init(id: state.user.id, fullName: state.user.fullName!, role: .basic, language: .russian, attachments: nil, url: .empty)
 
-            return .task {
-                .userResponse(
+            return .run { send in
+                 await send(.userResponse(
                     await TaskResult {
                         try await apiClient.request(
                             for: .authEngine(.users(.update(input: input))),
@@ -167,15 +169,15 @@ public struct Profile: ReducerProtocol {
                             decoder: .iso8601
                         )
                     }
-                )
+                ))
             }
 
         case let .createAttachment(attachment):
 
             let id = state.user.id.hexString
 
-            return .task {
-                .attacmentResponse(
+            return .run { send in
+                await send(.attacmentResponse(
                     await TaskResult {
                         try await apiClient.request(
                             for: .authEngine(.users(.user(id: id, route: .attachments(.create(input: attachment))))),
@@ -183,7 +185,7 @@ public struct Profile: ReducerProtocol {
                             decoder: .iso8601
                         )
                     }
-                )
+                ))
             }
 
         case .resetAuthData:
@@ -246,8 +248,8 @@ public struct Profile: ReducerProtocol {
 
             let attachmentInput = AttachmentInOutPut(type: .image, userId: id, imageUrlString: imageURLString)
 
-            return .task {
-                await .attacmentResponse(
+            return .run { send in
+                await send(.attacmentResponse(
                     TaskResult {
                        try await apiClient.request(
                         for: .authEngine(.users(.user(id: id.hexString, route: .attachments(.create(input: attachmentInput))))),
@@ -255,7 +257,7 @@ public struct Profile: ReducerProtocol {
                         decoder: .iso8601
                        )
                     }
-                )
+                ))
             }
 
         case let .imageUploadResponse(.failure(error)):
@@ -273,12 +275,12 @@ public struct Profile: ReducerProtocol {
 
             let id = state.user.id.hexString
 
-            return .task {
-                await .imageUploadResponse(
+            return .run { send in
+                await send(.imageUploadResponse(
                     TaskResult {
                         try await attachmentS3Client.uploadImageToS3(image, nil, id)
                     }
-                )
+                ))
             }
 
         case .imagePicker(_):
@@ -290,8 +292,8 @@ public struct Profile: ReducerProtocol {
         case .getUser:
             let id = state.user.id.hexString
 
-            return .task {
-                .userResponse(
+            return .run { send in
+               await send( .userResponse(
                     await TaskResult {
                         try await apiClient.request(
                             for: .authEngine(.users(.user(id: id, route: .find))),
@@ -299,13 +301,13 @@ public struct Profile: ReducerProtocol {
                             decoder: .iso8601
                         )
                     }
-                )
+                ))
             }
 
         case .getUserAttachments:
             let id = state.user.id.hexString
-            return .task {
-                .attacmentsResponse(
+            return .run { send in
+               await send(.attacmentsResponse(
                     await TaskResult {
                         try await apiClient.request(
                             for: .authEngine(.users(.user(id: id, route: .attachments(.findWithOwnerId)))),
@@ -313,7 +315,7 @@ public struct Profile: ReducerProtocol {
                             decoder: .iso8601
                         )
                     }
-                )
+                ))
             }
         case .getUserEvents:
                 return .none

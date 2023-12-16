@@ -27,11 +27,13 @@ extension Profile.State {
             "https://adda.nyc3.digitaloceanspaces.com/uploads/images/5fabb05d2470c17919b3c0e2/1605811106589.jpeg",
             "https://adda.nyc3.digitaloceanspaces.com/uploads/images/5fabb05d2470c17919b3c0e2/1605796266916.jpeg",
             "https://adda.nyc3.digitaloceanspaces.com/uploads/images/5fabb05d2470c17919b3c0e2/5fabb05d2470c17919b3c0e2_1605792619988.jpeg"
-        ]
+        ], 
+        settingsState: .init()
     )
 
     public static let profileStateWithUserWithoutAvatar = Self(
         alert: nil,
-        user: userWithoutAvatar
+        user: userWithoutAvatar,
+        settingsState: .init()
     )
 }

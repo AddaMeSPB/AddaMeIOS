@@ -68,15 +68,15 @@ struct LocationPermissionView: View {
 }
 
 #if DEBUG
-struct LocationPermissionView_Previews: PreviewProvider {
-    static var store = Store(
-        initialState: RegisterFormReducer.State(),
-        reducer: RegisterFormReducer()
-    )
-
-    static var previews: some View {
-        LocationPermissionView(store: store)
-    }
-}
+//struct LocationPermissionView_Previews: PreviewProvider {
+//    static var store = Store(
+//        initialState: RegisterFormReducer.State(),
+//        reducer: RegisterFormReducer()
+//    )
+//
+//    static var previews: some View {
+//        LocationPermissionView(store: store)
+//    }
+//}
 #endif
 

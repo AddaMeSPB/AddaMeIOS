@@ -12,14 +12,14 @@ import AddaSharedModels
 public struct MyEventRowView: View {
   @Environment(\.colorScheme) var colorScheme
 
-    public init(store: Store<EventResponse, MyEvents.MyEventAction>) {
+  public init(store: Store<EventResponse, MyEvents.MyEventAction>) {
     self.store = store
   }
 
-    public let store: Store<EventResponse, MyEvents.MyEventAction>
+  public let store: Store<EventResponse, MyEvents.MyEventAction>
 
   public var body: some View {
-    WithViewStore(self.store) { viewStore in
+      WithViewStore(self.store, observe: { $0 }) { viewStore in
       VStack(alignment: .leading) {
         Group {
           Text(viewStore.name)

@@ -25,7 +25,7 @@ struct HangoutDetailsOverlayView: View {
 
     @ViewBuilder
     var body: some View {
-        WithViewStore(self.store.scope(state: { $0.view }, action: HangoutDetails.Action.view)) {
+        WithViewStore(self.store, observe: { $0 }) {
             viewStore in
 
             ZStack {
@@ -78,9 +78,10 @@ struct HangoutDetailsOverlayView: View {
 struct HangoutDetailsOverlayView_Previews: PreviewProvider {
 
     static let store = Store(
-        initialState: HangoutDetails.State.placeHolderEvent,
-        reducer: HangoutDetails()
-    )
+        initialState: HangoutDetails.State.placeHolderEvent
+    ) {
+        HangoutDetails()
+    }
 
     static var previews: some View {
         HangoutDetailsOverlayView(store: store)

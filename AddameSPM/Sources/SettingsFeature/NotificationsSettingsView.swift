@@ -8,14 +8,14 @@ struct NotificationsSettingsView: View {
 
   init(store: StoreOf<Settings>) {
     self.store = store
-    self.viewStore = ViewStore(self.store)
+      self.viewStore = ViewStore(self.store, observe: { $0 })
   }
 
   var body: some View {
     SettingsForm {
       SettingsRow {
         Toggle(
-          "Enable notifications", isOn: self.viewStore.binding(\.$enableNotifications).animation()
+          "Enable notifications", isOn: self.viewStore.$enableNotifications.animation()
         )
         .font(.system(size: 16, design: .rounded))
           Text("*** Please dont turn off notification then whole function will be turn off")

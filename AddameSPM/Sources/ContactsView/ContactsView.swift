@@ -56,10 +56,12 @@ public struct ContactsView: View {
         List {
           ContactListView(
             store: viewStore.isLoading
-              ? Store(
-                initialState: ContactsReducer.State.contactsPlaceholder,
-                reducer: ContactsReducer()
-              )
+            ? Store.init(initialState: ContactsReducer.State.contactsPlaceholder) { ContactsReducer() }
+
+//            Store(
+//                initialState: ContactsReducer.State.contactsPlaceholder,
+//                reducer: ContactsReducer()
+//              )
               : self.store
           )
           .redacted(reason: viewStore.isLoading ? .placeholder : [])
@@ -102,22 +104,22 @@ extension ContactsReducer.Action {
     }
 }
 
-struct ContactsView_Previews: PreviewProvider {
-
-    static let store = Store(
-        initialState: ContactsReducer.State(),
-        reducer: ContactsReducer()
-            .dependency(\.contactClient, .authorized)
-    )
-
-    static var previews: some View {
-        TabView {
-            NavigationView {
-                ContactsView(store: store)
-                    .redacted(reason: .placeholder)
-//                    .redacted(reason: Events.State.events.isLoadingPage ? .placeholder : [])
-                    .environment(\.colorScheme, .dark)
-            }
-        }
-    }
-}
+//struct ContactsView_Previews: PreviewProvider {
+//
+//    static let store = Store(
+//        initialState: ContactsReducer.State(),
+//        reducer: ContactsReducer()
+//            .dependency(\.contactClient, .authorized)
+//    )
+//
+//    static var previews: some View {
+//        TabView {
+//            NavigationView {
+//                ContactsView(store: store)
+//                    .redacted(reason: .placeholder)
+////                    .redacted(reason: Events.State.events.isLoadingPage ? .placeholder : [])
+//                    .environment(\.colorScheme, .dark)
+//            }
+//        }
+//    }
+//}

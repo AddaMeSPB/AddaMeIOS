@@ -20,7 +20,7 @@ import Contacts
 import ContactClient
 import APIClient
 
-public struct ContactsReducer: ReducerProtocol {
+public struct ContactsReducer: Reducer {
     public struct State: Equatable {
         public init(
             alert: AlertState<ContactsReducer.State.Action>? = nil,
@@ -69,7 +69,7 @@ public struct ContactsReducer: ReducerProtocol {
 
     public init() {}
 
-    public var body: some ReducerProtocol<State, Action> {
+    public var body: some Reducer<State, Action> {
 
 //        contactRowReducer
 //          .forEach(
@@ -81,15 +81,15 @@ public struct ContactsReducer: ReducerProtocol {
         Reduce(self.core)
     }
 
-    func core(state: inout State, action: Action) -> EffectTask<Action> {
+    func core(state: inout State, action: Action) -> Effect<Action> {
         switch action {
         case .onAppear:
 
             state.isLoading = true
-            return .task {
-                .contactsAuthorizationStatus(
+            return .run { send in
+               await send(.contactsAuthorizationStatus(
                     try await contactClient.authorization()
-                )
+                ))
             }
 
         case .alertDismissed:
@@ -111,7 +111,7 @@ public struct ContactsReducer: ReducerProtocol {
         case let .contactsAuthorizationStatus(status):
             switch status {
             case .authorized:
-                return .task {
+                return .run { send in
                     do {
                         let contacts = try await contactClient.buidContacts()
                         let defaultContacts = Set(contacts.mobileNumber).sorted()
@@ -136,18 +136,14 @@ public struct ContactsReducer: ReducerProtocol {
                             )
                         }
 
-                        return .contactsResponse(.success(contactsOutPut))
+                        await send(.contactsResponse(.success(contactsOutPut)))
 
                     } catch let error as URLRoutingDecodingError {
                         debugPrint(#line, error.response, error.localizedDescription)
                       // use error.response or error.data to surface errors to user
-                        return .contactsResponse(
-                            .failure("cant send or or server error")
-                        )
+                        await send(.contactsResponse(.failure("cant send or or server error")))
                     } catch {
-                        return .contactsResponse(
-                            .failure("cant send or or server error")
-                        )
+                        await send(.contactsResponse(.failure("cant send or or server error")))
                     }
                 }
 

@@ -5,6 +5,11 @@ import UserDefaultsClient
 import ComposableArchitecture
 import ComposableUserNotifications
 
+extension Color {
+    static let customLavender = Color(red: 0.9, green: 0.8, blue: 1.0, opacity: 1.0)
+}
+
+
 struct NotificationPermissionView: View {
 
   @Environment(\.colorScheme) var colorScheme
@@ -14,14 +19,14 @@ struct NotificationPermissionView: View {
     WithViewStore(self.store, observe: { $0 }) { viewStore in
         VStack(alignment: .center) {
             Circle()
-                .strokeBorder(Color.green, lineWidth: 5)
+                .strokeBorder(Color.indigo, lineWidth: 5)
                 .background(
                     Circle()
-                        .strokeBorder(Color.yellow, lineWidth: 5)
+                        .strokeBorder(Color.teal.opacity(0.8), lineWidth: 5)
                         .frame(width: 220, height: 220)
                         .background(
                             Circle()
-                                .strokeBorder(.blue.opacity(0.6), lineWidth: 5)
+                                .strokeBorder(Color.customLavender, lineWidth: 5)
                                 .frame(width: 130, height: 130)
                                 .background(
                                     Image(systemName: "bell.and.waves.left.and.right")
@@ -77,9 +82,10 @@ struct NotificationPermissionView: View {
 #if DEBUG
 struct NotificationPermissionView_Previews: PreviewProvider {
     static var store = Store(
-        initialState: RegisterFormReducer.State(),
-        reducer: RegisterFormReducer()
-    )
+        initialState: RegisterFormReducer.State()
+    ) {
+        RegisterFormReducer()
+    }
 
     static var previews: some View {
         NotificationPermissionView(store: store)

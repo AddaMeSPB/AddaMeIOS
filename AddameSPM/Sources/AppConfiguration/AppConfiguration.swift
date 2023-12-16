@@ -1,6 +1,9 @@
 import Foundation
 
+private let devDomainName = "192.168.1.8:8080"
+
 public struct AppConfiguration {
+
     public enum ApiEnvironment: String {
         case development
         case production
@@ -17,7 +20,7 @@ public struct AppConfiguration {
                 //return "http://172.20.10.4:8080"
                 //return "http://10.0.1.4:8080"
 //                return "http://10.10.18.148:8080"
-                return "http://192.168.9.78:8080"
+                return "http://\(devDomainName)"
             case .production:
                 return "https://addame.com"
             }
@@ -32,7 +35,7 @@ public struct AppConfiguration {
                 //return "ws://172.20.10.4:8080/v1/chat"
                 //return "ws://10.0.1.4:8080/v1/chat"
 //                return "ws://10.10.18.148:8080/v1/chat"
-                return "ws://192.168.9.78:8080/v1/chat"
+                return "ws://\(devDomainName)/v1/chat"
             case .production:
                 return  "wss://addame.com/v1/chat"
             }

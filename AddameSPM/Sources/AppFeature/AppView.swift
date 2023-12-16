@@ -18,7 +18,7 @@ import AddaSharedModels
 import LocationReducer
 import NotificationHelpers
 
-public struct AppReducer: ReducerProtocol {
+public struct AppReducer: Reducer {
     public struct State: Equatable {
         public init(
             loginState: Login.State? = nil,
@@ -49,7 +49,7 @@ public struct AppReducer: ReducerProtocol {
 
     public init() {}
 
-    public var body: some ReducerProtocol<State, Action> {
+    public var body: some Reducer<State, Action> {
         Scope(state: \.tabState.settings.userSettings, action: /Action.appDelegate) {
             AppDelegateReducer()
         }
@@ -108,7 +108,7 @@ public struct AppReducer: ReducerProtocol {
 
             case let .appDelegate(.userNotifications(.didReceiveResponse(_, completionHandler))):
 
-              return .fireAndForget { completionHandler() }
+              return .run { _ in completionHandler() }
 
             case .appDelegate:
                 return .none
@@ -180,7 +180,7 @@ public struct AppView: View {
             }
         }
         .onAppear {
-            ViewStore(store.stateless).send(.onAppear)
+            store.send(.onAppear)
         }
 
     }
@@ -189,10 +189,9 @@ public struct AppView: View {
 #if DEBUG
 struct AppView_Previews: PreviewProvider {
     static var previews: some View {
-        AppView(store: StoreOf<AppReducer>(
-            initialState: AppReducer.State(),
-            reducer: AppReducer()
-        ))
+        AppView(store: .init(initialState: AppReducer.State()) {
+            AppReducer()
+        })
     }
 }
 #endif

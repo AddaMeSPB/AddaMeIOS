@@ -41,10 +41,8 @@ extension HangoutForm.Action {
       self = .locationSearch(action)
     case .submitButtonTapped:
       self = .submitButtonTapped
-    case .actionSheetButtonTapped:
-      self = .actionSheetButtonTapped
-    case .actionSheetDismissed:
-      self = .actionSheetDismissed
+    case .confirmationCategoriesDialogButtonTapped:
+      self = .confirmationCategoriesDialogButtonTapped
 
     }
   }

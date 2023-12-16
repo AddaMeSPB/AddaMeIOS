@@ -79,16 +79,16 @@ struct IDFAPermissionView: View {
 }
 
 #if DEBUG
-struct IDFAPermissionView_Previews: PreviewProvider {
-    static var store = Store(
-        initialState: RegisterFormReducer.State(),
-        reducer: RegisterFormReducer()
-    )
-
-    static var previews: some View {
-        IDFAPermissionView(store: store)
-    }
-}
+//struct IDFAPermissionView_Previews: PreviewProvider {
+//    static var store = Store(
+//        initialState: RegisterFormReducer.State(),
+//        reducer: RegisterFormReducer()
+//    )
+//
+//    static var previews: some View {
+//        IDFAPermissionView(store: store)
+//    }
+//}
 #endif
 
 

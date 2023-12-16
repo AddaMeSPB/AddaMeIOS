@@ -9,35 +9,34 @@ import SwiftUI
 import ComposableArchitecture
 import PhotosUI
 import Combine
+import UIKit
 
 extension PHPickerResult {
   public struct ImageError: Error {
     let message: String
   }
 
-  func loadImage() -> Future<UIImage, ImageError> {
-    return Future { promise in
-      guard case let itemProvider = self.itemProvider,
+    func loadImage() async throws -> UIImage {
+        let itemProvider = self.itemProvider
         itemProvider.canLoadObject(ofClass: UIImage.self)
-      else {
-        return promise(.failure(ImageError(message: "Unable to load image.")))
-      }
 
-      itemProvider.loadObject(of: UIImage.self) { result in
-        switch result {
-        case let .success(image):
-          return promise(.success(image))
-        case let .failure(error):
-          return promise(.failure(
-            ImageError(message: "\(error.localizedDescription) Asset is not an image.")
-          ))
+        return try await withCheckedThrowingContinuation { continuation in
+            itemProvider.loadObject(ofClass: UIImage.self) { (image, error) in
+                if let error = error {
+                    continuation.resume(throwing: ImageError(message: "\(error.localizedDescription) Asset is not an image."))
+                } else if let image = image as? UIImage {
+                    continuation.resume(returning: image)
+                } else {
+                    continuation.resume(throwing: ImageError(message: "The loaded object is not a UIImage."))
+                }
+            }
         }
-      }
     }
-  }
+
 }
 
-public struct ImagePickerReducer: ReducerProtocol {
+
+public struct ImagePickerReducer: Reducer {
     public struct State: Equatable {
       public var showingImagePicker: Bool
       public var image: UIImage?
@@ -68,7 +67,7 @@ public struct ImagePickerReducer: ReducerProtocol {
 
     public init() {}
 
-    public var body: some ReducerProtocol<State, Action> {
+    public var body: some Reducer<State, Action> {
         Reduce { state, action in
             switch action {
             case let .setSheet(isPresented: presented):
@@ -81,9 +80,17 @@ public struct ImagePickerReducer: ReducerProtocol {
 
             case let .pickerResultReceived(result: result):
 
-              return result.loadImage()
-                .receive(on: DispatchQueue.main)
-                .catchToEffect(ImagePickerReducer.Action.picked(result:))
+                    return .run { send in
+                        if let image = try? await result.loadImage() {
+                            await send(.imagePicked(image: image))
+                        } else {
+                            
+                        }
+                    }
+
+//                    result.loadImage()
+//                .receive(on: DispatchQueue.main)
+//                .catchToEffect(ImagePickerReducer.Action.picked(result:))
 
             case let .picked(result: .success(image)):
               state.image = image
@@ -102,7 +109,7 @@ public struct ImagePickerView: UIViewControllerRepresentable {
     let viewStore: ViewStoreOf<ImagePickerReducer>
 
     public init(store: StoreOf<ImagePickerReducer>) {
-        self.viewStore = ViewStore(store)
+        self.viewStore = ViewStore(store, observe: { $0 })
     }
 
   public func makeUIViewController(

@@ -66,46 +66,47 @@ extension AttachmentS3Client {
         userId: String? = nil
     ) async throws -> String {
         return try await withCheckedThrowingContinuation { continuation in
+            do {
+                let (imageData, imageFormat) = try image.compressImage(
+                    compressionQuality: conversationId == nil ? .highest : .medium,
+                    imageType: .jpeg,
+                    passImagesType: .thumbnail
+                )
 
-            let data = image.compressImage(conversationId == nil ? .highest : .medium)
-            let imageFormat = data.1
-            guard let imageData = data.0 else {
-                return continuation.resume(throwing: "Data compressImage error")
+                let imageKey = buildImageKey(conversationId: conversationId, userId: userId, imageFormat: imageFormat)
+                let body = AWSPayload.data(imageData)
+
+                // Put an Object
+                let putObjectRequest = S3.PutObjectRequest(
+                    acl: .publicRead,
+                    body: body,
+                    bucket: bucket,
+                    contentLength: Int64(imageData.count),
+                    key: imageKey
+                )
+
+                let futureOutput = awsS3.putObject(putObjectRequest)
+
+                futureOutput.whenSuccess { response in
+                    print(#line, self, response, imageKey)
+                    let finalURL = bucketWithEndpoint + imageKey
+                    continuation.resume(returning: finalURL)
+                }
+
+                futureOutput.whenFailure { error in
+                    continuation.resume(throwing: error)
+                }
+
+            } catch {
+                continuation.resume(throwing: error)
             }
-
-            let imageKey = buildImageKey(conversationId: conversationId, userId: userId, imageFormat: imageFormat)
-
-            let body = AWSPayload.data(imageData)
-
-            // Put an Object
-            let putObjectRequest = S3.PutObjectRequest(
-                acl: .publicRead,
-                body: body,
-                bucket: bucket,
-                contentLength: Int64(imageData.count),
-                key: imageKey
-            )
-
-            let futureOutput = awsS3.putObject(putObjectRequest)
-
-            futureOutput.whenSuccess { response in
-                print(#line, self, response, imageKey)
-                let finalURL = bucketWithEndpoint + imageKey
-
-                return continuation.resume(returning: finalURL)
-            }
-
-            futureOutput.whenFailure { error in
-                return continuation.resume(throwing: error.localizedDescription)
-            }
-
         }
     }
+
 }
 
 extension AttachmentS3Client {
-    public static var live: AttachmentS3Client =
-    .init(
+    public static var live: AttachmentS3Client = .init(
       uploadImageToS3: { image, conversationId, userId in
           return try await AttachmentS3Client.uploadImage(
             image: image,

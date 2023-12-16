@@ -22,7 +22,7 @@ extension MyEvents.State {
     )
 }
 
-public struct MyEvents: ReducerProtocol {
+public struct MyEvents: Reducer {
 
     public struct State: Equatable {
         public init(
@@ -64,13 +64,13 @@ public struct MyEvents: ReducerProtocol {
 
     public init() {}
 
-    public var body: some ReducerProtocol<State, Action> {
+    public var body: some Reducer<State, Action> {
         Reduce(self.core)
     }
 
-    func core(state: inout State, action: Action) -> EffectTask<Action> {
+    func core(state: inout State, action: Action) -> Effect<Action> {
 
-        var fetchMoreMyEvents: Effect<Action, Never> {
+        var fetchMoreMyEvents: Effect<Action> {
           guard !state.isLoadingPage, state.canLoadMorePages else { return .none }
 
           state.isLoadingPage = true
@@ -84,26 +84,30 @@ public struct MyEvents: ReducerProtocol {
                 return .none
             }
 
-            return .task {
-                .myEventsResponse(
-                    await TaskResult {
-                        try await apiClient.request(
-                            for: .eventEngine(.events(.findOwnerEvetns(query: queryItem))),
-                            as: EventsResponse.self,
-                            decoder: .iso8601
-                        )
-                    }
+            return .run { send in
+                await send(
+                    .myEventsResponse(
+                        await TaskResult {
+                            try await apiClient.request(
+                                for: .eventEngine(.events(.findOwnerEvetns(query: queryItem))),
+                                as: EventsResponse.self,
+                                decoder: .iso8601
+                            )
+                        }
+                    )
                 )
             }
         }
 
         switch action {
         case .onApper:
+                print("My Events on Apper")
 
             return fetchMoreMyEvents
 
         case let .myEventsResponse(.success(elements)):
 
+            print("myEventsResponse \(elements)")
             if elements.items.isEmpty && state.currentPage > 1 {
                 state.currentPage = 1
                 state.canLoadMorePages = true

@@ -21,7 +21,7 @@ public struct AuthenticationView: View {
 
     public init(store: Store<Login.State, Login.Action>) {
         self.store = store
-        self.viewStore = ViewStore(self.store.scope(state: ViewState.init(state:)))
+        self.viewStore = ViewStore(self.store, observe: ViewState.init)
     }
 
     public var body: some View {
@@ -146,7 +146,7 @@ public struct AuthenticationView: View {
         .onAppear {
             viewStore.send(.onAppear)
         }
-        .alert(self.store.scope(state: { $0.alert }), dismiss: .alertDismissed)
+//        .alert(self.store.scope(state: { $0.alert }), dismiss: .alertDismissed)
         .onTapGesture {
             hideKeyboard()
         }
@@ -311,10 +311,9 @@ public struct AuthenticationView: View {
 
 //#if DEBUG
 struct AuthenticationView_Previews: PreviewProvider {
-    static var store = Store(
-        initialState: Login.State(),
-        reducer: Login()
-    )
+    static var store = Store(initialState: Login.State()) {
+        Login()
+    }
 
     static var previews: some View {
 //        Preview {

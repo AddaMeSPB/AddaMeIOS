@@ -7,6 +7,19 @@ import XCTestDynamicOverlay
 import APIClient
 
 public struct WebSocketClient {
+    public struct ID: Hashable, @unchecked Sendable {
+      let rawValue: AnyHashable
+
+      init<RawValue: Hashable & Sendable>(_ rawValue: RawValue) {
+        self.rawValue = rawValue
+      }
+
+      public init() {
+        struct RawValue: Hashable, Sendable {}
+        self.rawValue = RawValue()
+      }
+    }
+
   public enum Action: Equatable {
     case didOpen(protocol: String?)
     case didClose(code: URLSessionWebSocketTask.CloseCode, reason: Data?)
@@ -27,53 +40,53 @@ public struct WebSocketClient {
     }
   }
 
-    // AnyHashable, URL, String, [String]
-  public var open: @Sendable (Any.Type, URL, String, [String]) async -> AsyncStream<Action>
-  public var receive: @Sendable (Any.Type) async throws -> AsyncStream<TaskResult<Message>>
-  public var send: @Sendable (Any.Type, URLSessionWebSocketTask.Message) async throws -> Void
-  public var sendPing: @Sendable (Any.Type) async throws -> Void
+    // ID, URL, String(AccessToken), [String]
+    public var open: @Sendable (ID, URL, String, [String]) async -> AsyncStream<Action>
+    public var receive: @Sendable (ID) async throws -> AsyncStream<TaskResult<Message>>
+    public var send: @Sendable (ID, URLSessionWebSocketTask.Message) async throws -> Void
+    public var sendPing: @Sendable (ID) async throws -> Void
 }
 
 extension WebSocketClient: DependencyKey {
     public static var liveValue: Self {
-    return Self(
-      open: { await WebSocketActor.shared.open(id: $0, url: $1, accessToken: $2, protocols: $3) },
-      receive: { try await WebSocketActor.shared.receive(id: $0) },
-      send: { try await WebSocketActor.shared.send(id: $0, message: $1) },
-      sendPing: { try await WebSocketActor.shared.sendPing(id: $0) }
-    )
+        return Self(
+          open: { await WebSocketActor.shared.open(id: $0, url: $1, accessToken: $2, protocols: $3) },
+          receive: { try await WebSocketActor.shared.receive(id: $0) },
+          send: { try await WebSocketActor.shared.send(id: $0, message: $1) },
+          sendPing: { try await WebSocketActor.shared.sendPing(id: $0) }
+        )
 
-    final actor WebSocketActor: GlobalActor {
-      final class Delegate: NSObject, URLSessionWebSocketDelegate {
-        var continuation: AsyncStream<Action>.Continuation?
+        final actor WebSocketActor: GlobalActor {
+          final class Delegate: NSObject, URLSessionWebSocketDelegate {
+            var continuation: AsyncStream<Action>.Continuation?
 
-        func urlSession(
-          _: URLSession,
-          webSocketTask _: URLSessionWebSocketTask,
-          didOpenWithProtocol protocol: String?
-        ) {
-          self.continuation?.yield(.didOpen(protocol: `protocol`))
-        }
+            func urlSession(
+              _: URLSession,
+              webSocketTask _: URLSessionWebSocketTask,
+              didOpenWithProtocol protocol: String?
+            ) {
+              self.continuation?.yield(.didOpen(protocol: `protocol`))
+            }
 
-        func urlSession(
-          _: URLSession,
-          webSocketTask _: URLSessionWebSocketTask,
-          didCloseWith closeCode: URLSessionWebSocketTask.CloseCode,
-          reason: Data?
-        ) {
-          self.continuation?.yield(.didClose(code: closeCode, reason: reason))
-          self.continuation?.finish()
-        }
-      }
+            func urlSession(
+              _: URLSession,
+              webSocketTask _: URLSessionWebSocketTask,
+              didCloseWith closeCode: URLSessionWebSocketTask.CloseCode,
+              reason: Data?
+            ) {
+              self.continuation?.yield(.didClose(code: closeCode, reason: reason))
+              self.continuation?.finish()
+            }
+          }
 
       typealias Dependencies = (socket: URLSessionWebSocketTask, delegate: Delegate)
 
       static let shared = WebSocketActor()
 
-      var dependencies: [ObjectIdentifier: Dependencies] = [:]
 
-      func open(id: Any.Type, url: URL, accessToken: String, protocols: [String]) -> AsyncStream<Action> {
-        let id = ObjectIdentifier(id)
+      var dependencies: [ID: Dependencies] = [:]
+
+      func open(id: ID, url: URL, accessToken: String, protocols: [String]) -> AsyncStream<Action> {
         let delegate = Delegate()
 
           var request = URLRequest(url: url)
@@ -103,15 +116,14 @@ extension WebSocketClient: DependencyKey {
       }
 
       func close(
-        id: Any.Type, with closeCode: URLSessionWebSocketTask.CloseCode, reason: Data?
+        id: ID, with closeCode: URLSessionWebSocketTask.CloseCode, reason: Data?
       ) async throws {
-        let id = ObjectIdentifier(id)
         defer { self.dependencies[id] = nil }
         try self.socket(id: id).cancel(with: closeCode, reason: reason)
       }
 
-      func receive(id: Any.Type) throws -> AsyncStream<TaskResult<Message>> {
-        let socket = try self.socket(id: ObjectIdentifier(id))
+      func receive(id: ID) throws -> AsyncStream<TaskResult<Message>> {
+        let socket = try self.socket(id: id)
         return AsyncStream { continuation in
           let task = Task {
             while !Task.isCancelled {
@@ -123,12 +135,12 @@ extension WebSocketClient: DependencyKey {
         }
       }
 
-      func send(id: Any.Type, message: URLSessionWebSocketTask.Message) async throws {
-        try await self.socket(id: ObjectIdentifier(id)).send(message)
+      func send(id: ID, message: URLSessionWebSocketTask.Message) async throws {
+        try await self.socket(id: id).send(message)
       }
 
-      func sendPing(id: Any.Type) async throws {
-        let socket = try self.socket(id: ObjectIdentifier(id))
+      func sendPing(id: ID) async throws {
+        let socket = try self.socket(id: id)
         return try await withCheckedThrowingContinuation { continuation in
           socket.sendPing { error in
             if let error = error {
@@ -140,7 +152,7 @@ extension WebSocketClient: DependencyKey {
         }
       }
 
-      private func socket(id: ObjectIdentifier) throws -> URLSessionWebSocketTask {
+      private func socket(id: ID) throws -> URLSessionWebSocketTask {
         guard let dependencies = self.dependencies[id]?.socket else {
           struct Closed: Error {}
           throw Closed()
@@ -148,7 +160,7 @@ extension WebSocketClient: DependencyKey {
         return dependencies
       }
 
-      private func removeDependencies(id: ObjectIdentifier) {
+      private func removeDependencies(id: ID) {
         self.dependencies[id] = nil
       }
     }

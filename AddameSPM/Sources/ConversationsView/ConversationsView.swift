@@ -14,11 +14,12 @@ import ContactsView
 import AddaSharedModels
 import SwiftUI
 import SwiftUIExtension
+import NukeUI
+import SwiftUIHelpers
 
 extension ConversationsView {
     public struct ViewState: Equatable {
         public init(state: Conversations.State) {
-            self.alert = state.alert
             self.isLoadingPage = state.isLoadingPage
             self.conversations = state.conversations
             self.conversation = state.conversation
@@ -27,7 +28,6 @@ extension ConversationsView {
             self.createConversation = state.createConversation
         }
 
-        public var alert: AlertState<Conversations.Action>?
         public var isLoadingPage = false
         public var conversations: IdentifiedArrayOf<ConversationOutPut> = []
         public var conversation: ConversationOutPut?
@@ -69,16 +69,17 @@ public struct ConversationsView: View {
                     ConversationListView(
                         store: viewStore.isLoadingPage
                         ? Store(
-                            initialState: Conversations.State.placholderConversations,
-                            reducer: Conversations()
-                        )
+                            initialState: Conversations.State.placholderConversations
+                        ) {
+                            Conversations()
+                        }
                         : self.store
                     )
                     .redacted(reason: viewStore.isLoadingPage ? .placeholder : [])
                 }
             }
             .onDisappear {
-                ViewStore(store.stateless).send(.onDisAppear)
+                store.send(.onDisAppear)
             }
             .navigationTitle("Chats")
             .toolbar {
@@ -98,7 +99,7 @@ public struct ConversationsView: View {
                 }
             }
             .background(Color(.systemBackground))
-            .alert(self.store.scope(state: { $0.alert }), dismiss: Conversations.Action.alertDismissed)
+            .alert(store: self.store.scope(state: \.$alert, action: { .alert($0) }))
             .sheet(
                 isPresented: viewStore.binding(
                     get: \.isSheetPresented,
@@ -129,30 +130,16 @@ public struct ConversationsView: View {
 
         }
         .navigationViewStyle(StackNavigationViewStyle())
-
-//        .sheet(
-//            store.scope(state: \.contactsState, action: Conversations.Action.contacts),
-//            mapState: replayNonNil(),
-//            onDismiss: { ViewStore(store.stateless).send(.contactsView(isPresented: false)) },
-//            content: ContactsView.init(store:)
-//        )
-//        .background(
-//            NavigationLinkWithStore(
-//                store.scope(state: \.chatState, action: Conversations.Action.chat),
-//                mapState: replayNonNil(),
-//                onDeactivate: { ViewStore(store.stateless).send(.chatView(isPresented: false)) },
-//                destination: ChatView.init(store:)
-//            )
-//        )
     }
 }
 
 struct ConversationsView_Previews: PreviewProvider {
 
     static let store = Store(
-        initialState: Conversations.State.placholderConversations,
-        reducer: Conversations()
-    )
+        initialState: Conversations.State.placholderConversations
+    ) {
+        Conversations()
+    }
 
     static var previews: some View {
         TabView {
@@ -170,14 +157,14 @@ public struct ConversationListView: View {
     public let store: StoreOf<Conversations>
 
     public var body: some View {
-        WithViewStore(self.store) { viewStore in
+        WithViewStore(self.store, observe: { $0 }) { viewStore in
             ForEachStore(
                 self.store.scope(
                     state: \.conversations,
                     action: Conversations.Action.conversation(id:action:)
                 )
             ) { conversationStore in
-                WithViewStore(conversationStore) { conversationViewStore in
+                WithViewStore(conversationStore, observe: { $0 }) { conversationViewStore in
 
                     Button {
                         viewStore.send(.conversationTapped(conversationViewStore.state))
@@ -209,18 +196,18 @@ extension String {
     }
 }
 
-public struct Conversation: ReducerProtocol {
+public struct Conversation: Reducer {
     public typealias State = ConversationOutPut
 
     public enum Action: Equatable {}
 
     public init() {}
 
-    public var body: some ReducerProtocol<State, Action> {
+    public var body: some Reducer<State, Action> {
         Reduce(self.core)
     }
 
-    func core(state: inout State, action: Action) -> EffectTask<Action> {
+    func core(state: inout State, action: Action) -> Effect<Action> {
         switch action {}
     }
 }
@@ -235,22 +222,25 @@ public struct ConversationRow: View {
 
     public var body: some View {
 //        WithViewStore(self.store, observe: { $0 }) { viewStore in
-        WithViewStore(self.store) { viewStore in
+        WithViewStore(self.store, observe: { $0 }) { viewStore in
             Group {
                 HStack(spacing: 0) {
                     if viewStore.ifAttacmentsNotEmpty {
-                        AsyncImage(
-                            url: viewStore.imageUrlString.urll,
-                            placeholder: {
-                                Text("Loading...")
-                                    .frame(width: 100, height: 100, alignment: .center)
-                            },
-                            image: { Image(uiImage: $0).resizable() }
-                        )
+
+                        LazyImage(request: ImageRequest(url: viewStore.imageUrlString.urll)) { state in
+                            if let image = state.image {
+                                image.resizable()
+                            } else if state.error != nil {
+                                Color.red // Indicates an error.
+                            } else {
+                                Color.blue // Acts as a placeholder.
+                            }
+                        }
                         .aspectRatio(contentMode: .fit)
                         .frame(width: 50, height: 50)
                         .clipShape(Circle())
                         .padding(.trailing, 5)
+
                     } else {
                         Image(systemName: "person.fill")
                             .aspectRatio(contentMode: .fit)

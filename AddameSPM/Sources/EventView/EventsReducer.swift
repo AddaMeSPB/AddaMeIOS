@@ -19,11 +19,34 @@ import UserDefaultsClient
 import APIClient
 import WebSocketReducer
 
-public struct Hangouts: ReducerProtocol {
+import SettingsFeature
+
+//public struct Hangouts: Reducer {
+//    public struct State: Equatable {
+//        public var locationState: LocationReducer.State
+//    }
+//
+//    public enum Action: Equatable {
+//        case locationManager(LocationManager.Action)
+//    }
+//
+//    public var body: some Reducer<State, Action> {
+//
+//        Scope(state: \.locationState, action: /Action.location) {
+//            LocationReducer()
+//        }
+//
+//        Reduce(self.core)
+//
+//        func core(state: inout State, action: Action) -> Effect<Action> {}
+//    }
+//}
+
+public struct Hangouts: Reducer {
 
     public struct State: Equatable {
         public init(
-            alert: AlertState<Hangouts.Action>? = nil,
+            alert: AlertState<Hangouts.AlertAction>? = nil,
             isConnected: Bool = true,
             isLoadingPage: Bool = false,
             isLoadingMyEvent: Bool = false,
@@ -61,7 +84,7 @@ public struct Hangouts: ReducerProtocol {
             self.websocketState = websocketState
         }
 
-        public var alert: AlertState<Hangouts.Action>?
+        @PresentationState var alert: AlertState<AlertAction>?
         public var isConnected = true
         public var isLoadingPage = true
         public var isLoadingMyEvent = false
@@ -95,12 +118,13 @@ public struct Hangouts: ReducerProtocol {
     }
 
     public enum Action: Equatable {
+        case alert(PresentationAction<AlertAction>)
         case onAppear
         case onDisAppear
         case alertDismissed
         case dismissHangoutDetails
 
-        case event(index: EventResponse.ID, action: EventAction)
+        case event(index: EventResponse.ID, action: EventRowReducer.Action)
 
         case hangoutFormView(isNavigate: Bool)
         case hangoutForm(HangoutForm.Action)
@@ -127,6 +151,8 @@ public struct Hangouts: ReducerProtocol {
         case location(LocationReducer.Action)
     }
 
+    public enum AlertAction: Equatable {}
+
     @Dependency(\.mainQueue) var mainQueue
     @Dependency(\.userDefaults) var userDefaults
     @Dependency(\.keychainClient) var keychainClient
@@ -137,13 +163,14 @@ public struct Hangouts: ReducerProtocol {
 
     enum LocationManagerId: Hashable {}
 
-    public var body: some ReducerProtocol<State, Action> {
+    public var body: some Reducer<State, Action> {
 
         Scope(state: \.locationState, action: /Action.location) {
            LocationReducer()
         }
 
         Reduce(self.core)
+            .ifLet(\.$alert, action: /Action.alert)
             .ifLet(\.chatState, action: /Hangouts.Action.chat) {
                 Chat()
             }
@@ -155,34 +182,17 @@ public struct Hangouts: ReducerProtocol {
             }
     }
 
-    func core(state: inout State, action: Action) -> EffectTask<Action> {
+    func core(state: inout State, action: Action) -> Effect<Action> {
 
-        var fetchEvents: Effect<Action, Never> {
+        var fetchEvents: Effect<Action> {
             guard state.isConnected && state.canLoadMorePages,
                   let location = state.locationState.location
             else {
                 return .none
             }
 
-            let getDistanceType = userDefaults.integerForKey("typee") //userDefaults.integerForKey("typee")
-            let maxDistance = getDistanceType == 0 ? (300 * 1000) : (300 / 1.609) * 1609
-            let distanceType: String = getDistanceType == 0 ? "kilometers" : "miles"
-            let getDistance = userDefaults.doubleForKey("distanceType")
-            var distanceInMeters: Double = 0.0
-
-            if getDistance != 0.0 {
-                if getDistanceType == 0 {
-                    distanceInMeters = getDistance * 1000
-                } else {
-                    distanceInMeters = getDistance * 1609
-                }
-            } else {
-                if distanceType == "kilometers" {
-                    distanceInMeters = maxDistance
-                } else {
-                    distanceInMeters = maxDistance
-                }
-            }
+            // Calculate distance in meters
+            let distanceInMeters = DistanceType.fetchCurrentDistanceInMeters(userDefaults: userDefaults)
 
             let lat = location.coordinate.latitude
             let long = location.coordinate.longitude
@@ -194,8 +204,8 @@ public struct Hangouts: ReducerProtocol {
                 distance: distanceInMeters
             )
 
-            return  .task {
-                .eventsResponse(
+            return  .run { send in
+                await send(.eventsResponse(
                     await TaskResult {
                         try await apiClient.request(
                             for: .eventEngine(.events(.list(query: query))),
@@ -203,11 +213,11 @@ public struct Hangouts: ReducerProtocol {
                             decoder: .iso8601
                         )
                     }
-                )
+                ))
             }
         }
 
-        func presentChatView() -> Effect<Action, Never> {
+        func presentChatView() -> Effect<Action> {
             state.hangoutDetailsState = nil
             return .run { send in
                 try await self.mainQueue.sleep(for: .seconds(0.3))
@@ -216,6 +226,8 @@ public struct Hangouts: ReducerProtocol {
         }
 
         switch action {
+        case .alert:
+            return .none
         case .onAppear:
 
             return .run { send in
@@ -286,17 +298,22 @@ public struct Hangouts: ReducerProtocol {
             }
 
             return .none
+                
         case .fetchMoreEventsIfNeeded(item: let item):
-            guard let item = item, state.events.count > 5 else {
+            guard let item = item, !state.events.isEmpty else {
                 return fetchEvents
             }
 
-            let threshouldIndex = state.events.index(state.events.endIndex, offsetBy: -5)
-            if state.events.firstIndex(where: { $0.id == item.id }) == threshouldIndex {
+            // Calculate the threshold index based on a percentage of the list's total count
+            let thresholdPercentage = 0.2 // Adjust as needed
+            let thresholdIndex = max(state.events.count - Int(Double(state.events.count) * thresholdPercentage), 0)
+
+            if let itemIndex = state.events.firstIndex(where: { $0.id == item.id }), itemIndex >= thresholdIndex {
                 return fetchEvents
             }
 
             return .none
+
 
         case .currentLocationButtonTapped:
             return .none
@@ -304,23 +321,29 @@ public struct Hangouts: ReducerProtocol {
             return .none
 
         case .eventsResponse(.success(let eventArray)):
-            
             state.locationState.waitingForUpdateLocation = false
-
             state.isLoadingPage = false
 
-            eventArray.items.forEach {
-                if state.events[id: $0.id] != $0 {
-                    state.events.append($0)
+            // Track if any new events were added
+            var newEventsAdded = false
+
+            for newEvent in eventArray.items {
+                if !state.events.contains(where: { $0.id == newEvent.id }) {
+                    state.events.append(newEvent)
+                    newEventsAdded = true
                 }
             }
 
-            state.canLoadMorePages = state.events.count < eventArray.metadata.total
-            if state.canLoadMorePages {
+            // Increment the page only if new events were added
+            if newEventsAdded {
                 state.currentPage += 1
             }
 
+            // Update canLoadMorePages based on the total count and current array size
+            state.canLoadMorePages = state.events.count < eventArray.metadata.total
+
             return .none
+
 
         case .eventsResponse(.failure(_)):
             return .none
@@ -342,6 +365,8 @@ public struct Hangouts: ReducerProtocol {
             return .none
         case .hangoutDetails(let hdAction):
             switch hdAction {
+            case .alert:
+                return .none
             case .onAppear:
                 return .none
             case .alertDismissed:
@@ -358,12 +383,12 @@ public struct Hangouts: ReducerProtocol {
                     return .none
                 }
 
-                return .task {
-                    .addUserResponse(
+                return .run { send in
+                    await send(.addUserResponse(
                         await TaskResult {
                             try await apiClient.request(for: .chatEngine(.conversations(.conversation(id: conversationId.hexString, route: .joinuser))))
                         }
-                    )
+                    ))
                 }
 
             case .joinToEvent(.success):

@@ -20,13 +20,13 @@ import KeychainClient
 import APIClient
 import WebSocketReducer
 
-public struct Conversations: ReducerProtocol {
+public struct Conversations: Reducer {
     public struct State: Equatable {
         public init(
             isLoadingPage: Bool = false,
             canLoadMorePages: Bool = true,
             currentPage: Int = 1,
-            alert: AlertState<Action>? = nil,
+            alert: AlertState<AlertAction>? = nil,
             conversations: IdentifiedArrayOf<Conversation.State> = [],
             conversation: ConversationOutPut? = nil,
             chatState: Chat.State? = nil,
@@ -50,7 +50,7 @@ public struct Conversations: ReducerProtocol {
         public var canLoadMorePages = true
         public var currentPage = 1
 
-        public var alert: AlertState<Action>?
+        @PresentationState var alert: AlertState<AlertAction>?
         public var conversations: IdentifiedArrayOf<Conversation.State> = []
         public var conversation: ConversationOutPut?
         public var createConversation: ConversationCreate?
@@ -62,6 +62,7 @@ public struct Conversations: ReducerProtocol {
     }
 
     public enum Action: Equatable {
+        case alert(PresentationAction<AlertAction>)
         case onAppear
         case onDisAppear
         case alertDismissed
@@ -82,6 +83,8 @@ public struct Conversations: ReducerProtocol {
         case webSocketReducer(WebSocketReducer.Action)
     }
 
+    public enum AlertAction: Equatable {}
+
     @Dependency(\.mainQueue) var mainQueue
     @Dependency(\.userDefaults) var userDefaults
     @Dependency(\.keychainClient) var keychainClient
@@ -90,7 +93,7 @@ public struct Conversations: ReducerProtocol {
 
     public init() {}
     
-    public var body: some ReducerProtocol<State, Action> {
+    public var body: some Reducer<State, Action> {
 
         Scope(state: \.websocketState, action: /Action.webSocketReducer) {
             WebSocketReducer()
@@ -100,18 +103,19 @@ public struct Conversations: ReducerProtocol {
             .ifLet(\.chatState, action: /Conversations.Action.chat) {
                 Chat()
             }
+            .ifLet(\.$alert, action: /Action.alert)
             .forEach(\.conversations, action: /Action.conversation(id:action:)) {
               Conversation()
             }
     }
 
-    func core(state: inout State, action: Action) -> EffectTask<Action> {
+    func core(state: inout State, action: Action) -> Effect<Action> {
 
-        var fetchMoreConversations: Effect<Action, Never> {
+        var fetchMoreConversations: Effect<Action> {
             let query = QueryItem(page: state.currentPage, per: 10)
 
-              return .task {
-                  await .conversationsResponse(
+              return .run { send in
+                  await send(.conversationsResponse(
                     TaskResult {
                         try await apiClient.request(
                             for: .chatEngine(.conversations(.list(query: query))),
@@ -119,11 +123,11 @@ public struct Conversations: ReducerProtocol {
                             decoder: .iso8601
                         )
                     }
-                )
+                ))
               }
         }
 
-        func createOrFine() -> Effect<Action, Never> {
+        func createOrFine() -> Effect<Action> {
 
           guard let createConversation = state.createConversation else {
             // fire alert
@@ -131,8 +135,8 @@ public struct Conversations: ReducerProtocol {
             return .none
           }
 
-            return .task {
-                .conversationResponse(
+            return .run { send in
+                await send(.conversationResponse(
                     await TaskResult {
                         try await apiClient.request(
                             for: .chatEngine(.conversations(.create(input: createConversation))),
@@ -140,18 +144,21 @@ public struct Conversations: ReducerProtocol {
                             decoder: .iso8601
                         )
                     }
-                )
+                ))
             }
         }
 
-        func presentChatView() -> Effect<Action, Never> {
+        func presentChatView() -> Effect<Action> {
           state.chatState = nil
-          return Effect(value: Action.chatView(isPresented: true))
-            .receive(on: mainQueue)
-            .eraseToEffect()
+            return .run { send in
+                await send(.chatView(isPresented: true))
+            }
         }
 
         switch action {
+
+        case .alert:
+            return .none
         case .onAppear:
           return .run { send in
             await send(.fetchConversations)
@@ -229,7 +236,7 @@ public struct Conversations: ReducerProtocol {
             state.alert = .init(title: TextState("Error happens \(error.localizedDescription)"))
           return .none
 
-        case let .updateLastConversation:
+        case .updateLastConversation:
             return .none
 
         case .alertDismissed:
@@ -248,8 +255,8 @@ public struct Conversations: ReducerProtocol {
                 return .none
             }
             
-            return .task {
-                await .conversationResponse(
+            return .run { send in
+                await send(.conversationResponse(
                     TaskResult {
                         try await apiClient.request(
                             for: .chatEngine(.conversations(.conversation(id: conversationID, route: .find))),
@@ -257,7 +264,7 @@ public struct Conversations: ReducerProtocol {
                             decoder: .iso8601
                         )
                     }
-                )
+                ))
             }
 
         case .chat(.chatButtom(.sendButtonTapped)):

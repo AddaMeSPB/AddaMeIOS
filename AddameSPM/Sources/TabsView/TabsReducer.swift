@@ -22,7 +22,7 @@ import BSON
 import WebSocketReducer
 import os
 
-public struct TabReducer: ReducerProtocol {
+public struct TabReducer: Reducer {
 
     public struct State: Equatable {
         public var hangouts: Hangouts.State
@@ -41,7 +41,7 @@ public struct TabReducer: ReducerProtocol {
             selectedTab: TabReducer.State.Tab = .hangouts,
             hangouts: Hangouts.State = .init(websocketState: .init(user: .withFirstName)),
             conversations: Conversations.State = .init(websocketState: .init(user: .withFirstName)),
-            profile: Profile.State = .init(),
+            profile: Profile.State = .init(settingsState: .init()),
             settings: Settings.State = .init(),
             isHidden: Bool = false,
             websocketState: WebSocketReducer.State = .init(user: .withFirstName)
@@ -75,7 +75,7 @@ public struct TabReducer: ReducerProtocol {
 
     public init() {}
 
-    public var body: some ReducerProtocol<State, Action> {
+    public var body: some Reducer<State, Action> {
 
         Scope(state: \.websocketState, action: /Action.webSocketReducer) {
             WebSocketReducer()
@@ -100,7 +100,7 @@ public struct TabReducer: ReducerProtocol {
         Reduce(self.core)
     }
 
-    func core(state: inout State, action: Action) -> EffectTask<Action> {
+    func core(state: inout State, action: Action) -> Effect<Action> {
 
         func handle(_ data: Data) {
                 let chatOutGoingEvent = ChatOutGoingEvent.decode(data: data)

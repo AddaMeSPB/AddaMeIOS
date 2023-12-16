@@ -14,7 +14,7 @@ import BSON
 import MapKit
 import APIClient
 
-public struct HangoutForm: ReducerProtocol {
+public struct HangoutForm: Reducer {
 
     public struct State: Equatable {
 
@@ -51,7 +51,8 @@ public struct HangoutForm: ReducerProtocol {
         public var category: String = ""
 
         public var actionSheet: ConfirmationDialogState<Action>?
-        public var alert: AlertState<Action>?
+        @PresentationState var confirmationDialog: ConfirmationDialogState<Action.ConfirmationDialog>?
+        @PresentationState var alert: AlertState<AlertAction>?
         public var locationSearchState: LocationSearch.State?
 
         public var isPostRequestOnFly: Bool = false
@@ -75,7 +76,7 @@ public struct HangoutForm: ReducerProtocol {
             durations: [String] = DurationButtons.allCases.map { $0.rawValue },
             categories: IdentifiedArrayOf<CategoryResponse> = [], category: String = "",
             actionSheet: ConfirmationDialogState<HangoutForm.Action>? = nil,
-            alert: AlertState<HangoutForm.Action>? = nil,
+            alert: AlertState<HangoutForm.AlertAction>? = nil,
             locationSearchState: LocationSearch.State? = nil, isPostRequestOnFly: Bool = false,
             isEventCreatedSuccessfully: Bool = false,
             currentUser: UserOutput = .withFirstName
@@ -110,6 +111,8 @@ public struct HangoutForm: ReducerProtocol {
     }
 
     public enum Action: Equatable {
+        case alert(PresentationAction<AlertAction>)
+        case confirmationDialog(PresentationAction<ConfirmationDialog>)
         case onAppear
         case onDisappear
         case titleChanged(String)
@@ -125,14 +128,19 @@ public struct HangoutForm: ReducerProtocol {
         case categoryResponse(TaskResult<CategoriesResponse>)
         case backToPVAfterCreatedEventSuccessfully
 
+        case confirmationCategoriesDialogButtonTapped
         case submitButtonTapped
-        case actionSheetButtonTapped
-        case actionSheetCancelTapped
-        case actionSheetDismissed
+
         case alertButtonTapped
         case alertCancelTapped
         case alertDismissed
+
+        public enum ConfirmationDialog: Equatable {
+            case selectedCategory(AddaSharedModels.CategoryResponse)
+        }
     }
+
+    public enum AlertAction: Equatable {}
 
     @Dependency(\.apiClient) var apiClient
     @Dependency(\.mainQueue) var mainQueue
@@ -141,7 +149,7 @@ public struct HangoutForm: ReducerProtocol {
 
     public init() {}
 
-    public var body: some ReducerProtocol<State, Action> {
+    public var body: some Reducer<State, Action> {
         Reduce { state, action in
             var now = 0
             var then = 0
@@ -160,8 +168,8 @@ public struct HangoutForm: ReducerProtocol {
                     return .none
                 }
 
-                return  .task {
-                    .categoryResponse(
+                return  .run { send in
+                    await send(.categoryResponse(
                         await TaskResult {
                             try await apiClient.request(
                                 for: .eventEngine(.categories(.list)),
@@ -169,7 +177,7 @@ public struct HangoutForm: ReducerProtocol {
                                 decoder: .iso8601
                             )
                         }
-                    )
+                    ))
                 }
 
             case .onDisappear:
@@ -218,9 +226,11 @@ public struct HangoutForm: ReducerProtocol {
             case .eventResponse(.success):
                 state.isEventCreatedSuccessfully = true
                 state.isPostRequestOnFly = false
-                return Effect(value: Action.backToPVAfterCreatedEventSuccessfully)
-                    .delay(for: 1.0, scheduler: mainQueue)
-                    .eraseToEffect()
+                    return .run { send in
+                        try await mainQueue.sleep(for: 1)
+                        await send(.backToPVAfterCreatedEventSuccessfully)
+                    }
+
 
             case .eventResponse(.failure(_)):
                 state.isPostRequestOnFly = false
@@ -267,8 +277,8 @@ public struct HangoutForm: ReducerProtocol {
                 )
 
 
-                return  .task {
-                    .eventResponse(
+                return  .run { send in
+                    await send(.eventResponse(
                         await TaskResult {
                             try await apiClient.request(
                                 for: .eventEngine(.events(.create(eventInput: eventInput))),
@@ -277,36 +287,24 @@ public struct HangoutForm: ReducerProtocol {
                             )
                         }
                     )
+                    )
                 }
 
-            case .actionSheetButtonTapped:
+            case .confirmationCategoriesDialogButtonTapped:
 
-                // menu context please
-                state.actionSheet = .init(
-                    title: .init("Categories"),
-                    message: .init("Select category."),
-                    buttons: [.cancel(.init("Cancel"))]
-                )
-
-                state.actionSheet?.buttons = state.categories
-                    .map { item in
-                            .default(
-                                .init("\(item.name)"),
-                                action: .send(.selectedCategory(item))
-                            )
-                    }
-
-                return .none
-
-            case .actionSheetCancelTapped:
-                return .none
-
-            case .actionSheetDismissed:
-                state.actionSheet = nil
-                return .none
+                    state.confirmationDialog = ConfirmationDialogState(
+                      title: TextState("Categories"),
+                      buttons:
+                        state.categories.map { item in
+                          .default(TextState("\(item.name)"), action: .send(.selectedCategory(item)))
+                        } + [.cancel(TextState("Cancel"))]
+                    )
+                    
+                    return .none
 
             case .alertButtonTapped:
                 return .none
+
             case .alertCancelTapped:
                 state.alert = nil
                 return .none
@@ -316,6 +314,12 @@ public struct HangoutForm: ReducerProtocol {
                 return .none
 
             case let .selectedCategory(category):
+                state.selectedCateforyID = category.id
+                state.category = category.name
+                return .none
+
+            case .confirmationDialog(.presented(.selectedCategory(let category))):
+
                 state.selectedCateforyID = category.id
                 state.category = category.name
                 return .none
@@ -360,10 +364,18 @@ public struct HangoutForm: ReducerProtocol {
 
             case .locationSearch:
                 return .none
+
+            case .alert:
+                return .none
+
+            case .confirmationDialog(.dismiss):
+                return .none
             }
         }
+        .ifLet(\.$alert, action: /Action.alert)
+        .ifLet(\.$confirmationDialog, action: /Action.confirmationDialog)
         .ifLet(\.locationSearchState, action: /HangoutForm.Action.locationSearch) {
-            LocationSearch(localSearch: .live)
+            LocationSearch()
         }
     }
 }

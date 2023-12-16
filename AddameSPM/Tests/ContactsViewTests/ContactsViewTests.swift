@@ -31,7 +31,7 @@ class ContactsViewTests: XCTestCase {
 
         let uniqNumbers = Set(contacts)
 
-        let state = ContactsState()
+        let state = ContactsReducer.State()
 
 //        let environment = ContactsEnvironment(
 //            coreDataClient: .init(contactClient: .live(api: .build)),

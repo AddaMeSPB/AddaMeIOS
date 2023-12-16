@@ -11,24 +11,6 @@ import MapKit
 import MapView
 import AddaSharedModels
 
-extension HangoutDetails.State {
-  var view: HangoutDetailsView.ViewState {
-    HangoutDetailsView.ViewState(
-      alert: alert,
-      event: event,
-      pointsOfInterest: pointsOfInterest,
-      region: region,
-      conversation: conversation,
-      conversationMembers: conversationMembers,
-      conversationAdmins: conversationAdmins,
-      chatMembers: chatMembers,
-      conversationOwnerName: conversationOwnerName,
-      isMember: isMember,
-      isAdmin: isAdmin,
-      isMovingChatRoom: isMovingChatRoom
-    )
-  }
- }
 
 extension HangoutDetails.State {
   public static let coordinate = CLLocationCoordinate2D(

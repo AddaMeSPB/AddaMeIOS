@@ -13,7 +13,20 @@ import SettingsFeature
 
 public enum VerificationCodeCanceable {}
 
-public struct Login: ReducerProtocol {
+public struct Login: Reducer {
+    public struct ID: Hashable, @unchecked Sendable {
+      let rawValue: AnyHashable
+
+      init<RawValue: Hashable & Sendable>(_ rawValue: RawValue) {
+        self.rawValue = rawValue
+      }
+
+      public init() {
+        struct RawValue: Hashable, Sendable {}
+        self.rawValue = RawValue()
+      }
+    }
+    
     public struct State: Equatable {
 
       public init() {}
@@ -77,12 +90,12 @@ public struct Login: ReducerProtocol {
 
     public init() {}
 
-    public var body: some ReducerProtocol<State, Action> {
+    public var body: some Reducer<State, Action> {
         self.core
     }
 
     @ReducerBuilder<State, Action>
-    var core: some ReducerProtocol<State, Action> {
+    var core: some Reducer<State, Action> {
 
         Reduce { state, action in
             switch action {
@@ -130,15 +143,15 @@ public struct Login: ReducerProtocol {
                 let emailLoginInput = EmailLoginInput(email: state.email.lowercased())
                 state.emailLoginInput = emailLoginInput
 
-                return .task {
-                    return .loninResponse(
+                return .run { send in
+                    await send( .loninResponse(
                         await TaskResult {
                             try await apiClient.decodedResponse(
                                 for: .authEngine(.authentication(.loginViaEmail(emailLoginInput))),
                                 as: EmailLoginOutput.self
                             ).value
                         }
-                    )
+                    ))
                 }
 
             case let .codeChanged(code):
@@ -160,8 +173,8 @@ public struct Login: ReducerProtocol {
                         code: code
                     )
 
-                    return .task {
-                        .verificationResponse(
+                    return .run { send in
+                        await send(.verificationResponse(
                             await TaskResult {
                                 try await apiClient.decodedResponse(
                                     for: .authEngine(.authentication(.verifyEmail(input))),
@@ -169,9 +182,9 @@ public struct Login: ReducerProtocol {
                                     decoder: .iso8601
                                 ).value
                             }
-                        )
+                        ))
                     }
-                    .cancellable(id: VerificationCodeCanceable.self)
+                    .cancellable(id: Login.ID())
                 }
 
                 return .none

@@ -164,7 +164,7 @@ public struct LocationSearchView: View {
         .onAppear { viewStore.send(.onAppear) }
         .padding(.horizontal)
         .padding(.top, 10)
-        .alert(self.store.scope(state: { $0.alert }), dismiss: .alertDismissed)
+//        .alert(self.store.scope(state: { $0.alert }), dismiss: .alertDismissed)
 
           if viewStore.isDidSelectedAddress {
               Button {
@@ -185,20 +185,20 @@ public struct LocationSearchView: View {
   }
 }
 
-struct LocationSearchView_Previews: PreviewProvider {
-  static let store = Store(
-    initialState: LocationSearch.State.locationSearchPlacholder,
-    reducer: LocationSearch(localSearch: .live)
-  )
-
-  static var previews: some View {
-//    Text("Click Play buttom for show search sheet").sheet(isPresented: .constant(true)) {
-        NavigationView {
-            LocationSearchView(store: store)
-                .environment(\.colorScheme, .dark)
-                .navigationTitle("Map")
-                .navigationBarTitleDisplayMode(.inline)
-        }
-//    }
-  }
-}
+//struct LocationSearchView_Previews: PreviewProvider {
+//  static let store = Store(
+//    initialState: LocationSearch.State.locationSearchPlacholder,
+//    reducer: LocationSearch(localSearch: .live)
+//  )
+//
+//  static var previews: some View {
+////    Text("Click Play buttom for show search sheet").sheet(isPresented: .constant(true)) {
+//        NavigationView {
+//            LocationSearchView(store: store)
+//                .environment(\.colorScheme, .dark)
+//                .navigationTitle("Map")
+//                .navigationBarTitleDisplayMode(.inline)
+//        }
+////    }
+//  }
+//}

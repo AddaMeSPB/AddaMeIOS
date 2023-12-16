@@ -7,7 +7,7 @@ import Dependencies
 import Foundation
 import os
 
-public struct WebSocketReducer: ReducerProtocol {
+public struct WebSocketReducer: Reducer {
     public struct State: Equatable {
         public init(
             alert: AlertState<WebSocketReducer.Action>? = nil,
@@ -54,11 +54,11 @@ public struct WebSocketReducer: ReducerProtocol {
   @Dependency(\.webSocket) var webSocket
   @Dependency(\.appConfiguration) var appConfiguration
 
-  private enum WebSocketID {}
+  private enum WebSocketID: Hashable {}
 
   public init() {}
 
-  public func reduce(into state: inout State, action: Action) -> EffectTask<Action> {
+    public func reduce(into state: inout State, action: Action) -> Effect<Action> {
     switch action {
     case .alertDismissed:
       state.alert = nil
@@ -68,17 +68,20 @@ public struct WebSocketReducer: ReducerProtocol {
       switch state.connectivityState {
       case .connected, .connecting:
           state.connectivityState = .disconnected
-          return .cancel(id: WebSocketID.self)
+              return .cancel(id: WebSocketClient.ID())
 
       case .disconnected:
           logger.info("webSocket is disconnected")
           state.connectivityState = .connecting
           state.webSocketUrl = appConfiguration.webSocketUrl
-          let webSocketUrl = state.webSocketUrl
+          let webSocketString = state.webSocketUrl
 
           return .run { send in
+
+              guard let webSocketUrl = URL(string: webSocketString) else { return  }
           let actions = await self.webSocket
-                .open(WebSocketID.self, URL(string: webSocketUrl)!, "", [])
+                  .open(WebSocketClient.ID(), webSocketUrl, "", [])
+
           await withThrowingTaskGroup(of: Void.self) { group in
             for await action in actions {
               // NB: Can't call `await send` here outside of `group.addTask` due to task local
@@ -96,7 +99,7 @@ public struct WebSocketReducer: ReducerProtocol {
                   }
                 }
                 group.addTask {
-                  for await result in try await self.webSocket.receive(WebSocketID.self) {
+                  for await result in try await self.webSocket.receive(WebSocketClient.ID()) {
                     await send(.receivedSocketMessage(result))
                   }
                 }
@@ -106,7 +109,7 @@ public struct WebSocketReducer: ReducerProtocol {
             }
           }
         }
-        .cancellable(id: WebSocketID.self)
+          .cancellable(id: WebSocketClient.ID())
       }
 
     case .reconnect:
@@ -117,7 +120,7 @@ public struct WebSocketReducer: ReducerProtocol {
         }
 
     case let .messageToSendChanged(message):
-      state.messageToSend = message
+        state.messageToSend = message
         logger.info("webSocket is connected")
 
         return .run { send in
@@ -127,10 +130,14 @@ public struct WebSocketReducer: ReducerProtocol {
     case let .receivedSocketMessage(.failure(error)):
         logger.error("\(#file) \(#line) \(error.localizedDescription)")
         state.connectivityState = .disconnected
-        return .merge(
-            .cancel(id: WebSocketID.self),
-            EffectTask(value: .reconnect)
-        )
+            return .run { send in
+                await send(.reconnect)
+            }
+
+//        .merge(
+//            .cancel(id: WebSocketClient.ID()),
+//            EffectTask(value: .reconnect)
+//        )
 
     case .receivedSocketMessage:
       return .none
@@ -138,13 +145,13 @@ public struct WebSocketReducer: ReducerProtocol {
     case .sendButtonTapped:
       let messageToSend = state.messageToSend
       state.messageToSend = ""
-      return .task {
-        try await self.webSocket.send(WebSocketID.self, .string(messageToSend))
-        return .sendResponse(didSucceed: true)
-      } catch: { _ in
-        .sendResponse(didSucceed: false)
+      return .run { send in
+          try await self.webSocket.send(WebSocketClient.ID(), .string(messageToSend))
+          await send(.sendResponse(didSucceed: true))
+      } catch: { _, send in
+          await send(.sendResponse(didSucceed: false))
       }
-      .cancellable(id: WebSocketID.self)
+      .cancellable(id: WebSocketClient.ID())
 
     case .sendResponse(didSucceed: false):
         if #available(iOS 15, *) {
@@ -166,9 +173,9 @@ public struct WebSocketReducer: ReducerProtocol {
 
         let dicConnect = ChatOutGoingEvent.disconnect.jsonString
 
-        return .task {
-            try await self.webSocket.send(WebSocketID.self, .string(dicConnect!))
-            return .sendResponse(didSucceed: true)
+        return .run { send in
+            try await self.webSocket.send(WebSocketClient.ID(), .string(dicConnect!))
+            await send(.sendResponse(didSucceed: true))
         }
 
     case .webSocket(.didOpen):
@@ -177,13 +184,13 @@ public struct WebSocketReducer: ReducerProtocol {
 
         let connect = ChatOutGoingEvent.connect.jsonString
 
-        return .task {
-            try await self.webSocket.send(WebSocketID.self, .string(connect!))
-            return .sendResponse(didSucceed: true)
-        } catch: { _ in
-            .sendResponse(didSucceed: false)
+        return .run { send in
+            try await self.webSocket.send(WebSocketClient.ID(), .string(connect!))
+            await send(.sendResponse(didSucceed: true))
+        } catch: { _, send in
+            await send(.sendResponse(didSucceed: false))
         }
-        .cancellable(id: WebSocketID.self)
+        .cancellable(id: WebSocketClient.ID())
     }
   }
 }

@@ -17,38 +17,25 @@ import MapView
 import AddaSharedModels
 import SwiftUI
 import SwiftUIExtension
+import NukeUI
+
 
 extension HangoutDetailsView {
     public struct ViewState: Equatable {
-        init(
-            alert: AlertState<HangoutDetails.Action>? = nil,
-            event: EventResponse,
-            pointsOfInterest: [PointOfInterest] = [],
-            region: CoordinateRegion? = nil,
-            conversation: ConversationOutPut? = nil,
-            conversationMembers: [UserOutput],
-            conversationAdmins: [UserOutput],
-            chatMembers: Int,
-            conversationOwnerName: String,
-            isMember: Bool,
-            isAdmin: Bool,
-            isMovingChatRoom: Bool
-        ) {
-            self.alert = alert
-            self.event = event
-            self.pointsOfInterest = pointsOfInterest
-            self.region = region
-            self.conversation = conversation
-            self.conversationMembers = conversationMembers
-            self.conversationAdmins = conversationAdmins
-            self.chatMembers = chatMembers
-            self.conversationOwnerName = conversationOwnerName
-            self.isMember = isMember
-            self.isAdmin = isAdmin
-            self.isMovingChatRoom = isMovingChatRoom
+        init(state: HangoutDetails.State) {
+            self.event = state.event
+            self.pointsOfInterest = state.pointsOfInterest
+            self.region = state.region
+            self.conversation = state.conversation
+            self.conversationMembers = state.conversationMembers
+            self.conversationAdmins = state.conversationAdmins
+            self.chatMembers = state.chatMembers
+            self.conversationOwnerName = state.conversationOwnerName
+            self.isMember = state.isMember
+            self.isAdmin = state.isAdmin
+            self.isMovingChatRoom = state.isMovingChatRoom
         }
 
-        public var alert: AlertState<HangoutDetails.Action>?
         public let event: EventResponse
         public var owner: UserOutput = .withFirstName
         public var pointsOfInterest: [PointOfInterest] = []
@@ -94,13 +81,24 @@ public struct HangoutDetailsView: View {
 
     @ViewBuilder
     public var body: some View {
-        WithViewStore(self.store.scope(state: { $0.view }, action: HangoutDetails.Action.view)) { viewStore in
+        WithViewStore(self.store, observe: ViewState.init) { viewStore in
             ScrollView {
                 VStack {
                     if viewStore.event.imageUrl != nil {
-                        AsyncImage(
-                            url: URL(string: viewStore.event.imageUrl!)!,
-                            placeholder: {
+
+                        LazyImage(
+                            request: ImageRequest(
+                                url: URL(string: viewStore.event.imageUrl!)!
+                            )
+                        ) { state in
+
+                            if let image = state.image {
+                                image.resizable()
+                            } else if state.error != nil {
+                                Image(systemName: "person")
+                                    .resizable()
+                                    .padding()
+                            } else {
                                 ProgressView()
                                     .frame(
                                         width: UIScreen.main.bounds.width,
@@ -108,11 +106,8 @@ public struct HangoutDetailsView: View {
                                         alignment: .center
                                     )
                                     .background(Color.gray)
-                            },
-                            image: {
-                                Image(uiImage: $0).resizable()
                             }
-                        )
+                        }
                         .padding(.bottom, 20)
                         .aspectRatio(contentMode: .fill)
                         .edgesIgnoringSafeArea(.top)
@@ -227,23 +222,24 @@ public struct HangoutDetailsView: View {
                             .padding()
                     }
 
-                    MapView(
-                        pointsOfInterest: viewStore.pointsOfInterest,
-                        region: viewStore.binding(
-                            get: { $0.region },
-                            send: HangoutDetailsView.ViewAction.updateRegion
-                        ),
-                        isHangoutDetailsView: true
-                    )
-                    .edgesIgnoringSafeArea([.all])
-                    .frame(height: 400)
-                    .padding(.bottom, 20)
+//                    MapView(
+//                        pointsOfInterest: viewStore.pointsOfInterest,
+//                        region: viewStore.binding(
+//                            get: { $0.region },
+//                            send: { $0.updateRegion }
+//                        ),
+//                        isHangoutDetailsView: true
+//                    )
+//                    .edgesIgnoringSafeArea([.all])
+//                    .frame(height: 400)
+//                    .padding(.bottom, 20)
                 }  // VStack
+                .alert(store: self.store.scope(state: \.$alert, action: { .alert($0) }))
             }  // ScrollView
             .background(Color(.systemBackground))
         }
         .onAppear {
-            ViewStore(store.stateless).send(.onAppear)
+            store.send(.onAppear)
         }
     }
 }
@@ -251,10 +247,11 @@ public struct HangoutDetailsView: View {
 struct HangoutDetailsView_Previews: PreviewProvider {
     
     static let store = Store(
-        initialState: HangoutDetails.State.placeHolderEvent,
-        reducer: HangoutDetails()
-    )
-    
+        initialState: HangoutDetails.State.placeHolderEvent
+    ) {
+        HangoutDetails()
+    }
+
     static var previews: some View {
         NavigationView {
             HangoutDetailsView(store: store)

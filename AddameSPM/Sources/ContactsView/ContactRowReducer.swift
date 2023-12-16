@@ -15,7 +15,7 @@ import SwiftUI
 
 public struct ContactRowEnvironment {}
 
-public struct ContactRow: ReducerProtocol {
+public struct ContactRow: Reducer {
     public struct State: Equatable, Identifiable {
       public init(
         id: String? = UUID().uuidString,
@@ -40,12 +40,12 @@ public struct ContactRow: ReducerProtocol {
 
     public init() {}
 
-    public var body: some ReducerProtocol<State, Action> {
+    public var body: some Reducer<State, Action> {
 
         Reduce(self.core)
     }
 
-    func core(state: inout State, action: Action) -> EffectTask<Action> {
+    func core(state: inout State, action: Action) -> Effect<Action> {
         switch action {
 
         case .moveToChatRoom: return .none

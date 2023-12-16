@@ -76,7 +76,7 @@ public struct TabsView: View {
                         )
                     )
                     .onAppear {
-                        ViewStore(store.stateless).send(.hangouts(.onAppear))
+                        store.send(.hangouts(.onAppear))
                     }
 
                 }
@@ -94,7 +94,7 @@ public struct TabsView: View {
                         )
                     )
                     .onAppear {
-                        ViewStore(store.stateless).send(.conversations(.onAppear))
+                        store.send(.conversations(.onAppear))
                     }
 
                 }
@@ -107,7 +107,7 @@ public struct TabsView: View {
                 NavigationView {
                     ProfileView(store: store.scope(state: \.profile, action: TabReducer.Action.profile))
                         .onAppear {
-                            ViewStore(store.stateless).send(.profile(.onAppear))
+                            store.send(.profile(.onAppear))
                         }
                 }
                 .tabItem {
@@ -119,7 +119,7 @@ public struct TabsView: View {
                 NavigationView {
                     SettingsView(store: store.scope(state: \.settings, action: TabReducer.Action.settings))
                         .onAppear {
-                            ViewStore(store.stateless).send(.settings(.onAppear))
+                            store.send(.settings(.onAppear))
                         }
                 }
                 .tabItem {
@@ -140,9 +140,10 @@ struct TabView_PrevieTabws: PreviewProvider {
     static var previews: some View {
         TabsView(
             store: .init(
-                initialState: TabReducer.State(),
-                reducer: TabReducer()
-            )
+                initialState: TabReducer.State()
+            ) {
+                TabReducer()
+            }
         )
     }
 }

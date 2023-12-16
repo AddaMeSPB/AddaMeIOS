@@ -16,23 +16,21 @@ import AppTrackingTransparency
 import CoreLocation
 import LocationReducer
 
-public struct RegisterFormReducer: ReducerProtocol {
+public struct RegisterFormReducer: Reducer {
     public struct State: Equatable {
 
-      @BindableState public var selectedPage = FormTag.notificationPermission
+      @BindingState public var selectedPage = FormTag.notificationPermission
 
       public var alert: AlertState<Action>?
 
-      @BindableState public var isNotificationContinueButtonValid: Bool = false
-      @BindableState public var isLocationEnableContinueButtonValid: Bool = false
-      @BindableState public var isIDFAEbableContinueButtonValid: Bool = false
-      public var locationState: LocationReducer.State?
+      @BindingState public var isNotificationContinueButtonValid: Bool = false
+      @BindingState public var isLocationEnableContinueButtonValid: Bool = false
+      @BindingState public var isIDFAEbableContinueButtonValid: Bool = false
+      public var locationState: LocationReducer.State? = nil
 
       public var waitingForLoginView: Bool = false
 
-      public init(locationState: LocationReducer.State? = nil) {
-          self.locationState = locationState
-      }
+        public init() {}
 
     }
 
@@ -65,13 +63,13 @@ public struct RegisterFormReducer: ReducerProtocol {
     @Dependency(\.apiClient) var apiClient
     @Dependency(\.idfaClient) var idfaClient
     @Dependency(\.userNotifications) var userNotifications
-    @Dependency(\.locationManager) var locationManager
 
     enum NameFormCanceable {}
 
-    public var body: some ReducerProtocol<State, Action> {
+    public var body: some Reducer<State, Action> {
 
         BindingReducer()
+
         Reduce { state, action in
             switch action {
 
@@ -101,6 +99,7 @@ public struct RegisterFormReducer: ReducerProtocol {
                 }
                 
             case .isLocationEnableContinueButtonTapped:
+
                 return .run { send in
                     await send(.location(.askLocationPermission))
                 }
@@ -146,12 +145,9 @@ public struct RegisterFormReducer: ReducerProtocol {
                     }
                 }
 
-            case .location(.getLocation):
-                return .none
-
             case let .location(.locationManager(.didChangeAuthorization(status))):
 
-                if self.locationManager.authorizationStatus() == .notDetermined {
+                if let locationState = state.locationState, !locationState.isLocationAuthorized {
                     return .none
                 }
 

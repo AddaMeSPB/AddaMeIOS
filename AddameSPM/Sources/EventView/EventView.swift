@@ -1,7 +1,6 @@
 import SwiftUI
 import Foundation
 import ComposableArchitecture
-import AsyncImageLoder
 import ChatView
 import ComposableArchitectureHelpers
 import ComposableCoreLocation
@@ -19,7 +18,7 @@ import SwiftUIHelpers
 extension HangoutsView {
     public struct ViewState: Equatable {
         init(state: Hangouts.State) {
-            self.alert = state.alert
+
             self.isConnected = state.isConnected
             self.isLoadingPage = state.isLoadingPage
             self.isLoadingMyEvent = state.isLoadingMyEvent
@@ -36,7 +35,6 @@ extension HangoutsView {
             self.locationState = state.locationState
         }
 
-        public var alert: AlertState<Hangouts.Action>?
         public var isConnected: Bool
         public var isLoadingPage: Bool
         public var isLoadingMyEvent: Bool
@@ -64,7 +62,7 @@ extension HangoutsView {
         case alertDismissed
         case dismissHangoutDetails
 
-        case event(index: EventResponse.ID, action: EventAction)
+        case event(index: EventResponse.ID, action: EventRowReducer.Action)
 
         case fetchEventOnAppear
         case hangoutFormView(isNavigate: Bool)
@@ -108,7 +106,7 @@ public struct HangoutsView: View {
                     .font(.system(.body, design: .rounded))
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding()
-                    .animation(.easeOut)
+                    .animation(.easeOut, value: 0.3)
                     .layoutPriority(1)
             }
 
@@ -118,7 +116,7 @@ public struct HangoutsView: View {
                     .frame(maxWidth: .infinity)
                     .padding()
                     .padding(.bottom, 10)
-                    .animation(.easeIn)
+                    .animation(.easeIn, value: 0.3)
             }
         }
         .background(Color.red)
@@ -138,7 +136,7 @@ public struct HangoutsView: View {
                 .frame(maxWidth: .infinity)
                 .padding()
                 .padding(.bottom, 10)
-                .animation(.easeIn)
+                .animation(.easeIn, value: 0.3)
 
             Button {
                 viewStore.send(.popupSettings)
@@ -158,8 +156,8 @@ public struct HangoutsView: View {
 
     public var body: some View {
 
-        WithViewStore(self.store, observe: ViewState.init, send: Hangouts.Action.init) { viewStore in
-
+        WithViewStore(self.store, observe: ViewState.init,  send: Hangouts.Action.init) { viewStore in
+            GeometryReader { geo in
             ZStack(alignment: .bottomTrailing) {
 //                VStack {
 //                    if viewStore.isHangoutDetailsSheetPresented
@@ -173,48 +171,41 @@ public struct HangoutsView: View {
                 ScrollView {
                     LazyVStack {
 
-                        if viewStore.locationState.waitingForUpdateLocation {
-                            locationAndLoadingStatus(viewStore: viewStore)
-                        }
+                            if viewStore.locationState.waitingForUpdateLocation {
+                                locationAndLoadingStatus(viewStore: viewStore)
+                            }
 
-                        if !viewStore.locationState.isLocationAuthorized {
-                            isLocationAuthorizedView(viewStore: viewStore)
-                        }
+                            if !viewStore.locationState.isLocationAuthorized {
+                                isLocationAuthorizedView(viewStore: viewStore)
+                            }
 
-                        EventsListView(
-                            store: viewStore.isLoadingPage
-                            ? Store(
-                                initialState: Hangouts.State.placeholderEvents,
-                                reducer: Hangouts()
-                            )
-                            : self.store
-                        )
-                        .redacted(reason: viewStore.isLoadingPage ? .placeholder : [])
+                            ForEachStore(
+                                self.store.scope(state: \.events, action: Hangouts.Action.event)
+                            ) { eventStore in
+                                WithViewStore(eventStore, observe: { $0 }) { eventViewStore in
+                                    Button {
+                                        viewStore.send(.eventTapped(eventViewStore.state))
+                                    } label: {
+                                        EventRowView(
+                                            store: eventStore,
+                                            currentLocation: viewStore.state.locationState.location,
+                                            geo: geo
+                                        )
+                                    }
+                                    .buttonStyle(PlainButtonStyle())
+                                    .onAppear {
+                                        if viewStore.events.isLastItem(eventViewStore.state) {
+                                            viewStore.send(.fetchMoreEventsIfNeeded(item: eventViewStore.state))
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
                 .navigationTitle("Hangouts")
                 .background(colorScheme == .dark ? Color.gray.edgesIgnoringSafeArea(.all) : nil)
 
-//                HStack {
-//                    Spacer()
-//                    Button {
-//                        viewStore.send(.currentLocationButtonTapped)
-//                    } label: {
-//                        Image(systemName: viewStore.state.isLocationAuthorized ? "circle" : "location")
-//                            .foregroundColor(Color.white)
-//                            .frame(
-//                                width: viewStore.state.isLocationAuthorized ? 20 : 60,
-//                                height: viewStore.state.isLocationAuthorized ? 20 : 60
-//                            )
-//                            .background(viewStore.state.isLocationAuthorized ? Color.green : Color.red)
-//                            .clipShape(Circle())
-//                            .padding([.trailing], 26)
-//                            .padding([.bottom], 26)
-//                    }
-//                    .animation(.easeIn)
-//                    .shadow(
-//                        color: viewStore.state.isLocationAuthorized ? Color.green : Color.red, radius: 20, y: 5)
-//                }
             }
             .onDisappear { viewStore.send(.onDisAppear) }
             .navigationViewStyle(StackNavigationViewStyle())
@@ -224,7 +215,7 @@ public struct HangoutsView: View {
                     toolbarItemTrailingButton(viewStore)
                 }
             }
-            .alert(self.store.scope(state: { $0.alert }), dismiss: .alertDismissed)
+            .alert(store: self.store.scope(state: \.$alert, action: { .alert($0) }))
             .background(
                 NavigationLink(
                   destination: IfLetStore(
@@ -293,13 +284,6 @@ public struct HangoutsView: View {
                 Image(systemName: "plus.circle")
                     .font(.title)
                     .foregroundColor(colorScheme == .dark ? .white : .blue)
-//                    .opacity(viewStore.isHangoutDetailsSheetPresented ? 0 : 1)
-//                    .overlay(
-//                        ProgressView()
-//                            .frame(width: 150.0, height: 150.0)
-//                            .padding(50.0)
-//                            .opacity(viewStore.isHangoutDetailsSheetPresented ? 1 : 0)
-//                    )
             } else {
                 Image(systemName: "plus.circle")
                     .font(.title)
@@ -314,9 +298,24 @@ public struct HangoutsView: View {
 struct HangoutsView_Previews: PreviewProvider {
 
     static let store = Store(
-        initialState: Hangouts.State(websocketState: .init(user: .withFirstName)),
-        reducer: Hangouts()
-    )
+        initialState: Hangouts.State(
+            isLoadingPage: false, isIDFAAuthorized: true,
+            location: Location(
+                altitude: 0,
+                coordinate: CLLocationCoordinate2D(latitude: 60.020532228306031, longitude: 30.388014239849944),
+                course: 0,
+                horizontalAccuracy: 0,
+                speed: 0,
+                timestamp: Date(timeIntervalSince1970: 0),
+                verticalAccuracy: 0
+            ),
+            events: .init(uniqueElements: EventsResponse.draff.items),
+            locationState: LocationReducer.State.diff,
+            websocketState: .init(user: .withFirstName)
+        )
+    ) {
+        Hangouts()
+    }
 
     static var previews: some View {
         TabView {
@@ -332,21 +331,35 @@ struct EventsListView: View {
 
     var body: some View {
         WithViewStore(self.store, observe: HangoutsView.ViewState.init, send: Hangouts.Action.init) { viewStore in
-            ForEachStore(
-                self.store.scope(state: \.events, action: Hangouts.Action.event)
-            ) { eventStore in
-                WithViewStore(eventStore) { eventViewStore in
-                    Button {
-                        viewStore.send(.eventTapped(eventViewStore.state))
-                    } label: {
-                        EventRowView(store: eventStore, currentLocation: viewStore.state.locationState.location)
+            GeometryReader { geo in
+
+                ForEachStore(
+                    self.store.scope(state: \.events, action: Hangouts.Action.event)
+                ) { eventStore in
+                    WithViewStore(eventStore, observe: { $0 }) { eventViewStore in
+                        Button {
+                            viewStore.send(.eventTapped(eventViewStore.state))
+                        } label: {
+                            EventRowView(
+                                store: eventStore,
+                                currentLocation: viewStore.state.locationState.location,
+                                geo: geo
+                            )
                             .onAppear {
                                 viewStore.send(.fetchMoreEventsIfNeeded(item: eventViewStore.state))
                             }
+                        }
+                        .buttonStyle(PlainButtonStyle())
                     }
-                    .buttonStyle(PlainButtonStyle())
                 }
             }
         }
+    }
+}
+
+
+extension IdentifiedArrayOf where Element: Identifiable {
+    func isLastItem(_ item: Element) -> Bool {
+        self.last?.id == item.id
     }
 }

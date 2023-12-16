@@ -51,11 +51,11 @@ public struct WebView: UIViewRepresentable {
     }
 }
 
-public struct TermsAndPrivacy: ReducerProtocol {
+public struct TermsAndPrivacy: Reducer {
 
     public struct State: Equatable {
 
-        @BindableState public var wbModel: WebViewModel
+        @BindingState public var wbModel: WebViewModel
 
         public init(wbModel: WebViewModel) {
             self.wbModel = wbModel
@@ -72,7 +72,7 @@ public struct TermsAndPrivacy: ReducerProtocol {
 
     public init() {}
 
-    public var body: some ReducerProtocol<State, Action> {
+    public var body: some Reducer<State, Action> {
         BindingReducer()
         Reduce { state, action in
             switch action {
@@ -104,7 +104,7 @@ public struct TermsAndPrivacyWebView: View {
 
 
   public var body: some View {
-    WithViewStore(self.store) { viewStore in
+    WithViewStore(self.store, observe: { $0 }) { viewStore in
 
         WebView(viewModel: viewStore.wbModel)
                 .overlay(
@@ -125,8 +125,7 @@ public struct TermsAndPrivacyWebView: View {
                     ProgressView()
                         .progressViewStyle(CircularProgressViewStyle(tint: Color.blue))
                         .font(.largeTitle)
-                        .opacity(viewStore.wbModel.didFinishLoading ? 1 : 0)
-                    ,
+                        .opacity(viewStore.wbModel.didFinishLoading ? 1 : 0),
 
                     alignment: .center
                 )
@@ -146,4 +145,3 @@ public struct TermsAndPrivacyWebView: View {
 //    TermsAndPrivacyWebView(store: store)
 //  }
 // }
-

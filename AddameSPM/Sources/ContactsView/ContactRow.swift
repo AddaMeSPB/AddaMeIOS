@@ -22,7 +22,7 @@ public struct ContactRowView: View {
   }
 
   public var body: some View {
-    WithViewStore(self.store) { viewStore in
+    WithViewStore(self.store, observe: { $0 }) { viewStore in
       HStack(spacing: 0) {
         if let avatar = viewStore.contact.avatar {
           AsyncImage(

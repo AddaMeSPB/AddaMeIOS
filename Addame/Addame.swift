@@ -12,21 +12,18 @@ import UIKit
 
 final class AppDelegate: NSObject, UIApplicationDelegate {
   let store = Store(
-    initialState: AppReducer.State(),
-    reducer: AppReducer()
-        ._printChanges()
-        .transformDependency(\.self) { _ in }
-  )
-
-  var viewStore: ViewStore<Void, AppReducer.Action> {
-    ViewStore(self.store.stateless)
+    initialState: AppReducer.State()
+  ) {
+      AppReducer()
+          ._printChanges()
   }
+
 
   func application(
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
   ) -> Bool {
-    self.viewStore.send(.appDelegate(.didFinishLaunching))
+    self.store.send(.appDelegate(.didFinishLaunching))
     return true
   }
 
@@ -34,14 +31,14 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
     _ application: UIApplication,
     didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data
   ) {
-      self.viewStore.send(.appDelegate(.didRegisterForRemoteNotifications(.success(deviceToken))))
+      self.store.send(.appDelegate(.didRegisterForRemoteNotifications(.success(deviceToken))))
   }
 
   func application(
     _ application: UIApplication,
     didFailToRegisterForRemoteNotificationsWithError error: Error
   ) {
-      self.viewStore.send(.appDelegate(.didRegisterForRemoteNotifications(.failure(error))))
+      self.store.send(.appDelegate(.didRegisterForRemoteNotifications(.failure(error))))
   }
 }
 
@@ -56,7 +53,7 @@ struct AddameApp: App {
       AppView(store: self.appDelegate.store)
     }
     .onChange(of: self.scenePhase) {
-      self.appDelegate.viewStore.send(.didChangeScenePhase($0))
+      self.appDelegate.store.send(.didChangeScenePhase($0))
     }
   }
 }

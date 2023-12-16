@@ -1,5 +1,4 @@
 import ComposableUserNotifications
-import Logging
 import UIKit
 import UserDefaultsClient
 import ComposableStoreKit
@@ -14,7 +13,7 @@ import LocationReducer
 import os
 import NotificationHelpers
 
-public struct Settings: ReducerProtocol {
+public struct Settings: Reducer {
     public struct State: Equatable {
         public init(
             alert: AlertState<Settings.Action>? = nil,
@@ -36,15 +35,15 @@ public struct Settings: ReducerProtocol {
             self.distanceState = distanceState
         }
 
-        @BindableState public var alert: AlertState<Action>?
+        @BindingState public var alert: AlertState<Action>?
         public var currentUser: UserOutput = .withFirstName
         public var buildNumber: Build.Number?
 
-        @BindableState public var enableNotifications: Bool
+        @BindingState public var enableNotifications: Bool
         public var userNotificationSettings: UserNotificationClient.Notification.Settings?
         public var distanceState: Distance.State
-        @BindableState public var userSettings: UserSettings
-        @BindableState public var locationState: LocationReducer.State
+        @BindingState public var userSettings: UserSettings
+        @BindingState public var locationState: LocationReducer.State
     }
 
     public enum Action: BindableAction, Equatable {
@@ -71,7 +70,7 @@ public struct Settings: ReducerProtocol {
 
     public init() {}
 
-    public var body: some ReducerProtocol<State, Action> {
+    public var body: some Reducer<State, Action> {
         CombineReducers {
 
             BindingReducer()
@@ -101,12 +100,12 @@ public struct Settings: ReducerProtocol {
                     switch userNotificationSettings.authorizationStatus {
                     case .notDetermined, .provisional:
                         state.enableNotifications = true
-                        return .task {
-                            await .userNotificationAuthorizationResponse(
+                        return .run { send in
+                            await send(.userNotificationAuthorizationResponse(
                                 TaskResult {
                                     try await self.userNotifications.requestAuthorization([.alert, .badge, .sound])
                                 }
-                            )
+                            ))
                         }
                         .animation()
 
@@ -117,7 +116,9 @@ public struct Settings: ReducerProtocol {
 
                     case .authorized:
                         state.enableNotifications = true
-                        return .task { .userNotificationAuthorizationResponse(.success(true)) }
+                            return .run { send in
+                                await send(.userNotificationAuthorizationResponse(.success(true)))
+                            }
 
                     case .ephemeral:
                         state.enableNotifications = true
@@ -148,15 +149,15 @@ public struct Settings: ReducerProtocol {
                             )
 
                             _ = await settingsResponse
-                        },
+                        }
 
-                        NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)
-                            .map { _ in .didBecomeActive }
-                            .eraseToEffect()
+//                        NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)
+//                            .map { _ in .didBecomeActive }
+//                            .eraseToEffect()
                     )
 
                 case .openSettingButtonTapped:
-                    return .fireAndForget {
+                    return .run { _ in
                         guard
                             let url = await URL(string: self.applicationClient.openSettingsURLString())
                         else { return }
@@ -166,7 +167,7 @@ public struct Settings: ReducerProtocol {
                 case let .userNotificationAuthorizationResponse(.success(granted)):
                     state.enableNotifications = granted
                     return granted
-                    ?  .fireAndForget {
+                    ?  .run { _ in
                         await self.unRegisterForRemoteNotifications()
                     }// .fireAndForget { await self.registerForRemoteNotifications() }
                     : .none
@@ -181,19 +182,19 @@ public struct Settings: ReducerProtocol {
 
                 case .leaveUsAReviewButtonTapped:
 
-                    return .fireAndForget {
+                    return .run { _ in
                         _ = await self.applicationClient.open(appStoreReviewUrl, [:])
                     }
 
                 case .didBecomeActive:
-                    return .task {
-                        await .userNotificationSettingsResponse(
+                    return .run { send in
+                        await send(.userNotificationSettingsResponse(
                             self.userNotifications.getNotificationSettings()
-                        )
+                        ))
                     }
 
                 case .reportABugButtonTapped:
-                    return .fireAndForget { [currentUser = state.currentUser] in
+                    return .run { [currentUser = state.currentUser] _ in
                         let currentUser = currentUser
                         var components = URLComponents()
                         components.scheme = "mailto"

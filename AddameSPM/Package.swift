@@ -1,4 +1,4 @@
-// swift-tools-version:5.3
+// swift-tools-version:5.9
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import Foundation
@@ -9,7 +9,7 @@ let package = Package(
   name: "AddameSPM",
   platforms: [
     .macOS(.v10_15),
-    .iOS(.v14)
+    .iOS(.v15)
   ],
   products: [
 
@@ -53,17 +53,18 @@ let package = Package(
   ],
 
   dependencies: [
-//    .package(name: "AWSSDKSwift", url: "https://github.com/swift-aws/aws-sdk-swift.git", from: "4.9.0"),
-    .package(path: "/Users/alif/Developer/Swift/AddaMe/BackEnd/AddaSharedModels"),
-//    .package(url: "https://github.com/AddaMeSPB/AddaSharedModels", .branch("route")),
+    .package(url: "https://github.com/kean/Nuke.git", from: "12.0.0"),
     .package(url: "https://github.com/soto-project/soto.git", from: "5.13.1"),
-    .package(url: "https://github.com/marmelroy/PhoneNumberKit", .upToNextMajor(from: "3.3.3")),
-    .package(url: "https://github.com/pointfreeco/swift-composable-architecture.git", from: "0.47.2"),
-    .package(url: "https://github.com/pointfreeco/composable-core-location.git", .branch("main")),
-    .package(url: "https://github.com/pointfreeco/xctest-dynamic-overlay", from: "0.1.0"),
-    .package(url: "https://github.com/AddaMeSPB/CombineContacts.git", .branch("async")),
     .package(url: "https://github.com/pointfreeco/swift-tagged", from: "0.6.0"),
-    .package(path: "/Users/alif/Developer/Swift/MySideProjects/CommonTCALibraries")
+    .package(url: "https://github.com/pointfreeco/swift-dependencies", from: "1.0.0"),
+//    .package(url: "https://github.com/AddaMeSPB/CommonTCALibraries", .branch("main")),
+    .package(path: "/Users/alif/Developer/Swift/MySideProjects/CommonTCALibraries"),
+    .package(url: "https://github.com/AddaMeSPB/CombineContacts.git", .branch("async")),
+    .package(url: "https://github.com/pointfreeco/xctest-dynamic-overlay", from: "1.0.2"),
+    .package(url: "https://github.com/marmelroy/PhoneNumberKit", .upToNextMajor(from: "3.3.3")),
+    .package(url: "https://github.com/pointfreeco/swift-composable-architecture.git", from: "1.4.2"),
+    .package(url: "https://github.com/AddaMeSPB/AddaSharedModels.git", branch: "CleanUpBackEndModel"),
+    .package(url: "https://github.com/klundberg/composable-core-location.git", .branch("combine-only")),
   ],
 
   targets: [
@@ -228,6 +229,7 @@ let package = Package(
         .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
         .product(name: "AddaSharedModels", package: "AddaSharedModels"),
         .product(name: "CommonTCALibraries", package: "CommonTCALibraries"),
+        .product(name: "NukeUI", package: "Nuke"),
         "APIClient", "AsyncImageLoder", "WebSocketReducer"
       ]
     ),
@@ -238,6 +240,7 @@ let package = Package(
         .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
         .product(name: "AddaSharedModels", package: "AddaSharedModels"),
         .product(name: "CommonTCALibraries", package: "CommonTCALibraries"),
+        .product(name: "NukeUI", package: "Nuke"),
         "APIClient", "AsyncImageLoder",
          "ChatView", "ComposableArchitectureHelpers",
         "ContactClient", "ContactClientLive", "ContactsView", "CoreDataClient"
@@ -274,6 +277,7 @@ let package = Package(
         .product(name: "ComposableCoreLocation", package: "composable-core-location"),
         .product(name: "AddaSharedModels", package: "AddaSharedModels"),
         .product(name: "CommonTCALibraries", package: "CommonTCALibraries"),
+        .product(name: "NukeUI", package: "Nuke"),
         "APIClient", "EventFormView",
         "AsyncImageLoder", "ChatView", "HangoutDetailsFeature",
         "ComposableArchitectureHelpers", "LocationReducer"
@@ -335,6 +339,7 @@ let package = Package(
       dependencies: [
         .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
         .product(name: "AddaSharedModels", package: "AddaSharedModels"),
+        .product(name: "NukeUI", package: "Nuke"),
         .product(name: "CommonTCALibraries", package: "CommonTCALibraries"),
         "AsyncImageLoder", "AuthenticationView", "ComposableArchitectureHelpers",
         "ImagePicker", "MyEventsView", "AttachmentS3Client"
@@ -354,11 +359,12 @@ let package = Package(
     .target(
       name: "MapView",
       dependencies: [
-        .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
-        .product(name: "XCTestDynamicOverlay", package: "xctest-dynamic-overlay"),
+        .product(name: "Dependencies", package: "swift-dependencies"),
         .product(name: "AddaSharedModels", package: "AddaSharedModels"),
         .product(name: "CommonTCALibraries", package: "CommonTCALibraries"),
+        .product(name: "XCTestDynamicOverlay", package: "xctest-dynamic-overlay"),
         .product(name: "ComposableCoreLocation", package: "composable-core-location"),
+        .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
         "ComposableArchitectureHelpers"
       ]
     ),

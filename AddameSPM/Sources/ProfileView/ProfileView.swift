@@ -15,7 +15,6 @@ extension String {
 extension ProfileView {
     public struct ViewState: Equatable {
         public init(state: Profile.State) {
-            self.alert = state.alert
             self.isUploadingImage = state.isUploadingImage
             self.moveToSettingsView = state.moveToSettingsView
             self.user = state.user
@@ -27,7 +26,6 @@ extension ProfileView {
             self.isSettingsNavigationActive = state.isSettingsNavigationActive
         }
 
-        public var alert: AlertState<Profile.Action>?
         public var isUploadingImage: Bool
 
         public var moveToSettingsView: Bool
@@ -63,9 +61,20 @@ extension ProfileView {
 
 }
 
+import NukeUI
+
+@MainActor
 public struct ProfileView: View {
     @Environment(\.colorScheme) var colorScheme
     let store: StoreOf<Profile>
+
+//    private let pipeline = ImagePipeline {
+//        $0.dataLoader = {
+//            let config = URLSessionConfiguration.default
+//            config.urlCache = nil
+//            return DataLoader(configuration: config)
+//        }()
+//    }
 
     public init(store: StoreOf<Profile>) {
         self.store = store
@@ -74,7 +83,7 @@ public struct ProfileView: View {
     @State var index = 0
 
     public var body: some View {
-        WithViewStore(self.store, observe: ViewState.init, send: Profile.Action.view) { viewStore in
+        WithViewStore(self.store, observe: ViewState.init) { viewStore in
 
             ScrollView(.vertical) {
 
@@ -83,10 +92,17 @@ public struct ProfileView: View {
                         index: $index.animation(),
                         maxIndex: viewStore.state.imageURLs.count - 1
                     ) {
-                        ForEach(viewStore.state.imageURLs, id: \.self) { url in
-                            AsyncImage(
-                                url: URL(string: url)!,
-                                placeholder: {
+                        ForEach(viewStore.state.imageURLs, id: \.self) { urlString in
+
+                            LazyImage(request: ImageRequest(url: URL(string: urlString)!)) { state in
+                                if let image = state.image {
+                                    image
+                                        .resizable()
+                                        .scaledToFill()
+                                } else if state.error != nil {
+                                    Color.red // Indicates an error.
+                                } else {
+                                    //Color.blue // Acts as a placeholder.
                                     HUDProgressView(
                                         placeHolder: "Image is loading...",
                                         show: viewStore.binding(
@@ -95,14 +111,27 @@ public struct ProfileView: View {
                                         )
                                     )
                                     .frame(maxWidth: .infinity)
-                                },
-                                image: {
-                                    Image(uiImage: $0)
-                                        .resizable()
-
                                 }
-                            )
-                            .scaledToFill()
+                            }
+
+//                            AsyncImage(
+//                                url: URL(string: url)!,
+//                                placeholder: {
+//                                    HUDProgressView(
+//                                        placeHolder: "Image is loading...",
+//                                        show: viewStore.binding(
+//                                            get: { $0.isUploadingImage },
+//                                            send: .isUploadingImage
+//                                        )
+//                                    )
+//                                    .frame(maxWidth: .infinity)
+//                                },
+//                                image: {
+//                                    Image(uiImage: $0).resizable()
+//
+//                                }
+//                            )
+//                            .scaledToFill()
                             .background(
                                 LinearGradient(
                                     gradient: Gradient(
@@ -143,34 +172,7 @@ public struct ProfileView: View {
             }
             .edgesIgnoringSafeArea(.top)
             .navigationBarHidden(true)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button {
-                        viewStore.send(.settingsView(isNavigate: true))
-                    } label: {
-                        Image(systemName: "gear")
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                            .foregroundColor(
-                                Color.backgroundColor(for: self.colorScheme)
-                            )
-                    }
-                }
-            }
-            .alert(self.store.scope(state: { $0.alert }), dismiss: .alertDismissed)
-            .background(
-                NavigationLink(
-                    destination: SettingsView(store: self.store.scope(
-                        state: \.settingsState,
-                        action: Profile.Action.settings
-                    )
-                    ),
-                    isActive: viewStore.binding(
-                        get: \.isSettingsNavigationActive,
-                        send:  { .settingsView(isNavigate: $0) }
-                    )
-                ) {}
-            )
+            .alert(store: self.store.scope(state: \.$alert, action: { .alert($0) }))
             .sheet(
                 isPresented: viewStore.binding(
                     get: \.isImagePickerPresented,
@@ -250,9 +252,10 @@ struct ProfileView_Previews: PreviewProvider {
         NavigationView {
             ProfileView(
                 store: .init(
-                    initialState: Profile.State.profileStateWithUserWithAvatar,
-                    reducer: Profile()
-                )
+                    initialState: Profile.State.profileStateWithUserWithAvatar
+                ) {
+                    Profile()
+                }
             )
         }
     }

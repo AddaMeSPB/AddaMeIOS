@@ -14,10 +14,10 @@ import AddaSharedModels
 import SwiftUI
 import APIClient
 
-public struct HangoutDetails: ReducerProtocol {
+public struct HangoutDetails: Reducer {
     public struct State: Equatable {
         public init(
-            alert: AlertState<HangoutDetails.Action>? = nil,
+            alert: AlertState<HangoutDetails.AlertAction>? = nil,
             event: EventResponse,
             owner: UserOutput = .withFirstName,
             pointsOfInterest: [PointOfInterest] = [],
@@ -46,7 +46,7 @@ public struct HangoutDetails: ReducerProtocol {
             self.isMovingChatRoom = isMovingChatRoom
         }
 
-        public var alert: AlertState<HangoutDetails.Action>?
+        @PresentationState var alert: AlertState<AlertAction>?
         public let event: EventResponse
         public var owner: UserOutput
         public var pointsOfInterest: [PointOfInterest] = []
@@ -63,6 +63,7 @@ public struct HangoutDetails: ReducerProtocol {
     }
 
     public enum Action: Equatable {
+        case alert(PresentationAction<AlertAction>)
         case onAppear
         case alertDismissed
         case moveToChatRoom(Bool)
@@ -74,6 +75,8 @@ public struct HangoutDetails: ReducerProtocol {
         case userResponse(TaskResult<UserOutput>)
     }
 
+    public enum AlertAction: Equatable {}
+
     @Dependency(\.apiClient) var apiClient
     @Dependency(\.mainQueue) var mainQueue
     @Dependency(\.keychainClient) var keychainClient
@@ -81,9 +84,12 @@ public struct HangoutDetails: ReducerProtocol {
 
     public init() {}
 
-    public var body: some ReducerProtocol<State, Action> {
+    public var body: some Reducer<State, Action> {
         Reduce { state, action in
             switch action {
+            case .alert:
+                    return .none
+        
             case .onAppear:
 
                 let latitude = state.event.coordinates[0]
@@ -105,8 +111,8 @@ public struct HangoutDetails: ReducerProtocol {
                     state.isMember = members.contains(where: { $0.id == state.owner.id })
                 }
 
-                return .task { [ownerId = state.event.ownerId.hexString] in
-                    .userResponse(
+                return .run { [ownerId = state.event.ownerId.hexString] send in
+                    await send(.userResponse(
                         await TaskResult {
                             try await apiClient.request(
                                 for: .authEngine(.users(.user(id: ownerId, route: .find))),
@@ -114,7 +120,7 @@ public struct HangoutDetails: ReducerProtocol {
                                 decoder: .iso8601
                             )
                         }
-                    )
+                    ))
                 }
 
             case .alertDismissed:
@@ -159,8 +165,8 @@ public struct HangoutDetails: ReducerProtocol {
             case let .userResponse(.success(userOutput)):
                 state.owner = userOutput
                 state.conversationOwnerName = userOutput.fullName ?? ""
-                return .task { [conversationID = state.event.conversationsId] in
-                        .conversationResponse(
+                return .run { [conversationID = state.event.conversationsId] send in
+                      await send(  .conversationResponse(
                             await TaskResult {
                                 try await apiClient.request(
                                     for: .chatEngine(.conversations(.conversation(id: conversationID.hexString))),
@@ -168,7 +174,7 @@ public struct HangoutDetails: ReducerProtocol {
                                     decoder: .iso8601
                                 )
                             }
-                        )
+                        ))
                     }
 
             case .userResponse(.failure):

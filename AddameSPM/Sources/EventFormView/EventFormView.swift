@@ -39,7 +39,6 @@ extension EventFormView {
         public var eventAddress: String
         public var selectedDutaionButtons: DurationButtons
         public var actionSheet: ConfirmationDialogState<HangoutForm.Action>?
-        public var alert: AlertState<HangoutForm.Action>?
         public var locationSearchState: LocationSearch.State?
         public var isPostRequestOnFly: Bool
         public var isEventCreatedSuccessfully: Bool
@@ -68,7 +67,7 @@ extension EventFormView {
             self.eventAddress = state.eventAddress
             self.selectedDutaionButtons = state.selectedDutaionButtons
             self.actionSheet = state.actionSheet
-            self.alert = state.alert
+
             self.locationSearchState = state.locationSearchState
             self.isPostRequestOnFly = state.isPostRequestOnFly
             self.isEventCreatedSuccessfully = state.isEventCreatedSuccessfully
@@ -99,8 +98,7 @@ extension EventFormView {
         case locationSearch(LocationSearch.Action)
 
         case submitButtonTapped
-        case actionSheetButtonTapped
-        case actionSheetDismissed
+        case confirmationCategoriesDialogButtonTapped
     }
 }
 
@@ -171,7 +169,9 @@ public struct EventFormView: View {
                     .pickerStyle(SegmentedPickerStyle())
                     .padding(.vertical)
 
-                    Button {viewStore.send(.actionSheetButtonTapped)} label: {
+                    Button {
+                        viewStore.send(.confirmationCategoriesDialogButtonTapped)
+                    } label: {
                         HStack {
                             VStack(alignment: .leading) {
                                 Text("Select your")
@@ -193,8 +193,7 @@ public struct EventFormView: View {
                         .padding(.vertical)
                     }
                     .confirmationDialog(
-                        self.store.scope(state: \.actionSheet),
-                        dismiss: .actionSheetDismissed
+                      store: self.store.scope(state: \.$confirmationDialog, action: { .confirmationDialog($0) })
                     )
 
                     Toggle(
@@ -248,9 +247,8 @@ public struct EventFormView: View {
 
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-          .onAppear { ViewStore(self.store).send(.onAppear) }
-          
-          .alert(self.store.scope(state: { $0.alert }), dismiss: .alertDismissed)
+          .onAppear { self.store.send(.onAppear) }
+          .alert(store: self.store.scope(state: \.$alert, action: { .alert($0) }))
           .navigationTitle("Hangout Form")
           .navigationBarTitleDisplayMode(.inline)
           .background(
@@ -396,15 +394,15 @@ public struct EventFormView: View {
   }
 }
 
-struct EventFormView_Previews: PreviewProvider {
-    static var store = Store(
-        initialState: HangoutForm.State.validEventForm,
-        reducer: HangoutForm()
-    )
-
-  static var previews: some View {
-    NavigationView {
-        EventFormView(store: store)
-    }
-  }
-}
+//struct EventFormView_Previews: PreviewProvider {
+//    static var store = Store(
+//        initialState: HangoutForm.State.validEventForm,
+//        reducer: HangoutForm()
+//    )
+//
+//  static var previews: some View {
+//    NavigationView {
+//        EventFormView(store: store)
+//    }
+//  }
+//}

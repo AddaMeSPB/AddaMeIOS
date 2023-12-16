@@ -25,7 +25,7 @@ public struct SettingsView: View {
 
     public init(store: StoreOf<Settings>) {
       self.store = store
-      self.viewStore = ViewStore(self.store.scope(state: ViewState.init))
+      self.viewStore = ViewStore(self.store, observe: ViewState.init)
     }
 
   public var body: some View {
@@ -151,7 +151,7 @@ public struct SettingsView: View {
       }
       .onAppear { viewStore.send(.onAppear) }
       .navigationTitle("Settings")
-      .alert(self.store.scope(state: \.alert), dismiss: .set(\.$alert, nil))
+//      .alert(self.store.scope(state: \.alert), dismiss: .set(\.$alert, nil))
       .sheet(isPresented: self.$isSharePresented) {
         ActivityView(activityItems: [URL(string: "https://apps.apple.com/ru/app/new-word-learn-word-vocabulary/id1619504857?l=en")!])
           .ignoresSafeArea()
@@ -167,8 +167,9 @@ public struct SettingsView: View {
 struct SettingsView_Previews: PreviewProvider {
     static var previews: some View {
         SettingsView(store: .init(
-            initialState: Settings.State(),
-            reducer: Settings())
-        )
+            initialState: Settings.State()
+        ) {
+            Settings()
+        })
     }
 }

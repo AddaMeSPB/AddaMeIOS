@@ -18,13 +18,13 @@ public struct MyEventsListView: View {
 
   public var body: some View {
 
-    WithViewStore(self.store) { viewstore in
+    WithViewStore(self.store, observe: { $0 }) { viewstore in
       VStack {
         Text("My Events").font(.title)
         ForEachStore(
             self.store.scope(state: \.myEvents, action: MyEvents.Action.event)
         ) { eventStore in
-          WithViewStore(eventStore) { _ in
+          WithViewStore(eventStore, observe: { $0 }) { _ in
             // Button(action: { viewStore.send(.eventTapped(eventViewStore.state)) }) {
               MyEventRowView(store: eventStore)
             // }
