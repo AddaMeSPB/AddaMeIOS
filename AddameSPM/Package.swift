@@ -57,14 +57,14 @@ let package = Package(
     .package(url: "https://github.com/soto-project/soto.git", from: "5.13.1"),
     .package(url: "https://github.com/pointfreeco/swift-tagged", from: "0.6.0"),
     .package(url: "https://github.com/pointfreeco/swift-dependencies", from: "1.0.0"),
-//    .package(url: "https://github.com/AddaMeSPB/CommonTCALibraries", .branch("main")),
-    .package(path: "/Users/alif/Developer/Swift/MySideProjects/CommonTCALibraries"),
-    .package(url: "https://github.com/AddaMeSPB/CombineContacts.git", .branch("async")),
+    .package(url: "https://github.com/AddaMeSPB/CommonTCALibraries", branch: "main"),
+//    .package(path: "/Users/alif/Developer/Swift/MySideProjects/CommonTCALibraries"),
+    .package(url: "https://github.com/AddaMeSPB/CombineContacts.git", branch: "async"),
     .package(url: "https://github.com/pointfreeco/xctest-dynamic-overlay", from: "1.0.2"),
     .package(url: "https://github.com/marmelroy/PhoneNumberKit", .upToNextMajor(from: "3.3.3")),
     .package(url: "https://github.com/pointfreeco/swift-composable-architecture.git", from: "1.4.2"),
     .package(url: "https://github.com/AddaMeSPB/AddaSharedModels.git", branch: "CleanUpBackEndModel"),
-    .package(url: "https://github.com/klundberg/composable-core-location.git", .branch("combine-only")),
+    .package(url: "https://github.com/klundberg/composable-core-location.git", branch: "combine-only"),
   ],
 
   targets: [

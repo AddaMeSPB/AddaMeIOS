@@ -290,6 +290,7 @@ public struct Hangouts: Reducer {
 
         case .chat(_):
             return .none
+
         case .fetchEventOnAppear:
             let isLocationAuthorized = state.locationState.isLocationAuthorized
 
@@ -317,6 +318,7 @@ public struct Hangouts: Reducer {
 
         case .currentLocationButtonTapped:
             return .none
+
         case .locationManager:
             return .none
 
@@ -355,8 +357,21 @@ public struct Hangouts: Reducer {
         case .dismissEvent:
             return .none
 
+        case .location(.placeMarkResponse(.success(let placemark))):
+
+                let willFatchEventsAgain = state.events == []
+
+                return .run { send in
+                    if willFatchEventsAgain {
+                        await send(.fetchEventOnAppear)
+                    }
+                }
+
         case .location:
             return .none
+
+
+
         case .addUserResponse(.success):
             return .run { send in
                 await send(.hangoutDetails(.startChat(true)))

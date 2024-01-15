@@ -16,6 +16,7 @@ import SwiftUI
 import SwiftUIExtension
 import NukeUI
 import SwiftUIHelpers
+import WebSocketReducer
 
 extension ConversationsView {
     public struct ViewState: Equatable {
@@ -26,6 +27,7 @@ extension ConversationsView {
             self.chatState = state.chatState
             self.contactsState = state.contactsState
             self.createConversation = state.createConversation
+            self.isWebSocketConnect = state.websocketState.connectivityState
         }
 
         public var isLoadingPage = false
@@ -36,6 +38,8 @@ extension ConversationsView {
         public var contactsState: ContactsReducer.State?
         public var isSheetPresented: Bool { contactsState != nil }
         public var createConversation: ConversationCreate?
+
+        public var isWebSocketConnect: WebSocketReducer.State.ConnectivityState
     }
 
     public enum ViewAction: Equatable {
@@ -221,7 +225,6 @@ public struct ConversationRow: View {
     }
 
     public var body: some View {
-//        WithViewStore(self.store, observe: { $0 }) { viewStore in
         WithViewStore(self.store, observe: { $0 }) { viewStore in
             Group {
                 HStack(spacing: 0) {

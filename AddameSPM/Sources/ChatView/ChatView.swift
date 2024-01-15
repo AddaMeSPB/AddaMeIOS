@@ -7,7 +7,7 @@ import WebSocketReducer
 extension ChatView {
     public struct ViewState: Equatable {
         public var isLoadingPage = false
-        public var alert: AlertState<Chat.Action>?
+        public var alert: AlertState<Chat.AlertAction>?
         public var conversation: ConversationOutPut?
         public var messages: IdentifiedArrayOf<MessageItem> = []
         public var lastMessageItem: MessageItem?
@@ -34,6 +34,8 @@ extension ChatView {
 }
 
 public struct ChatView: View {
+
+    @State private var keyboardHeight: CGFloat = 0
     public let store: StoreOf<Chat>
 
     public init(store: StoreOf<Chat>) {
@@ -41,16 +43,13 @@ public struct ChatView: View {
     }
 
     public var body: some View {
-        WithViewStore(self.store.scope(state: ViewState.init(state:), action: Chat.Action.view)) { viewStore in
+        WithViewStore(self.store, observe: ViewState.init) { viewStore in
             VStack {
                 ZStack {
                     List {
                         ChatListView(
                             store: viewStore.isLoadingPage
-                            ? Store(
-                                initialState: Chat.State.placeholderMessages,
-                                reducer: Chat()
-                            )
+                            ? Store(initialState: Chat.State.placeholderMessages) { Chat() }
                             : self.store
                         )
                         .redacted(reason: viewStore.isLoadingPage ? .placeholder : [])
@@ -59,12 +58,18 @@ public struct ChatView: View {
                     .scaleEffect(x: 1, y: -1, anchor: .center)
                     .offset(x: 0, y: 2)
                 }
+
+
             }
             .onAppear {
                 viewStore.send(.onAppear)
             }
-            .alert(self.store.scope(state: { $0.alert }), dismiss: .alertDismissed)
-            .navigationBarTitle(viewStore.state.conversation?.title ?? "", displayMode: .inline)
+            .alert(store: self.store.scope(state: \.$alert, action: { .alert($0) }))
+            .navigationBarTitle(
+                viewStore.state.conversation?.title
+                ?? "",
+                displayMode: .inline
+            )
 
             ChatBottomView(store: self.store.scope(state: \.chatButtomState, action: Chat.Action.chatButtom))
         }
@@ -78,9 +83,8 @@ struct ChatView_Previews: PreviewProvider {
             conversation: .walkAroundDraff,
             currentUser: .withFirstName,
             websocketState: .init(user: .withFirstName)
-        ),
-        reducer: Chat()
-    )
+        )
+    ) { Chat() }
 
     static var previews: some View {
         ChatView(store: store)

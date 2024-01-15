@@ -1,6 +1,6 @@
 import Foundation
 
-private let devDomainName = "192.168.1.8:8080"
+private let devDomainName = "192.168.1.3:8080"
 
 public struct AppConfiguration {
 
@@ -9,7 +9,7 @@ public struct AppConfiguration {
         case production
 
         var isTestEnvironment: Bool {
-            self != .production
+            self != .production // its lie
         }
 
         var url: String {

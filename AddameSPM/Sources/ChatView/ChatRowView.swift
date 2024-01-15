@@ -11,6 +11,7 @@ import KeychainClient
 import AddaSharedModels
 import SwiftUI
 import SwiftUIExtension
+import NukeUI
 
 struct AvatarView: View {
   @Environment(\.colorScheme) var colorScheme
@@ -19,25 +20,24 @@ struct AvatarView: View {
   var body: some View {
       if avatarUrl != nil {
         if #available(iOS 15.0, *) {
-            AsyncImage(url: URL(string: avatarUrl!)!) { phase in
-                switch phase {
-                case .empty:
-                    ProgressView()
-                case .success(let image):
+            LazyImage(request: ImageRequest(url: URL(string: avatarUrl!)!)) { state in
+                if let image = state.image {
                     image.resizable()
-                        .aspectRatio(contentMode: .fit)
+                        .aspectRatio(contentMode: .fill)
                         .frame(maxWidth: 40, maxHeight: 40)
                         .clipShape(Circle())
-                case .failure:
+                } else if state.error != nil {
                     Image(systemName: "photo")
-                @unknown default:
-                    // Since the AsyncImagePhase enum isn't frozen,
-                    // we need to add this currently unused fallback
-                    // to handle any new cases that might be added
-                    // in the future:
-                    EmptyView()
+                    //Color.red // Indicates an error.
+                } else {
+                    Color.blue // Acts as a placeholder.
                 }
             }
+            .aspectRatio(contentMode: .fit)
+            .frame(width: 50, height: 50)
+            .clipShape(Circle())
+            .padding(.trailing, 5)
+
         } else {
             AsyncImage(
               url: URL(string: avatarUrl!)!,
@@ -62,7 +62,7 @@ struct AvatarView: View {
   }
 }
 
-public struct ChatRow: ReducerProtocol {
+public struct ChatRow: Reducer {
     public typealias State = MessageItem
 
     public enum Action: Equatable {}
@@ -80,11 +80,11 @@ public struct ChatRow: ReducerProtocol {
     @Dependency(\.keychainClient) var keychainClient
     @Dependency(\.build) var build
 
-    public var body: some ReducerProtocol<State, Action> {
+    public var body: some Reducer<State, Action> {
         Reduce(self.core)
     }
 
-    func core(state: inout State, action: Action) -> EffectTask<Action> {
+    func core(state: inout State, action: Action) -> Effect<Action> {
         switch action {}
     }
 }
@@ -137,7 +137,7 @@ struct ChatRowView: View {
     
     @ViewBuilder
     var body: some View {
-        WithViewStore(self.store) { viewStore in
+        WithViewStore(self.store, observe: { $0 }) { viewStore in
             
             Group {
                 if isCurrentUser(userId: viewStore.sender!.id.hexString) {

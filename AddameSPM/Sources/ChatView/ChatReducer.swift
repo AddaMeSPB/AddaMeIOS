@@ -14,13 +14,13 @@ import BSON
 import APIClient
 import WebSocketReducer
 
-public struct Chat: ReducerProtocol {
+public struct Chat: Reducer {
 
     public struct State: Equatable {
         public init(
             isLoadingPage: Bool = false,
             currentPage: Int = 1, canLoadMorePages: Bool = true,
-            alert: AlertState<Chat.Action>? = nil,
+            alert: AlertState<Chat.AlertAction>? = nil,
             conversation: ConversationOutPut,
             messages: IdentifiedArrayOf<MessageItem> = [],
             chatButtomState: ChatBottom.State = .init(),
@@ -40,14 +40,14 @@ public struct Chat: ReducerProtocol {
             self.currentUser = currentUser
             self.websocketState = websocketState
             self.messageItem = messageItem
-
         }
 
       var isLoadingPage = false
       var currentPage = 1
       var canLoadMorePages = true
 
-      public var alert: AlertState<Action>?
+      @PresentationState var alert: AlertState<AlertAction>?
+
       public var conversation: ConversationOutPut
       public var messages: IdentifiedArrayOf<MessageItem> = []
       public var chatButtomState: ChatBottom.State = .init()
@@ -57,7 +57,10 @@ public struct Chat: ReducerProtocol {
       public var websocketState: WebSocketReducer.State
     }
 
+    public enum AlertAction: Equatable {}
+
     public enum Action: Equatable {
+        case alert(PresentationAction<AlertAction>)
       case onAppear
       case alertDismissed
       case fetchMessages
@@ -78,7 +81,7 @@ public struct Chat: ReducerProtocol {
     
     public init() {}
 
-    public var body: some ReducerProtocol<State, Action> {
+    public var body: some Reducer<State, Action> {
 
         Scope(state: \.websocketState, action: /Action.webSocketReducer) {
             WebSocketReducer()
@@ -91,13 +94,13 @@ public struct Chat: ReducerProtocol {
         Reduce(self.core)
     }
 
-    func core(state: inout State, action: Action) -> EffectTask<Action> {
-        var fetchMoreMessages: Effect<Action, Never> {
+    func core(state: inout State, action: Action) -> Effect<Action> {
+        var fetchMoreMessages: Effect<Action> {
             let conversationsID = state.conversation.id.hexString
             let query = QueryItem(page: state.currentPage, per: 10)
 
-            return .task {
-                .messagesResponse(
+            return .run { send in
+              await  send(.messagesResponse(
                     await TaskResult {
                         try await apiClient.request(
                             for: .chatEngine(.conversations(.conversation(id: conversationsID, route: .messages(.list(query: query))))),
@@ -105,7 +108,7 @@ public struct Chat: ReducerProtocol {
                             decoder: .iso8601
                         )
                     }
-                )
+                ))
             }
 
         }
@@ -222,6 +225,9 @@ public struct Chat: ReducerProtocol {
             case .messageToSendChanged:
                 return .none
             }
+
+            case .alert:
+                return .none
         }
     }
 }

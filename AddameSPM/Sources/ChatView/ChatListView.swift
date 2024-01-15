@@ -13,14 +13,14 @@ struct ChatListView: View {
     let store: StoreOf<Chat>
 
     var body: some View {
-        WithViewStore(self.store) { viewStore in
+        WithViewStore(self.store, observe: { $0 }) { viewStore in
             ForEachStore(
                 self.store.scope(
                     state: \.messages,
                     action: Chat.Action.message(index:action:)
                 )
             ) { chatStore in
-                WithViewStore(chatStore) { messageViewStore in
+                WithViewStore(chatStore, observe: { $0 }) { messageViewStore in
                     ChatRowView(store: chatStore)
                         .onAppear {
                             viewStore.send(.fetchMoreMessageIfNeeded(currentItem: messageViewStore.state))

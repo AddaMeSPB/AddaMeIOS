@@ -32,7 +32,7 @@ public struct WebSocketReducer: Reducer {
     public var user: UserOutput
     public var webSocketUrl: String = "" //= "ws://10.10.18.148:8080/v1/chat"
 
-    public enum ConnectivityState: String {
+    public enum ConnectivityState: String, Equatable {
       case connected
       case connecting
       case disconnected
@@ -65,10 +65,12 @@ public struct WebSocketReducer: Reducer {
       return .none
 
     case .handshake:
-      switch state.connectivityState {
+      let switchState = state.connectivityState
+      switch switchState {
       case .connected, .connecting:
+          logger.info("webSocket is \(switchState.rawValue)")
           state.connectivityState = .disconnected
-              return .cancel(id: WebSocketClient.ID())
+          return .cancel(id: WebSocketClient.ID())
 
       case .disconnected:
           logger.info("webSocket is disconnected")
@@ -78,7 +80,7 @@ public struct WebSocketReducer: Reducer {
 
           return .run { send in
 
-              guard let webSocketUrl = URL(string: webSocketString) else { return  }
+          guard let webSocketUrl = URL(string: webSocketString) else { return  }
           let actions = await self.webSocket
                   .open(WebSocketClient.ID(), webSocketUrl, "", [])
 
@@ -109,7 +111,7 @@ public struct WebSocketReducer: Reducer {
             }
           }
         }
-          .cancellable(id: WebSocketClient.ID())
+        .cancellable(id: WebSocketClient.ID())
       }
 
     case .reconnect:
@@ -174,7 +176,11 @@ public struct WebSocketReducer: Reducer {
         let dicConnect = ChatOutGoingEvent.disconnect.jsonString
 
         return .run { send in
-            try await self.webSocket.send(WebSocketClient.ID(), .string(dicConnect!))
+            do {
+                try await self.webSocket.send(WebSocketClient.ID(), .string(dicConnect!))
+            } catch {
+                logger.error("WebSocket close \(error)")
+            }
             await send(.sendResponse(didSucceed: true))
         }
 
@@ -195,4 +201,4 @@ public struct WebSocketReducer: Reducer {
   }
 }
 
-public let logger = Logger(subsystem: "com.addame.AddaMeIOS", category: "webSocket.reducer")
+public let logger = Logger(subsystem: "com.addame.AddaMeIOS.webSocket.reducer", category: "webSocket.reducer")

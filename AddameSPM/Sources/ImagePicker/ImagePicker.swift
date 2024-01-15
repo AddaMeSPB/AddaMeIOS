@@ -35,7 +35,6 @@ extension PHPickerResult {
 
 }
 
-
 public struct ImagePickerReducer: Reducer {
     public struct State: Equatable {
       public var showingImagePicker: Bool

@@ -12,9 +12,17 @@ import SwiftUIExtension
 import SwiftUIHelpers
 import FoundationExtension
 
-public struct ChatBottom: ReducerProtocol {
+public struct ChatBottom: Reducer {
     public struct State: Equatable {
-        public init(composedMessage: String = String.empty, isMicButtonHide: Bool = false, preWordCount: Int = 0, newLineCount: Int = 1, placeholderString: String = "Type...", tEheight: CGFloat = 40, messageToSend: String = "") {
+        public init(
+            composedMessage: String = String.empty,
+            isMicButtonHide: Bool = false,
+            preWordCount: Int = 0,
+            newLineCount: Int = 1,
+            placeholderString: String = "Type...",
+            tEheight: CGFloat = 40,
+            messageToSend: String = ""
+        ) {
             self.composedMessage = composedMessage
             self.isMicButtonHide = isMicButtonHide
             self.preWordCount = preWordCount
@@ -40,11 +48,11 @@ public struct ChatBottom: ReducerProtocol {
 
     public init() {}
 
-    public var body: some ReducerProtocol<State, Action> {
+    public var body: some Reducer<State, Action> {
         Reduce(self.core)
     }
 
-    func core(state: inout State, action: Action) -> EffectTask<Action> {
+    func core(state: inout State, action: Action) -> Effect<Action> {
         switch action {
 
         case let .messageToSendChanged(message):
@@ -129,9 +137,7 @@ struct ChatBottomView: View {
                             .removeDuplicates()
                         )
                         .lineLimit(9)
-
-                        .padding(.leading, 5)
-                        .padding(.top, 5)
+                        .padding([.top,.leading], 5)
                         .padding(.bottom, -5)
                         .accentColor(Color.green)
                         .overlay(
@@ -164,16 +170,16 @@ struct ChatBottomView: View {
     }
 }
 
-struct ChatBottomView_Previews: PreviewProvider {
-    static var previews: some View {
-        VStack {
-            Spacer()
-            ChatBottomView(
-                store: .init(
-                    initialState: ChatBottom.State(),
-                    reducer: ChatBottom()
-                )
-            )
-        }
-    }
-}
+//struct ChatBottomView_Previews: PreviewProvider {
+//    static var previews: some View {
+//        VStack {
+//            Spacer()
+//            ChatBottomView(
+//                store: .init(
+//                    initialState: ChatBottom.State(),
+//                    reducer: ChatBottom()
+//                )
+//            )
+//        }
+//    }
+//}
