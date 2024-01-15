@@ -5,172 +5,213 @@
 //  Created by Saroar Khandoker on 06.04.2021.
 //
 
+import UIKit
+import Foundation
 import ComposableArchitecture
 import ComposableCoreLocation
 import ConversationsView
 import EventView
-import InfoPlist
-import KeychainService
+import SettingsFeature
 import ProfileView
-import SharedModels
+import InfoPlist
+import KeychainClient
+import AddaSharedModels
+import DeviceClient
+import NotificationHelpers
+import BSON
+import WebSocketReducer
+import os
 
-public let tabsReducer = Reducer<
-  TabsViewState,
-  TabsAction,
-  TabsEnvironment
->.combine(
-  eventsReducer.pullback(
-    state: \.event,
-    action: /TabsAction.event,
-    environment: { _ in EventsEnvironment.live }
-  ),
-  conversationsReducer.pullback(
-    state: \.conversations,
-    action: /TabsAction.conversation,
-    environment: { _ in ConversationEnvironment.live }
-  ),
-  profileReducer.pullback(
-    state: \.profile,
-    action: /TabsAction.profile,
-    environment: { _ in ProfileEnvironment.live }
-  ),
+public struct TabReducer: Reducer {
 
-  Reducer { state, action, environment in
+    public struct State: Equatable {
+        public var hangouts: Hangouts.State
+        public var conversations: Conversations.State
+        public var profile: Profile.State
+        public var settings: Settings.State
+        public var isHidden = false
+        public var unreadMessageCount: Int = 0
+        public var currentUser: UserOutput = .withFirstName // have to not optional
+        public var websocketState: WebSocketReducer.State
 
-    var getAcceccToken: Effect<TabsAction, Never> {
-      return environment.getAccessToken()
-        .receive(on: environment.mainQueue)
-        .catchToEffect()
-        .map(TabsAction.getAccessToketFromKeyChain)
+        public var selectedTab: Tab = .hangouts
+        public enum Tab: Equatable { case hangouts, conversations, profile, settings }
+
+        public init(
+            selectedTab: TabReducer.State.Tab = .hangouts,
+            hangouts: Hangouts.State = .init(websocketState: .init(user: .withFirstName)),
+            conversations: Conversations.State = .init(websocketState: .init(user: .withFirstName)),
+            profile: Profile.State = .init(settingsState: .init()),
+            settings: Settings.State = .init(),
+            isHidden: Bool = false,
+            websocketState: WebSocketReducer.State = .init(user: .withFirstName)
+        ) {
+            self.selectedTab = selectedTab
+            self.hangouts = hangouts
+            self.conversations = conversations
+            self.profile = profile
+            self.settings = settings
+            self.isHidden = isHidden
+            self.websocketState = websocketState
+        }
     }
 
-    var receiveSocketMessageEffect: Effect<TabsAction, Never> {
-      return environment.webSocketClient.receive(environment.currentUser.id)
-        .subscribe(on: environment.backgroundQueue)
-        .receive(on: environment.mainQueue)
-        .catchToEffect()
-        .map(TabsAction.receivedSocketMessage)
-        .cancellable(id: environment.currentUser.id)
+    public enum Action: Equatable {
+        case onAppear
+        case connect
+        case disConnect
+        case didSelectTab(State.Tab)
+        case hangouts(Hangouts.Action)
+        case conversations(Conversations.Action)
+        case profile(Profile.Action)
+        case settings(Settings.Action)
+        case tabViewIsHidden(Bool)
+        case webSocketReducer(WebSocketReducer.Action)
+//        case scenePhase(ScenePhase)
     }
 
-    switch action {
-    case .onAppear:
-      return getAcceccToken
+    @Dependency(\.keychainClient) var keychainClient
+    @Dependency(\.build) var build
 
-    case let .didSelectTab(tab):
-      state.selectedTab = tab
+    public init() {}
 
-      return .none
+    public var body: some Reducer<State, Action> {
 
-    case .event:
-      return .none
-
-    case .conversation:
-      return .none
-
-    case .profile:
-
-      return .none
-    case let .tabViewIsHidden(value):
-//      let tab = state.selectedTab
-//      if value == true {
-//        state.isHidden = true
-//      } else if (tab == .event || tab == .conversation || tab == .profile) == true {
-//        state.isHidden = false
-//      }
-
-      return .none
-
-    case let .getAccessToketFromKeyChain(.success(accessToken)):
-
-      guard let onconnect = ChatOutGoingEvent.connect(environment.currentUser).jsonString else {
-        // alert :)
-        return .none
-      }
-
-      var baseURL: URL { EnvironmentKeys.webSocketURL }
-
-      return .merge(
-        environment.webSocketClient.open(environment.currentUser.id, baseURL, accessToken, [])
-          .subscribe(on: environment.backgroundQueue)
-          .receive(on: environment.mainQueue)
-          .map(TabsAction.webSocket)
-          .eraseToEffect()
-          .cancellable(id: environment.currentUser.id),
-
-        environment.webSocketClient.send(environment.currentUser.id, .string(onconnect))
-          .subscribe(on: environment.backgroundQueue)
-          .receive(on: environment.mainQueue)
-          .eraseToEffect()
-          .map(TabsAction.sendResponse)
-      )
-
-    case let .getAccessToketFromKeyChain(.failure(error)):
-      return .none
-
-    case let .sendResponse(error):
-      print(#line, error as Any)
-      return .none
-
-    case .webSocket(.didOpenWithProtocol):
-      return receiveSocketMessageEffect
-
-    case let .receivedSocketMessage(.success(.data(data))):
-      return receiveSocketMessageEffect
-    case .webSocket(.didBecomeInvalidWithError(_)):
-      return .none
-    case let .webSocket(.didClose(code: code, reason: reason)):
-      return .none
-    case .webSocket(.didCompleteWithError(_)):
-      return .none
-    case .receivedSocketMessage(.failure(_)):
-      return .none
-    case let .receivedSocketMessage(.success(.string(str))):
-
-      guard let data = str.data(using: .utf8) else {
-        return receiveSocketMessageEffect
-      }
-
-      let chatOutGoingEvent = ChatOutGoingEvent.decode(data: data)
-
-      switch chatOutGoingEvent {
-      case .connect:
-        return receiveSocketMessageEffect
-      case .disconnect:
-        return receiveSocketMessageEffect
-      case let .conversation(message):
-
-        state.conversations.conversations[id: message.conversationId]?
-          .lastMessage = message
-
-        state.conversations.conversations.sort()
-
-        return receiveSocketMessageEffect
-
-      case let .message(message):
-        guard
-          let chatState = state.conversations.chatState,
-          let conversation = chatState.conversation
-        else {
-          return receiveSocketMessageEffect
-        }  // wrong
-
-        if conversation.id == message.conversationId {
-          state.conversations.chatState?.messages.insert(message, at: 0)
+        Scope(state: \.websocketState, action: /Action.webSocketReducer) {
+            WebSocketReducer()
         }
 
-        return receiveSocketMessageEffect
+        Scope(state: \.hangouts, action: /Action.hangouts) {
+            Hangouts()
+        }
 
-      case let .notice(msg):
-        return receiveSocketMessageEffect
-      case let .error(error):
-        print(#line, error)
-        return receiveSocketMessageEffect
-      case .none:
-        print(#line, "decode error")
-        return receiveSocketMessageEffect
-      }
+        Scope(state: \.conversations, action: /Action.conversations) {
+            Conversations()
+        }
+
+        Scope(state: \.profile, action: /Action.profile) {
+            Profile()
+        }
+
+        Scope(state: \.settings, action: /Action.settings) {
+          Settings()
+        }
+
+        Reduce(self.core)
     }
-  }
-)
-.debug()
+
+    func core(state: inout State, action: Action) -> Effect<Action> {
+
+        func handle(_ data: Data) {
+                let chatOutGoingEvent = ChatOutGoingEvent.decode(data: data)
+
+                switch chatOutGoingEvent {
+                case .connect:
+                    break
+
+                case .disconnect:
+                    let warning = state.websocketState.user.id
+                    logger.warning("websocker disconnect for user \(warning)")
+                    break
+
+                case .conversation(let lastMessage):
+
+                    guard var findConversation = state.conversations.conversations[id: lastMessage.conversationId]
+                    else { return  }
+
+                    guard let index = state.conversations.conversations.firstIndex(where: { $0.id == findConversation.id })
+                    else { return }
+
+                    /// issue is when i get msg we update conversation last msg + chat list
+                    findConversation.lastMessage = lastMessage
+                    state.conversations.conversations[id: lastMessage.conversationId] = findConversation
+                    state.conversations.conversations.swapAt(index, 0)
+
+
+                case .message(let message):
+                    print(#line, message)
+                    state.conversations.chatState?.messages.insert(message, at: 0)
+
+                case .notice(let msg):
+                    print(#line, msg)
+                case .error(let error):
+                    print(#line, error)
+                case .none:
+                    print(#line, "decode error")
+                }
+            }
+
+        switch action {
+
+        case .onAppear:
+            do {
+                state.currentUser = try self.keychainClient.readCodable(.user, self.build.identifier(), UserOutput.self)
+            } catch {
+                //state.alert = .init(title: TextState("Missing you id! please login again!"))
+                return .none
+            }
+
+            state.websocketState.user = state.currentUser
+
+            return .none
+
+        case .connect:
+            return .run { send in
+                await send(.webSocketReducer(.handshake))
+            }
+            
+        case .disConnect:
+
+            return .run { send in
+                await send(.webSocketReducer(.webSocket(.didClose(code: .goingAway, reason: nil))))
+            }
+
+        case .didSelectTab(let tab):
+            state.selectedTab = tab
+            return .none
+        case .tabViewIsHidden(_):
+            return .none
+
+        case let .hangouts(.hangoutFormView(isNavigate: active)):
+            state.isHidden = active
+            return .none
+        case .hangouts:
+            state.hangouts.websocketState = state.websocketState
+            return .none
+        case .conversations:
+            state.conversations.websocketState = state.websocketState
+            return .none
+        case .profile:
+            return .none
+
+        case .webSocketReducer(.receivedSocketMessage(.success(let responseString))):
+
+            switch responseString {
+
+            case .data:
+                return .none
+                
+            case .string(let resString):
+                guard let data = resString.data(using: .utf8) else {
+                    return .none
+                }
+                handle(data)
+                return .none
+            }
+
+        case .webSocketReducer(.receivedSocketMessage(.failure)):
+            return .none
+
+        case .webSocketReducer(.webSocket(.didOpen)):
+            return .none
+
+        case .webSocketReducer:
+            return .none
+        case .settings:
+            return .none
+        }
+    }
+}
+
+
+public let logger = Logger(subsystem: "com.addame.AddaMeIOS", category: "tabs.reducer")

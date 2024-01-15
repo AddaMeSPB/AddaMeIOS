@@ -5,97 +5,167 @@
 //  Created by Saroar Khandoker on 12.05.2021.
 //
 
-import ChatClient
-import ChatClientLive
+
 import ChatView
 import Combine
 import ComposableArchitecture
 import ComposableArchitectureHelpers
 import CoreData
 import CoreDataStore
-import HTTPRequestKit
-import SharedModels
+import AddaSharedModels
 import SwiftUI
-import WebSocketClient
-import WebSocketClientLive
+import URLRouting
+import BSON
+import Contacts
+import ContactClient
+import APIClient
 
-public let contactsReducer: Reducer<ContactsState, ContactsAction, ContactsEnvironment> = .combine(
-  contactRowReducer
-    .forEach(
-      state: \ContactsState.contacts,
-      action: /ContactsAction.contact(id:action:),
-      environment: { _ in ContactRowEnvironment() }
-    ),
+public struct ContactsReducer: Reducer {
+    public struct State: Equatable {
+        public init(
+            alert: AlertState<ContactsReducer.State.Action>? = nil,
+            contacts: IdentifiedArrayOf<ContactRow.State> = [],
+            isAuthorizedContacts: Bool = false,
+            invalidPermission: Bool = false,
+            isLoading: Bool = false,
+            isActivityIndicatorVisible: Bool = false
+        ) {
+            self.alert = alert
+            self.contacts = contacts
+            self.isAuthorizedContacts = isAuthorizedContacts
+            self.invalidPermission = invalidPermission
+            self.isLoading = isLoading
+            self.isActivityIndicatorVisible = isActivityIndicatorVisible
+        }
 
-  .init { state, action, environment in
+      public var alert: AlertState<Action>?
+      public var contacts: IdentifiedArrayOf<ContactRow.State> = []
+      public var isAuthorizedContacts: Bool = false
+      public var invalidPermission: Bool = false
+      public var isLoading: Bool = false
+      public var isActivityIndicatorVisible: Bool = false
 
-    switch action {
-    case .onAppear:
-      state.isLoading = true
+      public enum Action: Equatable {
+        case didChangeAuthorization(CNAuthorizationStatus)
+      }
 
-      return environment.coreDataClient.contactClient.authorization()
-        .map(ContactsAction.contactsAuthorizationStatus)
-        .eraseToEffect()
 
-    case .alertDismissed:
-      state.alert = nil
-      return .none
-
-    case let .contactsResponse(.success(contacts)):
-      print(#line, contacts)
-      state.isLoading = false
-
-      let contactRowStates = contacts.map { ContactRowState(contact: $0) }
-      state.contacts = .init(uniqueElements: contactRowStates)
-      return .none
-
-    case let .contactsResponse(.failure(error)):
-      state.alert = .init(
-        title: TextState("Something went worng please try again \(error.description)"))
-      return .none
-
-    case .contactsAuthorizationStatus(.notDetermined):
-      state.alert = .init(title: TextState("Permission notDetermined"))
-      return .none
-
-    case .contactsAuthorizationStatus(.denied):
-      state.alert = .init(title: TextState("Permission denied"))
-      return .none
-
-    case .contactsAuthorizationStatus(.restricted):
-      state.alert = .init(title: TextState("Permission restricted"))
-
-      return .none
-
-    case .contactsAuthorizationStatus(.authorized):
-      return environment.coreDataClient.getContacts()
-        .subscribe(on: environment.backgroundQueue)
-        .receive(on: environment.mainQueue)
-        .catchToEffect()
-        .map(ContactsAction.contactsResponse)
-
-    case .contactsAuthorizationStatus:
-      return .none
-
-    case let .contact(id: id, action: action):
-      return .none
-
-    case let .moveToChatRoom(present):
-      return .none
-
-    case let .chatWith(name: name, phoneNumber: phoneNumber):
-      return .none
     }
-  }
-)
 
-extension Reducer {
-  func optional() -> Reducer<State?, Action, Environment> {
-    .init { state, action, environment in
-      guard var wrappedState = state
-      else { return .none }
-      defer { state = wrappedState }
-      return self.run(&wrappedState, action, environment)
+    public enum Action: Equatable {
+      case onAppear
+      case alertDismissed
+      case contact(id: String?, action: ContactRow.Action)
+      case contactsAuthorizationStatus(CNAuthorizationStatus)
+      case contactsResponse(TaskResult<[ContactOutPut]>)
+
+      case moveToChatRoom(Bool)
+      case chatWith(name: String, phoneNumber: String)
     }
-  }
+
+    @Dependency(\.mainQueue) var mainQueue
+    @Dependency(\.contactClient) var contactClient
+    @Dependency(\.apiClient) var apiClient
+
+    public init() {}
+
+    public var body: some Reducer<State, Action> {
+
+//        contactRowReducer
+//          .forEach(
+//            state: \ContactsState.contacts,
+//            action: /ContactsAction.contact(id:action:),
+//            environment: { _ in ContactRowEnvironment() }
+//          ),
+
+        Reduce(self.core)
+    }
+
+    func core(state: inout State, action: Action) -> Effect<Action> {
+        switch action {
+        case .onAppear:
+
+            state.isLoading = true
+            return .run { send in
+               await send(.contactsAuthorizationStatus(
+                    try await contactClient.authorization()
+                ))
+            }
+
+        case .alertDismissed:
+          state.alert = nil
+          return .none
+
+        case let .contactsResponse(.success(contacts)):
+          print(#line, contacts)
+          state.isLoading = false
+          let contactRowStates = contacts.map { ContactRow.State(contact: $0) }
+          state.contacts = .init(uniqueElements: contactRowStates)
+          return .none
+
+        case let .contactsResponse(.failure(error)):
+          state.alert = .init(
+            title: TextState("Something went worng please try again \(error.localizedDescription)"))
+          return .none
+
+        case let .contactsAuthorizationStatus(status):
+            switch status {
+            case .authorized:
+                return .run { send in
+                    do {
+                        let contacts = try await contactClient.buidContacts()
+                        let defaultContacts = Set(contacts.mobileNumber).sorted()
+                        let afterRemoveDuplicationContacts = MobileNumbersInput(mobileNumber: defaultContacts)
+                        let userOutputs = try await apiClient.request(
+                            for: .authEngine(
+                                .contacts(.getRegisterUsers(inputs: afterRemoveDuplicationContacts))
+                            ),
+                            as: [UserOutput].self,
+                            decoder: .iso8601
+                        )
+
+                        let contactsOutPut = userOutputs.map { user in
+                            ContactOutPut(
+                                id: ObjectId(),
+                                userId: user.id,
+                                identifier: user.id.hexString,
+                                phoneNumber: user.phoneNumber ?? "",
+                                fullName: user.fullName,
+                                avatar: user.lastAvatarURLString,
+                                isRegister: true
+                            )
+                        }
+
+                        await send(.contactsResponse(.success(contactsOutPut)))
+
+                    } catch let error as URLRoutingDecodingError {
+                        debugPrint(#line, error.response, error.localizedDescription)
+                      // use error.response or error.data to surface errors to user
+                        await send(.contactsResponse(.failure("cant send or or server error")))
+                    } catch {
+                        await send(.contactsResponse(.failure("cant send or or server error")))
+                    }
+                }
+
+            case .notDetermined:
+                state.alert = .init(title: TextState("Permission notDetermined"))
+                return .none
+            case .denied:
+                state.alert = .init(title: TextState("Permission denied"))
+                return .none
+            case .restricted:
+                state.alert = .init(title: TextState("Permission restricted"))
+                return .none
+            @unknown default:
+                state.alert = .init(title: TextState("Permission unknow"))
+                return .none
+            }
+
+        case let .contact(id: id, action: action): return .none
+        case let .moveToChatRoom(present): return .none
+        case let .chatWith(name: name, phoneNumber: phoneNumber): return .none
+
+        }
+    }
+
 }

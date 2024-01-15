@@ -6,103 +6,180 @@
 //
 
 import ComposableArchitecture
-import SharedModels
+import AddaSharedModels
 import SwiftUI
+import SwiftUIExtension
+import SwiftUIHelpers
+import FoundationExtension
 
-struct ChatBottomView: View {
-  public init(store: Store<ChatState, ChatAction>) {
-    self.store = store
-  }
-
-  @State var composedMessage = String.empty
-  @State var isMicButtonHide = false
-  @State var preWordCount: Int = 0
-  @State var newLineCount = 1
-  @State var placeholderString: String = "Type..."
-  @State var tEheight: CGFloat = 40
-
-  public let store: Store<ChatState, ChatAction>
-
-  private func onComment() {
-    //    chatData.send()
-    //    chatData.clearComposedMessage()
-    tEheight = 40
-  }
-
-  var body: some View {
-    WithViewStore(self.store) { viewStore in
-      ZStack {
-        VStack {
-          //        Spacer()
-          HStack {
-            TextField(
-              "Type..",
-              text: viewStore.binding(
-                get: { $0.messageToSend },
-                send: ChatAction.messageToSendChanged
-              )
-            )
-            .lineLimit(9)
-            .font(Font.system(size: 20, weight: .thin, design: .rounded))
-            .frame(height: 40)
-            .foregroundColor(viewStore.messageToSend == placeholderString ? .gray : .primary)
-            .padding([.trailing, .leading], 10)
-            .background(RoundedRectangle(cornerRadius: 8).stroke())
-            .background(Color.clear)
-
-            //          TextEditor(text: self.$chatData.composedMessage)
-            //            .foregroundColor(self.chatData.composedMessage == placeholderString ? .gray : .primary)
-            //            .onChange(of: self.chatData.composedMessage, perform: { value in
-            //              preWordCount = value.split { $0.isNewline }.count
-            //              if preWordCount == newLineCount && preWordCount < 9 {
-            //                newLineCount += 1
-            //                tEheight += 20
-            //              }
-            //
-            //              if chatData.composedMessage == String.empty {
-            //                tEheight = 40
-            //              }
-            //            })
-            //            .lineLimit(9) // its does not work ios 14 and swiftui 2.0
-            //            .font(Font.system(size: 20, weight: .thin, design: .rounded))
-            //            .frame(height: tEheight)
-            //            .onTapGesture {
-            //              if self.chatData.composedMessage == placeholderString {
-            //                self.chatData.composedMessage = String.empty
-            //              }
-            //            }
-            //            .padding([.trailing, .leading], 10)
-            //            .background(RoundedRectangle(cornerRadius: 8).stroke())
-            //            .background(Color.clear)
-
-            Button {
-              viewStore.send(.sendButtonTapped)
-            } label: {
-              Image(systemName: "arrow.up")
-                // .resizable()
-                .imageScale(.large)
-                .frame(width: 23, height: 23)
-                .padding(11)
-                .foregroundColor(.white)
-                .background(viewStore.messageToSend.isEmpty ? Color.gray : Color.blue)
-                .clipShape(Circle())
-            }
-            .disabled(viewStore.messageToSend.isEmpty)
-            .foregroundColor(.gray)
-          }
-          .frame(height: 55)
-          .padding(.horizontal, 15)
-          .background(Color.clear)
-          //        .modifier(AdaptsToSoftwareKeyboard())
+public struct ChatBottom: Reducer {
+    public struct State: Equatable {
+        public init(
+            composedMessage: String = String.empty,
+            isMicButtonHide: Bool = false,
+            preWordCount: Int = 0,
+            newLineCount: Int = 1,
+            placeholderString: String = "Type...",
+            tEheight: CGFloat = 40,
+            messageToSend: String = ""
+        ) {
+            self.composedMessage = composedMessage
+            self.isMicButtonHide = isMicButtonHide
+            self.preWordCount = preWordCount
+            self.newLineCount = newLineCount
+            self.placeholderString = placeholderString
+            self.tEheight = tEheight
+            self.messageToSend = messageToSend
         }
-      }
+
+        public var composedMessage = String.empty
+        public var isMicButtonHide = false
+        public var preWordCount: Int = 0
+        public var newLineCount = 1
+        public var placeholderString: String = "Type..."
+        public var tEheight: CGFloat = 40
+        public var messageToSend: String = ""
+    }
+
+    public enum Action: Equatable {
+        case sendButtonTapped
+        case messageToSendChanged(String)
+    }
+
+    public init() {}
+
+    public var body: some Reducer<State, Action> {
+        Reduce(self.core)
+    }
+
+    func core(state: inout State, action: Action) -> Effect<Action> {
+        switch action {
+
+        case let .messageToSendChanged(message):
+          state.messageToSend = message
+
+          return .none
+
+        case .sendButtonTapped:
+            return .none
+        }
+    }
+}
+
+extension ChatBottomView {
+    public struct ViewState: Equatable {
+        public init(state: ChatBottom.State) {
+            self.composedMessage = state.composedMessage
+            self.isMicButtonHide = state.isMicButtonHide
+            self.preWordCount = state.preWordCount
+            self.newLineCount = state.newLineCount
+            self.placeholderString = state.placeholderString
+            self.tEheight = state.tEheight
+            self.messageToSend = state.messageToSend
+        }
+
+        public var composedMessage = String.empty
+        public var isMicButtonHide = false
+        public var preWordCount: Int = 0
+        public var newLineCount = 1
+        public var placeholderString: String = "Type..."
+        public var tEheight: CGFloat = 40
+        public var messageToSend: String = ""
+    }
+
+    public enum ViewAction: Equatable {
+        case sendButtonTapped
+        case messageToSendChanged(String)
+    }
+}
+
+extension ChatBottom.Action {
+  init(_ action: ChatBottomView.ViewAction) {
+    switch action {
+    case .sendButtonTapped:
+        self = .sendButtonTapped
+    case .messageToSendChanged(let string):
+        self = .messageToSendChanged(string)
     }
   }
 }
 
-// struct ChatBottomView_Previews: PreviewProvider {
-//  static var previews: some View {
-//    ChatBottomView()
-//      .environmentObject(ChatDataHandler())
-//  }
-// }
+//HidableTabView(
+//    isHidden: viewStore.binding(
+//        get: \.isHidden,
+//        send: ViewAction.tabViewIsHidden
+//    ),
+//    selection: viewStore.binding(
+//        get: \.selectedTab,
+//        send: ViewAction.didSelectTab
+//    )
+//)
+
+struct ChatBottomView: View {
+
+    @Environment(\.colorScheme) var colorScheme
+    public let store: StoreOf<ChatBottom>
+
+    public init(store: StoreOf<ChatBottom>) {
+        self.store = store
+    }
+
+    var body: some View {
+        WithViewStore(self.store, observe: ViewState.init, send: ChatBottom.Action.init) { viewStore in
+            ZStack {
+                VStack {
+                    HStack {
+                        TextViewFromUIKit(
+                            text: viewStore.binding(
+                                get: \.messageToSend,
+                                send: ViewAction.messageToSendChanged
+                            )
+                            .removeDuplicates()
+                        )
+                        .lineLimit(9)
+                        .padding([.top,.leading], 5)
+                        .padding(.bottom, -5)
+                        .accentColor(Color.green)
+                        .overlay(
+                          RoundedRectangle(cornerRadius: 10)
+                            .stroke(viewStore.messageToSend.isEmpty ? Color.gray : Color.blue, lineWidth: 1)
+                        )
+                        .padding(.vertical, 10)
+
+                        Button {
+                            viewStore.send(.sendButtonTapped)
+                        } label: {
+                            Image(systemName: "arrow.up")
+                                .imageScale(.large)
+                                .frame(width: 23, height: 23)
+                                .padding(11)
+                                .foregroundColor(.white)
+                                .background(viewStore.messageToSend.isEmpty ? Color.gray : Color.blue)
+                                .clipShape(Circle())
+                        }
+                        .disabled(viewStore.messageToSend.isEmpty)
+                        .foregroundColor(.gray)
+                    }
+                    .frame(height: 55)
+                    .padding(.horizontal, 15)
+                    .background(Color.clear)
+                    //        .modifier(AdaptsToSoftwareKeyboard())
+                }
+            }
+        }
+    }
+}
+
+//struct ChatBottomView_Previews: PreviewProvider {
+//    static var previews: some View {
+//        VStack {
+//            Spacer()
+//            ChatBottomView(
+//                store: .init(
+//                    initialState: ChatBottom.State(),
+//                    reducer: ChatBottom()
+//                )
+//            )
+//        }
+//    }
+//}

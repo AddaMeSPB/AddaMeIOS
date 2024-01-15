@@ -1,109 +1,136 @@
-import AuthClient
-import ChatClient
 import ComposableArchitecture
-import ConversationClient
-import EventClient
-import NotificationHelpers
+import ComposableUserNotifications
+import Foundation
+import SettingsFeature
 import RemoteNotificationsClient
-import SettingsView
+import AddaSharedModels
 import UIKit
-import UserClient
-import UserNotificationClient
-import UserNotifications
+import os
+import NotificationHelpers
 
-public enum AppDelegateAction: Equatable {
-  case didFinishLaunching
-  case didRegisterForRemoteNotifications(Result<Data, NSError>)
-  case userNotifications(UserNotificationClient.DelegateEvent)
-  case userSettingsLoaded(Result<UserSettings, NSError>)
-}
+public struct AppDelegateReducer: Reducer {
+  public typealias State = UserSettings
 
-struct AppDelegateEnvironment {
-  var mainQueue: AnySchedulerOf<DispatchQueue>
-  var setUserInterfaceStyle: (UIUserInterfaceStyle) -> Effect<Never, Never>
-  var userNotifications: UserNotificationClient
-  var remoteNotifications: RemoteNotificationsClient
-  var authClient: AuthClient
+  public enum Action: Equatable {
+    case didFinishLaunching
+    case didRegisterForRemoteNotifications(TaskResult<Data>)
+    case userNotifications(UserNotificationClient.DelegateEvent)
+    case userSettingsLoaded(TaskResult<UserSettings>)
+    case deviceResponse(TaskResult<DeviceInOutPut>)
+    case getNotificationSettings
+    case createOrUpdate(deviceToken: Data)
+  }
 
-  //  #if DEBUG
-  //    static let failing = Self(
-  //      backgroundQueue: .failing("backgroundQueue"),
-  //      mainQueue: .failing("mainQueue"),
-  //      remoteNotifications: .failing,
-  //      setUserInterfaceStyle: { _ in .failing("setUserInterfaceStyle") },
-  //      userNotifications: .failing
-  //    )
-  //  #endif
-}
+  @Dependency(\.apiClient) var apiClient
+  @Dependency(\.build.number) var buildNumber
+  @Dependency(\.remoteNotifications) var remoteNotifications
+  @Dependency(\.applicationClient.setUserInterfaceStyle) var setUserInterfaceStyle
+  @Dependency(\.userNotifications) var userNotifications
 
-let appDelegateReducer = Reducer<
-  UserSettings, AppDelegateAction, AppDelegateEnvironment
-> { state, action, environment in
-  switch action {
-  case .didFinishLaunching:
-    return .merge(
-      // Set notifications delegate
-      environment.userNotifications.delegate
-        .map(AppDelegateAction.userNotifications),
+  public init() {}
 
-      environment.userNotifications.getNotificationSettings
-        .receive(on: environment.mainQueue)
-        .flatMap { settings in
-          [.notDetermined, .provisional].contains(settings.authorizationStatus)
-            ? environment.userNotifications.requestAuthorization(.provisional)
-            : settings.authorizationStatus == .authorized
-              ? environment.userNotifications.requestAuthorization([.alert, .sound])
-              : .none
+  public func reduce(into state: inout State, action: Action) -> Effect<Action> {
+    switch action {
+    case .didFinishLaunching:
+      return .run { send in
+        await withThrowingTaskGroup(of: Void.self) { group in
+          group.addTask {
+            for await event in self.userNotifications.delegate() {
+              await send(.userNotifications(event))
+            }
+          }
+
+          group.addTask {
+            let settings = await self.userNotifications.getNotificationSettings()
+            switch settings.authorizationStatus {
+            case .authorized:
+              guard
+                try await self.userNotifications.requestAuthorization([.alert, .badge, .sound])
+              else { return }
+            case .notDetermined, .provisional:
+              guard try await self.userNotifications.requestAuthorization(.provisional)
+              else { return }
+            default:
+              return
+            }
+          }
+
+            group.addTask {
+                await registerForRemoteNotificationsAsync(
+                    remoteNotifications: self.remoteNotifications,
+                    userNotifications: self.userNotifications
+                )
+            }
         }
-        .flatMap { successful in
-          successful
-            ? Effect.registerForRemoteNotifications(
-              mainQueue: environment.mainQueue,
-              remoteNotifications: environment.remoteNotifications,
-              userNotifications: environment.userNotifications
-            )
-            : .none
+      }
+
+    case let .didRegisterForRemoteNotifications(.success(data)):
+        return .run { send in
+            await send(.getNotificationSettings)
+            await send(.createOrUpdate(deviceToken: data))
         }
-        .eraseToEffect()
-        .fireAndForget()
-    )
 
-  case .didRegisterForRemoteNotifications(.failure):
-    return .none
+    case .didRegisterForRemoteNotifications(.failure):
+      return .none
 
-  case let .didRegisterForRemoteNotifications(.success(tokenData)):
-    let token = tokenData.map { String(format: "%02.2hhx", $0) }.joined()
-    return .none
-  //    environment.userNotifications.getNotificationSettings
-  //      .flatMap { settings in
-  //        environment.apiClient.apiRequest(
-  //          route: .push(
-  //            .register(
-  //              .init(
-  //                authorizationStatus: .init(rawValue: settings.authorizationStatus.rawValue),
-  //                build: environment.build.number(),
-  //                token: token
-  //              )
-  //            )
-  //          )
-  //        )
-  //      }
-  //      .fireAndForget()
+    case .getNotificationSettings:
 
-  case let .userNotifications(.willPresentNotification(_, completionHandler)):
-    return .fireAndForget {
-      completionHandler(.banner)
+        logger.info("\(#line) run getNotificationSettings")
+        return .run { _ in
+           _ = await self.userNotifications.getNotificationSettings()
+        }
+
+    case let .createOrUpdate(deviceToken: data):
+
+        let identifierForVendor = UIDevice.current.identifierForVendor?.uuidString
+        let token = data.toHexString
+
+        let device = DeviceInOutPut(
+          identifierForVendor: identifierForVendor,
+          name: UIDevice.current.name,
+          model: UIDevice.current.model,
+          osVersion: UIDevice.current.systemVersion,
+          pushToken: token,
+          voipToken: ""
+        )
+
+        return .run { send in
+           await send(.deviceResponse(
+                await TaskResult {
+                    try await apiClient.request(
+                        for: .authEngine(.devices(.createOrUpdate(input: device))),
+                        as: DeviceInOutPut.self,
+                        decoder: .iso8601
+                    )
+                }
+            ))
+        }
+
+    case let .userNotifications(.willPresentNotification(_, completionHandler)):
+        
+      return .run { _ in completionHandler(.banner) }
+
+    case .userNotifications:
+      return .none
+
+    case let .userSettingsLoaded(result):
+      state = (try? result.value) ?? state
+        return .run { [state] _ in
+            async let setUI: Void =
+            await self.setUserInterfaceStyle(state.colorScheme.userInterfaceStyle)
+            _ = await setUI
+
+        }
+
+    case .deviceResponse(.success):
+        logger.info("\(#line) deviceResponse success")
+        return .none
+
+    case .deviceResponse(.failure(let error)):
+        logger.error("\(#line) deviceResponse error \(error.localizedDescription)")
+        return .none
     }
-
-  case .userNotifications:
-    return .none
-
-  case let .userSettingsLoaded(result):
-    state = (try? result.get()) ?? state
-    return environment.setUserInterfaceStyle(state.colorScheme.userInterfaceStyle)
-      // NB: This is necessary because UIKit needs at least one tick of the run loop before we
-      //     can set the user interface style.
-      .subscribe(on: environment.mainQueue)
-      .fireAndForget()
   }
 }
+
+public let logger = Logger(subsystem: "com.addame.AddaMeIOS", category: "appDelegate.reducer")

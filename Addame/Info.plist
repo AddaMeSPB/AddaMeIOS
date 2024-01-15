@@ -4,6 +4,10 @@
 <dict>
 	<key>ACCESS_KEY_ID</key>
 	<string>$(ACCESS_KEY_ID)</string>
+	<key>ADDAME_IOS_APP_NAME</key>
+	<string>${ADDAME_IOS_APP_NAME}</string>
+	<key>ADDAME_IOS_ENVIRONMENT</key>
+	<string>${ADDAME_IOS_ENVIRONMENT}</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
@@ -21,7 +25,7 @@
 	<key>CFBundleShortVersionString</key>
 	<string>$(MARKETING_VERSION)</string>
 	<key>CFBundleVersion</key>
-	<string>2</string>
+	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSAppTransportSecurity</key>
@@ -35,6 +39,8 @@
 	<string>We dont share your location with anyone, with share your locatuon you can create and see other user events/hangouts nearby you and other user can see your.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>We dont share your location with anyone, with share your locatuon you can create and see other user events/hangouts nearby you and other user can see your.</string>
+	<key>NSUserTrackingUsageDescription</key>
+	<string>Without track your data we cant show current user event which is main feature of our App and we dont send any 3rd party your data.</string>
 	<key>ROOT_URL</key>
 	<string>$(ROOT_URL)</string>
 	<key>SECRET_ACCESS_KEY</key>
@@ -55,8 +61,6 @@
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
-		<string>UIInterfaceOrientationLandscapeRight</string>
-		<string>UIInterfaceOrientationLandscapeLeft</string>
 	</array>
 	<key>UISupportedInterfaceOrientations~ipad</key>
 	<array>

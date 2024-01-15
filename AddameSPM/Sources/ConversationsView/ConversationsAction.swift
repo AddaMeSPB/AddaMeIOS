@@ -9,49 +9,36 @@ import ChatView
 import ComposableArchitecture
 import ContactsView
 import Foundation
-import HTTPRequestKit
-import SharedModels
 
-public enum ConversationsAction: Equatable {
-  case onAppear
-  case alertDismissed
-  case chatRoom(index: String, action: ConversationAction)
-  case conversationTapped(ConversationResponse.Item)
-  case chatView(isPresented: Bool)
-  case contactsView(isPresented: Bool)
-  case chat(ChatAction)
-  case contacts(ContactsAction)
+import AddaSharedModels
+import BSON
 
-  case conversationsResponse(Result<ConversationResponse, HTTPRequest.HRError>)
-  case conversationResponse(Result<ConversationResponse.Item, HTTPRequest.HRError>)
-  case fetchMoreConversationIfNeeded(currentItem: ConversationResponse.Item?)
-}
-
-extension ConversationsAction {
-  static func view(_ localAction: ConversationsView.ViewAction) -> Self {
-    switch localAction {
-    case .onAppear:
-      return onAppear
-    case let .conversationsResponse(res):
-      return conversationsResponse(res)
-    case let .fetchMoreConversationIfNeeded(currentItem):
-      return fetchMoreConversationIfNeeded(currentItem: currentItem)
-    case .alertDismissed:
-      return alertDismissed
-    case let .conversationTapped(conversationItem):
-      return conversationTapped(conversationItem)
-    case let .chat(action):
-      return chat(action)
-    case let .contacts(action):
-      return contacts(action)
-    case let .chatView(isPresented: isPresented):
-      return .chatView(isPresented: isPresented)
-    case let .contactsView(isPresented: isPresented):
-      return .contactsView(isPresented: isPresented)
+extension Conversations.Action {
+    // swiftlint:disable cyclomatic_complexity
+    init(_ action: ConversationsView.ViewAction) {
+        switch action {
+        case .onAppear:
+            self = .onAppear
+        case .onDisAppear:
+            self = .onDisAppear
+        case let .conversationsResponse(res):
+            self =  .conversationsResponse(res)
+        case let .fetchMoreConversationIfNeeded(currentItem):
+            self =  .fetchMoreConversationIfNeeded(currentItem: currentItem)
+        case .alertDismissed:
+            self = .alertDismissed
+        case let .conversationTapped(conversationItem):
+            self = .conversationTapped(conversationItem)
+        case let .chat(action):
+            self = .chat(action)
+        case let .contacts(action):
+            self = .contacts(action)
+        case let .chatView(isPresented: isPresented):
+            self = .chatView(isPresented: isPresented)
+        case let .contactsView(isPresented: isPresented):
+            self = .contactsView(isPresented: isPresented)
+        case let .updateLastConversation(messageItem):
+            self =  .updateLastConversation(messageItem)
+        }
     }
-  }
-}
-
-public enum ConversationAction: Equatable {
-  case chat(ChatAction)
 }

@@ -46,26 +46,27 @@ class Fastfile: LaneFile {
   }
 
   func betaLane(withOptions options: [String: String]?) {
-    let appVersion = options?["appVersion"]
-    let dumpTypeOptional = options?["dumpType"]
-    let dumpType = dumpTypeOptional ?? "patch"
-
-    if appVersion != nil, dumpTypeOptional != nil {
-      echo(message: "Only one parameter can be used: appVersion or dumpType")
-      return
-    }
-
-    if !["major", "minor", "patch"].contains(dumpType) {
-      echo(message: "Unknown parameter value \(dumpType)")
-      return
-    }
-
-    desc("Push a new beta build to TestFlight")
-//    incrementBuildNumber(xcodeproj: "Addame.xcodeproj")
-    echo(message: "DumpType parameter value \(dumpType)")
-    incrementVersionNumber(bumpType: dumpType, xcodeproj: "Addame.xcodeproj")
+//    let appVersion = options?["appVersion"]
+//    let dumpTypeOptional = options?["dumpType"]
+//    let dumpType = dumpTypeOptional ?? "patch"
+//
+//    if appVersion != nil, dumpTypeOptional != nil {
+//      echo(message: "Only one parameter can be used: appVersion or dumpType")
+//      return
+//    }
+//
+//    if !["major", "minor", "patch"].contains(dumpType) {
+//      echo(message: "Unknown parameter value \(dumpType)")
+//      return
+//    }
+//
+//    desc("Push a new beta build to TestFlight")
+////    incrementBuildNumber(xcodeproj: "Addame.xcodeproj")
+//    echo(message: "DumpType parameter value \(dumpType)")
+//    incrementVersionNumber(bumpType: dumpType, xcodeproj: "Addame.xcodeproj")
     buildApp(workspace: "Addame.xcworkspace", scheme: "AddamePro")
-    uploadToTestflight(username: "\(appleID)", teamId: "\(teamId)")
+//    uploadToTestflight(username: "\(appleID)", teamId: "\(teamId)")
+      pilot(notifyExternalTesters: true)
   }
 
   func releaseLane() {
@@ -90,7 +91,7 @@ class Fastfile: LaneFile {
   }
 
   func submit_review() {
-    desc("Submit for rreview")
+    desc("Submit for review")
     frameit(white: .userDefined(true))
     deliver(
       skipBinaryUpload: .userDefined(true),

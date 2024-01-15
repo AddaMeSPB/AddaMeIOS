@@ -5,7 +5,6 @@
 //  Created by Saroar Khandoker on 31.08.2020.
 //
 
-import Combine
 import SwiftUI
 
 public struct AsyncImage<Placeholder: View>: View {
@@ -23,30 +22,6 @@ public struct AsyncImage<Placeholder: View>: View {
     _loader = StateObject(
       wrappedValue: ImageLoader(
         url: url,
-        cache: Environment(\.imageCache).wrappedValue
-      )
-    )
-  }
-
-  public init(
-    urlString: String?,
-    @ViewBuilder placeholder: () -> Placeholder,
-    @ViewBuilder image: @escaping (UIImage) -> Image = Image.init(uiImage:)
-  ) {
-    var url = URL(string: "")
-    if urlString == nil {
-      if let fileURL = AssetExtractor.createLocalUrl(forImageNamed: "Avatar") {
-        url = fileURL
-      }
-    } else {
-      url = URL(string: urlString!)!
-    }
-
-    self.placeholder = placeholder()
-    self.image = image
-    _loader = StateObject(
-      wrappedValue: ImageLoader(
-        url: url!,
         cache: Environment(\.imageCache).wrappedValue
       )
     )

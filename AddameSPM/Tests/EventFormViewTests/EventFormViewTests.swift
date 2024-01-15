@@ -8,11 +8,11 @@
 import ComposableArchitecture
 import Contacts
 import CoreLocation
-import HTTPRequestKit
+
 import Intents
 import KeychainService
 import MapKit
-import SharedModels
+import AddaSharedModels
 import XCTest
 
 @testable import EventFormView
@@ -128,7 +128,7 @@ class EventFormViewTests: XCTestCase {
     store.receive(
       .eventsResponse(
         .success(
-          EventResponse.Item(
+          EventResponse.(
             id: "5fbfe53675a93bda87c7cb16", name: "Cool :)", categories: "General",
             imageUrl: "https://adda.nyc3.digitaloceanspaces.com/uploads/images/5fabb05d2470c17919b3c0e2/1605811270871.jpeg",
             duration: 14400, isActive: true, conversationsId: "5fbfe5361cdd72e23297914a",

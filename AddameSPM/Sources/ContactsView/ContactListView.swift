@@ -11,33 +11,32 @@ import Combine
 import CombineContacts
 import ComposableArchitecture
 import ComposableArchitectureHelpers
-import ContactClient
-import ContactClientLive
 import Contacts
 import CoreData
 import CoreDataClient
 import CoreDataStore
 import Foundation
-import HTTPRequestKit
-import SharedModels
+
+import AddaSharedModels
 import SwiftUI
 import SwiftUIExtension
 
 struct ContactListView: View {
   @Environment(\.colorScheme) var colorScheme
-  public let store: Store<ContactsState, ContactsAction>
+  public let store: StoreOf<ContactsReducer>
 
-  public init(store: Store<ContactsState, ContactsAction>) {
+  public init(store: StoreOf<ContactsReducer>) {
     self.store = store
   }
 
   public var body: some View {
-    WithViewStore(self.store) { _ in
+      WithViewStore(self.store, observe: { $0 }) { _ in
       ForEachStore(
         self.store.scope(
           state: \.contacts,
-          action: ContactsAction.contact(id:action:)
-        ), content: ContactRow.init(store:)
+          action: ContactsReducer.Action.contact(id:action:)
+        ),
+        content: ContactRowView.init(store:)
       )
     }
   }

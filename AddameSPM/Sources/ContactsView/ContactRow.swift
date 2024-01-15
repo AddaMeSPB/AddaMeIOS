@@ -8,24 +8,25 @@
 import AsyncImageLoder
 import ComposableArchitecture
 import CoreDataStore
-import SharedModels
+import AddaSharedModels
 import SwiftUI
+import FoundationExtension
 
-public struct ContactRow: View {
+public struct ContactRowView: View {
   @Environment(\.colorScheme) var colorScheme
-  let store: Store<ContactRowState, ContactRowAction>
+  let store: StoreOf<ContactRow>
   @State var isClick: Bool = false
 
-  public init(store: Store<ContactRowState, ContactRowAction>) {
+  public init(store: StoreOf<ContactRow>) {
     self.store = store
   }
 
   public var body: some View {
-    WithViewStore(self.store) { viewStore in
+    WithViewStore(self.store, observe: { $0 }) { viewStore in
       HStack(spacing: 0) {
         if let avatar = viewStore.contact.avatar {
           AsyncImage(
-            urlString: avatar,
+            url: avatar.url,
             placeholder: {
               Text("Loading...").frame(width: 100, height: 100, alignment: .center)
             },
@@ -48,20 +49,23 @@ public struct ContactRow: View {
         }
 
         VStack(alignment: .leading, spacing: 5) {
-          Text(viewStore.contact.phoneNumber)
-            .lineLimit(1)
-            .font(.system(size: 18, weight: .semibold, design: .rounded))
-            .foregroundColor(Color(.systemBlue))
 
           if viewStore.contact.fullName != nil {
-            Text(viewStore.contact.fullName ?? "unknown").lineLimit(1)
+            Text(viewStore.contact.fullName ?? "unknown")
+                  .lineLimit(1)
+                  .font(.system(size: 18, weight: .semibold, design: .rounded))
           }
+
+          Text(viewStore.contact.phoneNumber)
+           .lineLimit(1)
+           .font(.system(size: 14, weight: .light, design: .rounded))
+           .foregroundColor(Color(.systemBlue))
         }
         .padding(5)
 
         Spacer()
         Button {
-          viewStore.send(.moveToChatRoom(true))
+//          viewStore.send(.moveToChatRoom(true))
           viewStore.send(
             .chatWith(
               name: viewStore.contact.fullName ?? "unknow",

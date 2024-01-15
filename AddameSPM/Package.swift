@@ -1,4 +1,4 @@
-// swift-tools-version:5.3
+// swift-tools-version:5.9
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import Foundation
@@ -9,60 +9,43 @@ let package = Package(
   name: "AddameSPM",
   platforms: [
     .macOS(.v10_15),
-    .iOS(.v14)
+    .iOS(.v15)
   ],
   products: [
+
+    .library(name: "AppConfiguration", targets: ["AppConfiguration"]),
     .library(name: "AppFeature", targets: ["AppFeature"]),
     .library(name: "AsyncImageLoder", targets: ["AsyncImageLoder"]),
-    .library(name: "SwiftUIExtension", targets: ["SwiftUIExtension"]),
-    .library(name: "InfoPlist", targets: ["InfoPlist"]),
-    .library(name: "KeychainService", targets: ["KeychainService"]),
-    .library(name: "SharedModels", targets: ["SharedModels"]),
     .library(name: "CoreDataStore", targets: ["CoreDataStore"]),
-    .library(name: "FoundationExtension", targets: ["FoundationExtension"]),
+    .library(name: "SettingsFeature", targets: ["SettingsFeature"]),
+    .library(name: "LocationReducer", targets: ["LocationReducer"]),
 
     // Client
-    .library(name: "UserNotificationClient", targets: ["UserNotificationClient"]),
-    .library(name: "RemoteNotificationsClient", targets: ["RemoteNotificationsClient"]),
-    .library(name: "UIApplicationClient", targets: ["UIApplicationClient"]),
-    .library(name: "UserDefaultsClient", targets: ["UserDefaultsClient"]),
-
-    .library(name: "AttachmentClient", targets: ["AttachmentClient"]),
-    .library(name: "AttachmentClientLive", targets: ["AttachmentClientLive"]),
-    .library(name: "AuthClient", targets: ["AuthClient"]),
-    .library(name: "AuthClientLive", targets: ["AuthClientLive"]),
-    .library(name: "ChatClient", targets: ["ChatClient"]),
-    .library(name: "ChatClientLive", targets: ["ChatClientLive"]),
+    .library(name: "APIClient", targets: ["APIClient"]),
+    .library(name: "AttachmentS3Client", targets: ["AttachmentS3Client"]),
     .library(name: "ContactClient", targets: ["ContactClient"]),
     .library(name: "ContactClientLive", targets: ["ContactClientLive"]),
-    .library(name: "ConversationClient", targets: ["ConversationClient"]),
-    .library(name: "ConversationClientLive", targets: ["ConversationClientLive"]),
     .library(name: "CoreDataClient", targets: ["CoreDataClient"]),
-    .library(name: "EventClient", targets: ["EventClient"]),
-    .library(name: "EventClientLive", targets: ["EventClientLive"]),
-    .library(name: "PathMonitorClient", targets: ["PathMonitorClient"]),
-    .library(name: "PathMonitorClientLive", targets: ["PathMonitorClientLive"]),
-    .library(name: "UserClient", targets: ["UserClient"]),
-    .library(name: "UserClientLive", targets: ["UserClientLive"]),
+    .library(name: "DeviceClient", targets: ["DeviceClient"]),
     .library(name: "WebSocketClient", targets: ["WebSocketClient"]),
-    .library(name: "WebSocketClientLive", targets: ["WebSocketClientLive"]),
+    .library(name: "WebSocketReducer", targets: ["WebSocketReducer"]),
     .library(name: "LocationSearchClient", targets: ["LocationSearchClient"]),
 
-    // Views
+    // MARK: Views
     .library(name: "AuthenticationView", targets: ["AuthenticationView"]),
     .library(name: "ChatView", targets: ["ChatView"]),
     .library(name: "ConversationsView", targets: ["ConversationsView"]),
     .library(name: "ContactsView", targets: ["ContactsView"]),
     .library(name: "EventView", targets: ["EventView"]),
-    .library(name: "EventDetailsView", targets: ["EventDetailsView"]),
+    .library(name: "HangoutDetailsFeature", targets: ["HangoutDetailsFeature"]),
     .library(name: "EventFormView", targets: ["EventFormView"]),
     .library(name: "ProfileView", targets: ["ProfileView"]),
     .library(name: "TabsView", targets: ["TabsView"]),
-    .library(name: "SettingsView", targets: ["SettingsView"]),
     .library(name: "MapView", targets: ["MapView"]),
+    .library(name: "MyEventsView", targets: ["MyEventsView"]),
+    .library(name: "RegisterFormFeature", targets: ["RegisterFormFeature"]),
 
     // Helpers
-    .library(name: "NotificationHelpers", targets: ["NotificationHelpers"]),
     .library(name: "CombineHelpers", targets: ["CombineHelpers"]),
     .library(name: "ComposableArchitectureHelpers", targets: ["ComposableArchitectureHelpers"]),
     .library(name: "ImagePicker", targets: ["ImagePicker"])
@@ -70,17 +53,18 @@ let package = Package(
   ],
 
   dependencies: [
-//    .package(name: "AWSSDKSwift", url: "https://github.com/swift-aws/aws-sdk-swift.git", from: "4.9.0"),
-    .package(url: "https://github.com/soto-project/soto.git", from: "5.0.0"),
+    .package(url: "https://github.com/kean/Nuke.git", from: "12.0.0"),
+    .package(url: "https://github.com/soto-project/soto.git", from: "5.13.1"),
+    .package(url: "https://github.com/pointfreeco/swift-tagged", from: "0.6.0"),
+    .package(url: "https://github.com/pointfreeco/swift-dependencies", from: "1.0.0"),
+    .package(url: "https://github.com/AddaMeSPB/CommonTCALibraries", branch: "main"),
+//    .package(path: "/Users/alif/Developer/Swift/MySideProjects/CommonTCALibraries"),
+    .package(url: "https://github.com/AddaMeSPB/CombineContacts.git", branch: "async"),
+    .package(url: "https://github.com/pointfreeco/xctest-dynamic-overlay", from: "1.0.2"),
     .package(url: "https://github.com/marmelroy/PhoneNumberKit", .upToNextMajor(from: "3.3.3")),
-    .package(
-      url: "https://github.com/pointfreeco/swift-composable-architecture.git", from: "0.28.1"),
-    .package(url: "https://github.com/pointfreeco/composable-core-location.git", .branch("main")),
-    .package(url: "https://github.com/pointfreeco/xctest-dynamic-overlay", from: "0.1.0"),
-    .package(url: "https://github.com/AddaMeSPB/CombineContacts.git", from: "1.0.0"),
-//    .package(path: "../../HTTPRequestKit"),
-    .package(url: "https://github.com/AddaMeSPB/HTTPRequestKit.git", from: "3.0.0"),
-    .package(url: "https://github.com/darrarski/swift-composable-presentation.git", from: "0.3.0")
+    .package(url: "https://github.com/pointfreeco/swift-composable-architecture.git", from: "1.4.2"),
+    .package(url: "https://github.com/AddaMeSPB/AddaSharedModels.git", branch: "CleanUpBackEndModel"),
+    .package(url: "https://github.com/klundberg/composable-core-location.git", branch: "combine-only"),
   ],
 
   targets: [
@@ -88,12 +72,11 @@ let package = Package(
       name: "AppFeature",
       dependencies: [
         .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
-        "UserNotificationClient", "RemoteNotificationsClient", "NotificationHelpers",
-        "AuthClient", "AuthClientLive", "AttachmentClient", "ChatClient",
-        "ConversationClient", "EventClient", "UserClient", "WebSocketClient",
+        .product(name: "CommonTCALibraries", package: "CommonTCALibraries"),
+        "APIClient", "AttachmentS3Client",
         "EventView", "ConversationsView", "ProfileView", "TabsView",
-        "AuthenticationView", "SettingsView", "ContactClient", "UserDefaultsClient",
-        "KeychainService"
+        "AuthenticationView", "ContactClient",
+        "SettingsFeature", "LocationReducer"
       ]
     ),
 
@@ -102,143 +85,90 @@ let package = Package(
       dependencies: ["AppFeature"]
     ),
 
+    .target(
+        name: "AppConfiguration",
+        dependencies: [
+          .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
+          .product(name: "AddaSharedModels", package: "AddaSharedModels"),
+          .product(name: "CommonTCALibraries", package: "CommonTCALibraries")
+        ]
+    ),
+
     // Core
     .target(name: "AsyncImageLoder"),
-    .target(name: "SwiftUIExtension"),
-    .target(
-      name: "InfoPlist",
-      resources: [.process("Resources/")]
-    ),
-    .target(name: "KeychainService"),
-    .target(
-      name: "SharedModels",
-      dependencies: [
-        "KeychainService", "FoundationExtension"
-      ]
-    ),
+
     .target(
       name: "CoreDataStore",
       dependencies: [
-        "SharedModels", "FoundationExtension"
-      ]
-    ),
-    .target(name: "FoundationExtension"),
-
-    // Client
-    .target(
-      name: "RemoteNotificationsClient",
-      dependencies: [
-        .product(name: "ComposableArchitecture", package: "swift-composable-architecture")
+        .product(name: "AddaSharedModels", package: "AddaSharedModels"),
+        .product(name: "CommonTCALibraries", package: "CommonTCALibraries")
       ]
     ),
 
+    // MARK: Clients
     .target(
-      name: "UserNotificationClient",
-      dependencies: [
-        .product(name: "ComposableArchitecture", package: "swift-composable-architecture")
-      ]
-    ),
-
-    .target(
-      name: "UIApplicationClient",
-      dependencies: [
-        .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
-        .product(name: "XCTestDynamicOverlay", package: "xctest-dynamic-overlay")
-      ]
-    ),
-
-    .target(
-      name: "UserDefaultsClient",
-      dependencies: [
-        .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
-        .product(name: "XCTestDynamicOverlay", package: "xctest-dynamic-overlay")
-      ]
+        name: "APIClient",
+        dependencies: [
+          .product(name: "AddaSharedModels", package: "AddaSharedModels"),
+          .product(name: "CommonTCALibraries", package: "CommonTCALibraries"),
+          "AppConfiguration"
+        ]
     ),
 
     .target(
       name: "CoreDataClient",
       dependencies: [
-        "CoreDataStore", "ContactClient", "ContactClientLive", "SharedModels"
+        .product(name: "AddaSharedModels", package: "AddaSharedModels"),
+        "CoreDataStore"
       ]
     ),
 
     .target(
-      name: "AttachmentClient",
+        name: "DeviceClient",
+        dependencies: [
+            .product(name: "AddaSharedModels", package: "AddaSharedModels"),
+            .product(name: "CommonTCALibraries", package: "CommonTCALibraries")
+        ]
+    ),
+
+    .target(
+      name: "AttachmentS3Client",
       dependencies: [
 //        .product(name: "S3", package: "AWSSDKSwift"),
         .product(name: "SotoS3", package: "soto"),
-        "SharedModels", "KeychainService", "FoundationExtension",
-        "HTTPRequestKit", "InfoPlist"
+        .product(name: "AddaSharedModels", package: "AddaSharedModels"),
+        .product(name: "CommonTCALibraries", package: "CommonTCALibraries"),
       ]
     ),
-    .target(name: "AttachmentClientLive", dependencies: ["AttachmentClient"]),
-
-    .target(
-      name: "AuthClient",
-      dependencies: [
-        "SharedModels", "InfoPlist", "FoundationExtension",
-        "HTTPRequestKit", "PhoneNumberKit"
-      ]
-    ),
-    .target(name: "AuthClientLive", dependencies: ["AuthClient"]),
-
-    .target(
-      name: "ChatClient",
-      dependencies: [
-        "SharedModels", "FoundationExtension", "HTTPRequestKit",
-        "InfoPlist", "KeychainService"
-      ]
-    ),
-    .target(name: "ChatClientLive", dependencies: ["ChatClient"]),
 
     .target(
       name: "ContactClient",
       dependencies: [
-        "SharedModels", "InfoPlist", "FoundationExtension",
-        "HTTPRequestKit", "PhoneNumberKit", "CombineContacts"
+        .product(name: "AddaSharedModels", package: "AddaSharedModels"),
+        .product(name: "CommonTCALibraries", package: "CommonTCALibraries"),
+         "PhoneNumberKit", "CombineContacts"
       ]
     ),
     .target(
       name: "ContactClientLive",
-      dependencies: ["ContactClient", "CoreDataStore"]
+      dependencies: [
+        .product(name: "CommonTCALibraries", package: "CommonTCALibraries"),
+        "ContactClient", "CoreDataStore"
+      ]
     ),
-
-    .target(
-      name: "ConversationClient",
-      dependencies: ["FoundationExtension", "HTTPRequestKit", "SharedModels"]
-    ),
-    .target(
-      name: "ConversationClientLive",
-      dependencies: ["ConversationClient", "KeychainService", "InfoPlist"]
-    ),
-
-    .target(
-      name: "EventClient",
-      dependencies: ["SharedModels", "HTTPRequestKit", "InfoPlist"]
-    ),
-    .target(
-      name: "EventClientLive",
-      dependencies: ["EventClient", "KeychainService"]
-    ),
-
-    .target(name: "PathMonitorClient"),
-    .target(name: "PathMonitorClientLive", dependencies: ["PathMonitorClient"]),
-
-    .target(
-      name: "UserClient",
-      dependencies: ["SharedModels", "HTTPRequestKit", "KeychainService", "InfoPlist"]
-    ),
-    .target(name: "UserClientLive", dependencies: ["UserClient"]),
 
     .target(
       name: "WebSocketClient",
       dependencies: [
         .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
-        "FoundationExtension", "HTTPRequestKit", "SharedModels", "InfoPlist", "KeychainService"
+        .product(name: "AddaSharedModels", package: "AddaSharedModels"),
+        .product(name: "CommonTCALibraries", package: "CommonTCALibraries"),
+        "APIClient"
       ]
     ),
+
     .target(
-      name: "WebSocketClientLive",
+      name: "WebSocketReducer",
       dependencies: [
         .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
         "WebSocketClient"
@@ -257,8 +187,9 @@ let package = Package(
       name: "AuthenticationView",
       dependencies: [
         .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
-        "PhoneNumberKit", "SharedModels", "AuthClient", "KeychainService",
-        "HTTPRequestKit", "AuthClientLive", "UserDefaultsClient"
+        .product(name: "AddaSharedModels", package: "AddaSharedModels"),
+        .product(name: "CommonTCALibraries", package: "CommonTCALibraries"),
+        "APIClient", "PhoneNumberKit", "RegisterFormFeature", "SettingsFeature"
       ],
       resources: [
         .process("Resources/PhoneNumberMetadata.json")
@@ -267,22 +198,28 @@ let package = Package(
     .testTarget(
       name: "AuthenticationViewTests",
       dependencies: [
-        "AuthenticationView",
-        "PhoneNumberKit", "SharedModels", "AuthClient", "KeychainService",
-        "HTTPRequestKit", "AuthClientLive"
+        .product(name: "AddaSharedModels", package: "AddaSharedModels"),
+        .product(name: "CommonTCALibraries", package: "CommonTCALibraries"),
+        "AuthenticationView", "PhoneNumberKit"
       ]
     ),
+
+    .target(
+        name: "RegisterFormFeature",
+        dependencies: [
+          .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
+          .product(name: "AddaSharedModels", package: "AddaSharedModels"),
+          .product(name: "CommonTCALibraries", package: "CommonTCALibraries"),
+          "APIClient", "LocationReducer"
+        ]),
 
     .target(
       name: "TabsView",
       dependencies: [
         .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
-        "AuthClient", "AuthClientLive", "UserClient", "UserClientLive",
-        "EventClient", "EventClientLive", "AttachmentClient", "AttachmentClientLive",
-        "PathMonitorClient", "PathMonitorClientLive", "ConversationClient",
-        "ConversationClientLive",
+        .product(name: "CommonTCALibraries", package: "CommonTCALibraries"),
         "EventView", "ConversationsView", "ProfileView",
-        "SwiftUIExtension", "WebSocketClient", "WebSocketClientLive"
+        "DeviceClient", "CombineHelpers", "SettingsFeature"
       ]
     ),
 
@@ -290,11 +227,10 @@ let package = Package(
       name: "ChatView",
       dependencies: [
         .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
-        "SharedModels", "InfoPlist", "KeychainService",
-        "WebSocketClient", "ConversationClient", "ChatClient",
-        "SwiftUIExtension", "FoundationExtension", "AsyncImageLoder",
-        "HTTPRequestKit", "ChatClientLive", "ConversationClientLive",
-        "WebSocketClientLive"
+        .product(name: "AddaSharedModels", package: "AddaSharedModels"),
+        .product(name: "CommonTCALibraries", package: "CommonTCALibraries"),
+        .product(name: "NukeUI", package: "Nuke"),
+        "APIClient", "AsyncImageLoder", "WebSocketReducer"
       ]
     ),
 
@@ -302,12 +238,11 @@ let package = Package(
       name: "ConversationsView",
       dependencies: [
         .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
-        .product(name: "ComposablePresentation", package: "swift-composable-presentation"),
-        "SharedModels", "InfoPlist", "KeychainService",
-        "WebSocketClient", "ChatClient", "ChatClientLive",
-        "SwiftUIExtension", "FoundationExtension", "AsyncImageLoder",
-        "HTTPRequestKit", "ConversationClient", "ConversationClientLive",
-        "WebSocketClientLive", "ChatView", "ComposableArchitectureHelpers",
+        .product(name: "AddaSharedModels", package: "AddaSharedModels"),
+        .product(name: "CommonTCALibraries", package: "CommonTCALibraries"),
+        .product(name: "NukeUI", package: "Nuke"),
+        "APIClient", "AsyncImageLoder",
+         "ChatView", "ComposableArchitectureHelpers",
         "ContactClient", "ContactClientLive", "ContactsView", "CoreDataClient"
       ]
     ),
@@ -316,12 +251,22 @@ let package = Package(
       name: "ContactsView",
       dependencies: [
         .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
-        .product(name: "ComposablePresentation", package: "swift-composable-presentation"),
-        "SharedModels", "AsyncImageLoder", "HTTPRequestKit",
-        "ContactClient", "ContactClientLive", "WebSocketClient",
-        "WebSocketClientLive", "ChatClient", "ChatClientLive",
+        .product(name: "AddaSharedModels", package: "AddaSharedModels"),
+        .product(name: "CommonTCALibraries", package: "CommonTCALibraries"),
+        "AsyncImageLoder", "ContactClient", "ContactClientLive",
         "CoreDataStore", "CoreDataClient",
         "ChatView", "ComposableArchitectureHelpers"
+      ]
+    ),
+
+    .testTarget(
+      name: "ContactsViewTests",
+      dependencies: [
+        .product(name: "AddaSharedModels", package: "AddaSharedModels"),
+        "AsyncImageLoder",
+        "ContactClient", "ContactClientLive",
+        "CoreDataStore", "CoreDataClient",
+        "ChatView", "ComposableArchitectureHelpers", "ContactsView"
       ]
     ),
 
@@ -330,26 +275,20 @@ let package = Package(
       dependencies: [
         .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
         .product(name: "ComposableCoreLocation", package: "composable-core-location"),
-        .product(name: "ComposablePresentation", package: "swift-composable-presentation"),
-        "SharedModels", "EventClient", "InfoPlist", "EventFormView",
-        "PathMonitorClient", "WebSocketClient", "WebSocketClientLive",
-        "SwiftUIExtension", "FoundationExtension", "AsyncImageLoder",
-        "HTTPRequestKit", "KeychainService", "ChatClient", "ChatView",
-        "PathMonitorClientLive", "EventClientLive",
-        "EventDetailsView", "ConversationClient", "ConversationClientLive",
-        "UserDefaultsClient", "ComposableArchitectureHelpers"
+        .product(name: "AddaSharedModels", package: "AddaSharedModels"),
+        .product(name: "CommonTCALibraries", package: "CommonTCALibraries"),
+        .product(name: "NukeUI", package: "Nuke"),
+        "APIClient", "EventFormView",
+        "AsyncImageLoder", "ChatView", "HangoutDetailsFeature",
+        "ComposableArchitectureHelpers", "LocationReducer"
       ]
     ),
     .testTarget(
       name: "EventViewTests",
       dependencies: [
+        .product(name: "AddaSharedModels", package: "AddaSharedModels"),
+        .product(name: "CommonTCALibraries", package: "CommonTCALibraries"),
         "EventView",
-        "HTTPRequestKit",
-        "KeychainService",
-        "SharedModels",
-        "PathMonitorClient",
-        "PathMonitorClientLive",
-        "UserDefaultsClient"
       ]
     ),
 
@@ -358,72 +297,75 @@ let package = Package(
       dependencies: [
         .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
         .product(name: "ComposableCoreLocation", package: "composable-core-location"),
-        .product(name: "ComposablePresentation", package: "swift-composable-presentation"),
-        "SharedModels", "EventClient", "InfoPlist",
-        "PathMonitorClient", "ConversationClient",
-        "SwiftUIExtension", "FoundationExtension", "AsyncImageLoder",
-        "HTTPRequestKit", "KeychainService", "ChatClient", "EventClientLive",
-        "PathMonitorClientLive", "MapView", "ComposableArchitectureHelpers"
-      ]
-    ),
-    .testTarget(
-      name: "EventFormViewTests",
-      dependencies: [
-        "EventFormView",
-        "HTTPRequestKit",
-        "KeychainService",
-        "SharedModels"
+        .product(name: "AddaSharedModels", package: "AddaSharedModels"),
+        .product(name: "CommonTCALibraries", package: "CommonTCALibraries"),
+        "APIClient", "AsyncImageLoder", "MapView"
       ]
     ),
 
+//    .testTarget(
+//      name: "EventFormViewTests",
+//      dependencies: [
+//        .product(name: "AddaSharedModels", package: "AddaSharedModels"),
+//        "EventFormView",  "KeychainService",
+//      ]
+//    ),
+
     .target(
-      name: "EventDetailsView",
+        name: "MyEventsView",
+        dependencies: [
+        .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
+        .product(name: "AddaSharedModels", package: "AddaSharedModels"),
+        .product(name: "CommonTCALibraries", package: "CommonTCALibraries"),
+        "AsyncImageLoder", "APIClient"
+        ]
+    ),
+
+    .target(
+      name: "HangoutDetailsFeature",
       dependencies: [
         .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
         .product(name: "ComposableCoreLocation", package: "composable-core-location"),
-        .product(name: "ComposablePresentation", package: "swift-composable-presentation"),
-        "SharedModels", "EventClient", "InfoPlist",
-        "AsyncImageLoder", "SwiftUIExtension", "FoundationExtension",
-        "HTTPRequestKit", "KeychainService", "ChatClient",
-        "PathMonitorClient", "PathMonitorClientLive", "MapView", "ChatView",
-        "ConversationClient", "ConversationClientLive", "ComposableArchitectureHelpers"
-      ]
+        .product(name: "AddaSharedModels", package: "AddaSharedModels"),
+        .product(name: "CommonTCALibraries", package: "CommonTCALibraries"),
+        "AsyncImageLoder", "MapView", "ChatView", "APIClient",
+        "ComposableArchitectureHelpers"
+      ],
+      resources: [.process("Resources")]
     ),
 
     .target(
       name: "ProfileView",
       dependencies: [
         .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
-        .product(name: "ComposablePresentation", package: "swift-composable-presentation"),
-        "AuthClient", "EventClient", "AttachmentClient",
-        "InfoPlist", "UserClient", "SharedModels",
-        "SwiftUIExtension", "FoundationExtension", "AsyncImageLoder",
-        "HTTPRequestKit", "KeychainService", "AuthenticationView",
-        "AttachmentClientLive", "AuthClientLive", "UserClientLive",
-        "EventClientLive", "SettingsView", "ComposableArchitectureHelpers",
-        "ImagePicker"
+        .product(name: "AddaSharedModels", package: "AddaSharedModels"),
+        .product(name: "NukeUI", package: "Nuke"),
+        .product(name: "CommonTCALibraries", package: "CommonTCALibraries"),
+        "AsyncImageLoder", "AuthenticationView", "ComposableArchitectureHelpers",
+        "ImagePicker", "MyEventsView", "AttachmentS3Client"
       ]
       // resources: [.process("Images")]
     ),
 
     .target(
-      name: "SettingsView",
+      name: "SettingsFeature",
       dependencies: [
         .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
-        .product(name: "XCTestDynamicOverlay", package: "xctest-dynamic-overlay"),
-        .product(name: "ComposablePresentation", package: "swift-composable-presentation"),
-        "UserNotificationClient", "UIApplicationClient", "UserDefaultsClient",
-        "KeychainService", "SharedModels", "AuthenticationView"
-      ]
-    ),
+        .product(name: "AddaSharedModels", package: "AddaSharedModels"),
+        .product(name: "CommonTCALibraries", package: "CommonTCALibraries"),
+        "LocationReducer"
+      ]),
 
     .target(
       name: "MapView",
       dependencies: [
-        .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
+        .product(name: "Dependencies", package: "swift-dependencies"),
+        .product(name: "AddaSharedModels", package: "AddaSharedModels"),
+        .product(name: "CommonTCALibraries", package: "CommonTCALibraries"),
         .product(name: "XCTestDynamicOverlay", package: "xctest-dynamic-overlay"),
-        .product(name: "ComposablePresentation", package: "swift-composable-presentation"),
-        "SwiftUIExtension", "SharedModels", "ComposableArchitectureHelpers"
+        .product(name: "ComposableCoreLocation", package: "composable-core-location"),
+        .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
+        "ComposableArchitectureHelpers"
       ]
     ),
     .testTarget(
@@ -432,13 +374,6 @@ let package = Package(
     ),
 
     // Helpers
-    .target(
-      name: "NotificationHelpers",
-      dependencies: [
-        "UserNotificationClient", "RemoteNotificationsClient",
-        .product(name: "ComposableArchitecture", package: "swift-composable-architecture")
-      ]
-    ),
 
     .target(name: "CombineHelpers"),
     .target(
@@ -453,6 +388,17 @@ let package = Package(
       dependencies: [
         .product(name: "ComposableArchitecture", package: "swift-composable-architecture")
       ]
+    ),
+
+    .target(
+        name: "LocationReducer",
+        dependencies: [
+            .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
+            .product(name: "CommonTCALibraries", package: "CommonTCALibraries"),
+            .product(name: "ComposableCoreLocation", package: "composable-core-location"),
+            "AddaSharedModels"
+        ]
     )
+
   ]
 )

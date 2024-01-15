@@ -1,86 +1,56 @@
-//
-//  EventAction.swift
-//
-//
-//  Created by Saroar Khandoker on 06.04.2021.
-//
-
 import ChatView
 import ComposableArchitecture
 import ComposableCoreLocation
-import EventDetailsView
+import HangoutDetailsFeature
 import EventFormView
 import Foundation
-import HTTPRequestKit
+
 import MapKit
-import SharedModels
-
-public enum EventAction: Equatable {}
-
-public enum EventsAction: Equatable {
-  case alertDismissed
-  case dismissEventDetails
-
-  case event(index: EventResponse.Item.ID, action: EventAction)
-
-  case eventFormView(isNavigate: Bool)
-  case eventForm(EventFormAction)
-
-  case eventDetailsView(isPresented: Bool)
-  case eventDetails(EventDetailsAction)
-
-  case chatView(isNavigate: Bool)
-  case chat(ChatAction)
-
-  case fetchMoreEventsIfNeeded(item: EventResponse.Item?)
-  case addressResponse(Result<String, Never>)
-
-  case currentLocationButtonTapped
-  case locationManager(LocationManager.Action)
-  case eventsResponse(Result<EventResponse, HTTPRequest.HRError>)
-  case eventPlacemarkResponse(Result<CLPlacemark, Never>)
-  case eventTapped(EventResponse.Item)
-
-  case popupSettings
-  case dismissEvent
-  case onAppear
-}
+import AddaSharedModels
+import AdSupport
+import AppTrackingTransparency
 
 // swiftlint:disable:next superfluous_disable_command
-extension EventsAction {
-  // swiftlint:disable:next cyclomatic_complexity function_body_length superfluous_disable_command
-  static func view(_ localAction: EventView.ViewAction) -> Self {
-    switch localAction {
-    case .alertDismissed:
-      return .alertDismissed
-    case .dismissEventDetails:
-      return .dismissEventDetails
-    case let .eventFormView(active):
-      return self.eventFormView(isNavigate: active)
-    case let .eventForm(eventFormAction):
-      return self.eventForm(eventFormAction)
-    case let .chatView(isNavigate: bool):
-      return .chatView(isNavigate: bool)
-    case let .chat(action):
-      return .chat(action)
-    case let .event(index: index, action: action):
-      return .event(index: index, action: action)
-    case .currentLocationButtonTapped:
-      return .currentLocationButtonTapped
-    case let .eventTapped(event):
-      return eventTapped(event)
-    case .popupSettings:
-      return popupSettings
-    case .dismissEvent:
-      return .dismissEvent
-    case .onAppear:
-      return .onAppear
-    case let .eventDetailsView(isPresented: isPresented):
-      return .eventDetailsView(isPresented: isPresented)
-    case let .eventDetails(action):
-      return .eventDetails(action)
-    case let .fetchMoreEventsIfNeeded(item: item):
-      return .fetchMoreEventsIfNeeded(item: item)
+extension Hangouts.Action {
+//    init(action: NewGameView.ViewAction) {
+
+    // swiftlint:disable:next cyclomatic_complexity function_body_length superfluous_disable_command
+    init(action: HangoutsView.ViewAction) {
+        switch action {
+        case .alertDismissed:
+            self =  .alertDismissed
+        case .dismissHangoutDetails:
+            self =  .dismissHangoutDetails
+        case let .hangoutFormView(isNavigate):
+            self =  .hangoutFormView(isNavigate: isNavigate)
+        case let .hangoutForm(hFormAction):
+            self =  .hangoutForm(hFormAction)
+        case let .chatView(isNavigate: bool):
+            self =  .chatView(isNavigate: bool)
+        case let .chat(action):
+            self =  .chat(action)
+        case let .event(index: index, action: action):
+            self =  .event(index: index, action: action)
+        case .currentLocationButtonTapped:
+            self =  .currentLocationButtonTapped
+        case let .eventTapped(event):
+            self =  .eventTapped(event)
+        case .popupSettings:
+            self =  .popupSettings
+        case .dismissEvent:
+            self =  .dismissEvent
+        case .fetchEventOnAppear:
+            self =  .fetchEventOnAppear
+        case .onAppear:
+            self =  .onAppear
+        case .onDisAppear:
+            self =  .onDisAppear
+        case let .hangoutDetailsSheet(isPresented: isPresented):
+            self = .hangoutDetailsSheet(isPresented: isPresented)
+        case let .hangoutDetails(action):
+            self =  .hangoutDetails(action)
+        case let .fetchMoreEventsIfNeeded(item: item):
+            self =  .fetchMoreEventsIfNeeded(item: item)
+        }
     }
-  }
 }

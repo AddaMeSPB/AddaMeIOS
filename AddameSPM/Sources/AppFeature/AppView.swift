@@ -5,8 +5,6 @@
 //  Created by Saroar Khandoker on 05.05.2021.
 //
 
-import AuthClient
-import AuthClientLive
 import AuthenticationView
 import ComposableArchitecture
 import ConversationsView
@@ -15,130 +13,185 @@ import ProfileView
 import SwiftUI
 import TabsView
 import UserDefaultsClient
-import KeychainService
-import SharedModels
+import KeychainClient
+import AddaSharedModels
+import LocationReducer
+import NotificationHelpers
 
-public enum AppState: Equatable {
-  case login(LoginState)
-  case tabs(TabsViewState)
+public struct AppReducer: Reducer {
+    public struct State: Equatable {
+        public init(
+            loginState: Login.State? = nil,
+            tabState: TabReducer.State = .init()
+        ) {
+            self.loginState = loginState
+            self.tabState = tabState
+        }
 
-  public init() { self = .login(.init()) }
-}
-
-public enum AppAction: Equatable {
-  case onAppear
-  case login(LoginAction)
-  case tabs(TabsAction)
-  case logout
-}
-
-public struct AppEnvironment {
-  public var authenticationClient: AuthClient
-  public var userDefaults: UserDefaultsClient
-  public var mainQueue: AnySchedulerOf<DispatchQueue>
-
-  public init(
-    authenticationClient: AuthClient,
-    userDefaults: UserDefaultsClient,
-    mainQueue: AnySchedulerOf<DispatchQueue>
-  ) {
-    self.authenticationClient = authenticationClient
-    self.userDefaults = userDefaults
-    self.mainQueue = mainQueue
-  }
-}
-
-extension AppEnvironment {
-  public static let live: AppEnvironment = .init(
-    authenticationClient: .live(api: .build),
-    userDefaults: .live(),
-    mainQueue: .main
-  )
-}
-
-public let appReducer = Reducer<AppState, AppAction, AppEnvironment>.combine(
-  loginReducer.pullback(
-    state: /AppState.login,
-    action: /AppAction.login,
-    environment: { _ in AuthenticationEnvironment.live }
-  ),
-  tabsReducer.pullback(
-    state: /AppState.tabs,
-    action: /AppAction.tabs,
-    environment: { _ in TabsEnvironment.live }
-  ),
-  Reducer { state, action, environment in
-    switch action {
-    case .onAppear:
-
-      if environment.userDefaults.boolForKey(AppUserDefaults.Key.isAuthorized.rawValue) == true {
-        state = .tabs(
-          .init(
-            selectedTab: .event,
-            event: EventsState(),
-            conversations: ConversationsState(),
-            profile: ProfileState()
-          )
-        )
-      }
-      return .none
-
-    case let .login(.verificationResponse(.success(loginRes))):
-//      where environment.userDefaults.boolForKey(AppUserDefaults.Key.isAuthorized.rawValue):
-
-      state = .tabs(
-        .init(
-          selectedTab: .event,
-          event: EventsState(),
-          conversations: ConversationsState(),
-          profile: ProfileState()
-        )
-      )
-      return .none
-
-    case .login:
-      return .none
-
-    case let .tabs(.profile(.settings(.isLogoutButton(tapped: tapped)))) where tapped:
-      KeychainService.save(codable: User?.none, for: .user)
-      KeychainService.save(codable: AuthResponse?.none, for: .token)
-      KeychainService.logout()
-      AppUserDefaults.erase()
-
-      state = .login(.init())
-      return environment
-        .userDefaults
-        .remove(AppUserDefaults.Key.isAuthorized.rawValue)
-        .fireAndForget()
-
-    case .tabs:
-      return .none
-
-    case .logout:
-      return .none
+        public var loginState: Login.State?
+        public var tabState: TabReducer.State
     }
-  }
-)
+
+    public enum Action {
+        case onAppear
+        case login(Login.Action)
+        case tab(TabReducer.Action)
+        case appDelegate(AppDelegateReducer.Action)
+        case didChangeScenePhase(ScenePhase)
+    }
+
+    @Dependency(\.userDefaults) var userDefaults
+    @Dependency(\.userNotifications) var userNotifications
+    @Dependency(\.remoteNotifications) var remoteNotifications
+    @Dependency(\.mainRunLoop) var mainRunLoop
+    @Dependency(\.keychainClient) var keychainClient
+    @Dependency(\.build) var build
+
+    public init() {}
+
+    public var body: some Reducer<State, Action> {
+        Scope(state: \.tabState.settings.userSettings, action: /Action.appDelegate) {
+            AppDelegateReducer()
+        }
+
+        Scope(state: \.tabState, action: /Action.tab) {
+            TabReducer()
+        }
+
+        Reduce { state, action in
+
+            switch action {
+            case .onAppear:
+                let isAuthorized = userDefaults.boolForKey(UserDefaultKey.isAuthorized.rawValue) == true
+                let isAskPermissionCompleted = userDefaults.boolForKey(UserDefaultKey.isAskPermissionCompleted.rawValue) == true
+
+                if isAuthorized && isAskPermissionCompleted {
+                    return .none
+                } else {
+                    state.loginState = Login.State()
+                    return .none
+                }
+
+            case .login(.verificationResponse(.success)):
+
+                state.loginState?.registerState = .init()
+
+                return .none
+            case .login(.moveToTableView):
+                state.loginState = nil
+                state.tabState = .init()
+                return .none
+
+            case .login:
+                return .none
+
+            case .tab(.settings(.logOutButtonTapped)):
+                state.loginState = Login.State()
+                return .run(priority: .background) { _ in
+
+                    await withThrowingTaskGroup(of: Void.self) { group in
+                        group.addTask {
+                            await userDefaults.setBool(
+                                false,
+                                UserDefaultKey.isAuthorized.rawValue
+                            )
+                        }
+
+                        group.addTask {
+                            try await keychainClient.logout()
+                        }
+                    }
+                }
+
+            case .tab:
+                return .none
+
+            case let .appDelegate(.userNotifications(.didReceiveResponse(_, completionHandler))):
+
+              return .run { _ in completionHandler() }
+
+            case .appDelegate:
+                return .none
+
+            case .didChangeScenePhase(.active):
+                return .run { send in
+                    await send(.tab(.connect))
+                }
+
+            case .didChangeScenePhase(.background):
+                return .run { send in
+                    await send(.tab(.disConnect))
+                }
+
+            case .didChangeScenePhase:
+                return .none
+                
+            }
+        }
+        .ifLet(\.loginState, action: /Action.login) {
+          Login()
+        }
+    }
+}
 
 public struct AppView: View {
 
-  let store: Store<AppState, AppAction>
+    @Environment(\.scenePhase) private var scenePhase
 
-  public init(store: Store<AppState, AppAction>) {
-    self.store = store
+    public let store: StoreOf<AppReducer>
+
+    public init(store: StoreOf<AppReducer>) {
+        self.store = store
+    }
+
+    struct ViewState: Equatable {
+        public init(state: AppReducer.State) {
+            self.isLoginActive = state.loginState != nil
+//            self.isOnboardingPresented = state.onBoardingState
+        }
+
+        let isLoginActive: Bool
+//        let isOnboardingPresented: Bool
   }
 
-  public var body: some View {
-    SwitchStore(self.store) {
-      CaseLet(state: /AppState.login, action: AppAction.login) { store in
-        AuthenticationView(store: store)
-      }
-      CaseLet(state: /AppState.tabs, action: AppAction.tabs) { store in
-          TabsView(store: store)
-      }
+    public var body: some View {
+
+        WithViewStore(store, observe: ViewState.init) { viewStore in
+            ZStack {
+
+                if !viewStore.isLoginActive {
+                    NavigationView {
+                        TabsView(
+                            store: self.store.scope(
+                                state: \.tabState,
+                                action: AppReducer.Action.tab
+                            )
+                        )
+                    }
+                    .navigationViewStyle(.stack)
+                } else {
+                    IfLetStore(store.scope(
+                        state: { $0.loginState },
+                        action: AppReducer.Action.login)
+                    ) { loginStore in
+                        AuthenticationView(store: loginStore)
+                    }
+                }
+            }
+        }
+        .onAppear {
+            store.send(.onAppear)
+        }
+
     }
-    .onAppear {
-      ViewStore(store.stateless).send(.onAppear)
-    }
-  }
 }
+
+#if DEBUG
+struct AppView_Previews: PreviewProvider {
+    static var previews: some View {
+        AppView(store: .init(initialState: AppReducer.State()) {
+            AppReducer()
+        })
+    }
+}
+#endif

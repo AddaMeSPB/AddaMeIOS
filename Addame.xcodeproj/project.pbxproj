@@ -3,12 +3,12 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 52;
+	objectVersion = 54;
 	objects = {
 
 /* Begin PBXBuildFile section */
+		C3024A4E2B054EDB00E3D8C0 /* AppFeature in Frameworks */ = {isa = PBXBuildFile; productRef = C3024A4D2B054EDB00E3D8C0 /* AppFeature */; };
 		C33DFAC8261F1B4100132010 /* Environment.swift in Sources */ = {isa = PBXBuildFile; fileRef = C33DFAC7261F1B4100132010 /* Environment.swift */; };
-		C3511D5D26EF6044004B9155 /* AppFeature in Frameworks */ = {isa = PBXBuildFile; productRef = C3511D5C26EF6044004B9155 /* AppFeature */; };
 		C3E50CA0261B5DFA00285977 /* Addame.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3E50C9F261B5DFA00285977 /* Addame.swift */; };
 		C3E50CA4261B5DFF00285977 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C3E50CA3261B5DFF00285977 /* Assets.xcassets */; };
 		C3E50CA7261B5DFF00285977 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C3E50CA6261B5DFF00285977 /* Preview Assets.xcassets */; };
@@ -20,6 +20,7 @@
 		C33DFABC261F1A9700132010 /* DevelopmentCI.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = DevelopmentCI.xcconfig; sourceTree = "<group>"; };
 		C33DFABD261F1A9700132010 /* Development.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = Development.xcconfig; sourceTree = "<group>"; };
 		C33DFAC7261F1B4100132010 /* Environment.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Environment.swift; sourceTree = "<group>"; };
+		C368D338287DB14E004035EC /* Addame.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Addame.entitlements; sourceTree = "<group>"; };
 		C3E50C9C261B5DFA00285977 /* Addame.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Addame.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		C3E50C9F261B5DFA00285977 /* Addame.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Addame.swift; sourceTree = "<group>"; };
 		C3E50CA3261B5DFF00285977 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -32,7 +33,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C3511D5D26EF6044004B9155 /* AppFeature in Frameworks */,
+				C3024A4E2B054EDB00E3D8C0 /* AppFeature in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -71,6 +72,7 @@
 		C3E50C9E261B5DFA00285977 /* Addame */ = {
 			isa = PBXGroup;
 			children = (
+				C368D338287DB14E004035EC /* Addame.entitlements */,
 				C33DFAB9261F1A7A00132010 /* Configs */,
 				C3E50C9F261B5DFA00285977 /* Addame.swift */,
 				C3E50CA3261B5DFF00285977 /* Assets.xcassets */,
@@ -115,7 +117,7 @@
 			);
 			name = Addame;
 			packageProductDependencies = (
-				C3511D5C26EF6044004B9155 /* AppFeature */,
+				C3024A4D2B054EDB00E3D8C0 /* AppFeature */,
 			);
 			productName = TComposableAAddaMe;
 			productReference = C3E50C9C261B5DFA00285977 /* Addame.app */;
@@ -182,7 +184,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "# Type a script or drag a script file from your workspace to insert its path.\nif [ -z \"$CI\" ]; then\n  swiftlint --fix --config \".swiftlint.yml\" && swiftlint\nfi\n\nif which swiftlint >/dev/null; then\n  swiftlint --fix --config \".swiftlint.yml\" && swiftlint\nelse\n  echo \"warning: SwiftLint not installed, download from https://github.com/realm/SwiftLint\"\nfi\n\n";
+			shellScript = "# Type a script or drag a script file from your workspace to insert its path.\n#if [ -z \"$CI\" ]; then\n#  swiftlint --fix --config \".swiftlint.yml\" && swiftlint\n#fi\n\n#if which swiftlint >/dev/null; then\n#  swiftlint --fix --config \".swiftlint.yml\" && swiftlint\n#else\n#  echo \"warning: SwiftLint not installed, download from https://github.com/realm/SwiftLint\"\n#fi\n\n";
 		};
 		C36C678E26E3FC9A007CC94D /* swift-format */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -303,20 +305,22 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Addame/Addame.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 35;
 				DEVELOPMENT_ASSET_PATHS = "\"Addame/Preview Content\"";
 				DEVELOPMENT_TEAM = 6989658CU5;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = AddaMe/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.social-networking";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.2.4;
-				PRODUCT_BUNDLE_IDENTIFIER = com.addame.AddaMeIOS;
+				MARKETING_VERSION = 1.3.6;
+				PRODUCT_BUNDLE_IDENTIFIER = com.addame.AddaMeIOS.dev;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 5.0;
@@ -428,6 +432,7 @@
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
@@ -451,20 +456,22 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Addame/Addame.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 35;
 				DEVELOPMENT_ASSET_PATHS = "\"Addame/Preview Content\"";
 				DEVELOPMENT_TEAM = 6989658CU5;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = AddaMe/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.social-networking";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.2.4;
-				PRODUCT_BUNDLE_IDENTIFIER = com.addame.AddaMeIOS;
+				MARKETING_VERSION = 1.3.6;
+				PRODUCT_BUNDLE_IDENTIFIER = com.addame.AddaMeIOS.ci;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 5.0;
@@ -479,19 +486,21 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Addame/Addame.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 35;
 				DEVELOPMENT_ASSET_PATHS = "\"Addame/Preview Content\"";
 				DEVELOPMENT_TEAM = 6989658CU5;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = AddaMe/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.social-networking";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.2.4;
+				MARKETING_VERSION = 1.3.6;
 				PRODUCT_BUNDLE_IDENTIFIER = com.addame.AddaMeIOS;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -527,7 +536,7 @@
 /* End XCConfigurationList section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		C3511D5C26EF6044004B9155 /* AppFeature */ = {
+		C3024A4D2B054EDB00E3D8C0 /* AppFeature */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = AppFeature;
 		};

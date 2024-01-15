@@ -1,412 +1,425 @@
-//
-//  EventReducer.swift
-//
-//
-//  Created by Saroar Khandoker on 06.04.2021.
-//
-
 import ChatView
 import Combine
 import ComposableArchitecture
 import ComposableArchitectureHelpers
 import ComposableCoreLocation
 import Contacts
-import EventDetailsView
+import HangoutDetailsFeature
 import EventFormView
-import HTTPRequestKit
-import MapKit
-import SharedModels
+import AddaSharedModels
 import SwiftUI
+import MapView
+import AdSupport
+import AppTrackingTransparency
+import IDFAClient
+import Dependencies
+import LocationReducer
 
-struct LocationManagerId: Hashable {}
+import UserDefaultsClient
+import APIClient
+import WebSocketReducer
 
-// swiftlint:disable superfluous_disable_command file_length
-public let eventsReducer = Reducer<EventsState, EventsAction, EventsEnvironment> {
-  state, action, environment in
+import SettingsFeature
 
-  var currentLocationButtonTapped: Effect<EventsAction, Never> {
-    guard environment.locationManager.locationServicesEnabled() else {
-      state.alert = .init(title: TextState("Location services are turned off."))
-      state.waitingForUpdateLocation = false
-      return .none
+//public struct Hangouts: Reducer {
+//    public struct State: Equatable {
+//        public var locationState: LocationReducer.State
+//    }
+//
+//    public enum Action: Equatable {
+//        case locationManager(LocationManager.Action)
+//    }
+//
+//    public var body: some Reducer<State, Action> {
+//
+//        Scope(state: \.locationState, action: /Action.location) {
+//            LocationReducer()
+//        }
+//
+//        Reduce(self.core)
+//
+//        func core(state: inout State, action: Action) -> Effect<Action> {}
+//    }
+//}
+
+public struct Hangouts: Reducer {
+
+    public struct State: Equatable {
+        public init(
+            alert: AlertState<Hangouts.AlertAction>? = nil,
+            isConnected: Bool = true,
+            isLoadingPage: Bool = false,
+            isLoadingMyEvent: Bool = false,
+            canLoadMorePages: Bool = true,
+            isEFromNavigationActive: Bool = false,
+            isIDFAAuthorized: Bool = false,
+            isLocationAuthorizedCount: Int = 0,
+            currentPage: Int = 1,
+            currentAddress: String = "",
+            location: Location? = nil,
+            events: IdentifiedArrayOf<EventResponse> = [],
+            myEvent: EventResponse? = nil,
+            event: EventResponse? = nil,
+            conversation: ConversationOutPut? = nil,
+            locationState: LocationReducer.State = .init(),
+            chatState: Chat.State? = nil,
+            websocketState: WebSocketReducer.State
+        ) {
+            self.alert = alert
+            self.isConnected = isConnected
+            self.isLoadingPage = isLoadingPage
+            self.isLoadingMyEvent = isLoadingMyEvent
+            self.canLoadMorePages = canLoadMorePages
+            self.isEFromNavigationActive = isEFromNavigationActive
+            self.isIDFAAuthorized = isIDFAAuthorized
+            self.isLocationAuthorizedCount = isLocationAuthorizedCount
+            self.currentPage = currentPage
+            self.currentAddress = currentAddress
+            self.events = events
+            self.myEvent = myEvent
+            self.event = event
+            self.conversation = conversation
+            self.locationState = locationState
+            self.chatState = chatState
+            self.websocketState = websocketState
+        }
+
+        @PresentationState var alert: AlertState<AlertAction>?
+        public var isConnected = true
+        public var isLoadingPage = true
+        public var isLoadingMyEvent = false
+        public var canLoadMorePages = true
+
+        public var isEFromNavigationActive = false
+        public var isIDFAAuthorized = false
+        public var isLocationAuthorizedCount = 0
+
+        public var currentPage = 1
+        public var currentAddress = ""
+        
+        public var events: IdentifiedArrayOf<EventResponse> = []
+        public var myEvent: EventResponse?
+        public var event: EventResponse?
+        public var conversation: ConversationOutPut?
+
+        public var locationState: LocationReducer.State
+        
+        public var hangoutFormState: HangoutForm.State?
+        public var isHangoutDetailsSheetPresented: Bool { hangoutDetailsState != nil }
+
+        public var hangoutDetailsState: HangoutDetails.State?
+        public var isHangoutNavigationActive: Bool = false
+        public var chatState: Chat.State?
+        public var isMovingChatRoom: Bool { chatState != nil }
+
+
+        public var websocketState: WebSocketReducer.State
+
     }
 
-    switch environment.locationManager.authorizationStatus() {
-    case .notDetermined:
-      state.isRequestingCurrentLocation = true
-      state.waitingForUpdateLocation = true
-      #if os(macOS)
-        return environment.locationManager
-          .requestAlwaysAuthorization()
-          .fireAndForget()
-      #else
-        return environment.locationManager
-          .requestWhenInUseAuthorization()
-          .fireAndForget()
-      #endif
+    public enum Action: Equatable {
+        case alert(PresentationAction<AlertAction>)
+        case onAppear
+        case onDisAppear
+        case alertDismissed
+        case dismissHangoutDetails
 
-    case .restricted:
-      state.alert = .init(
-        title: .init("Please give us access to your location in settings"),
-        message: .init("Please go to Settings and turn on the permissions"),
-        primaryButton: .cancel(.init("Cancel"), action: .send(.alertDismissed)),
-        secondaryButton: .default(.init(""), action: .send(.popupSettings))
-      )
-      state.waitingForUpdateLocation = false
-      return .none
+        case event(index: EventResponse.ID, action: EventRowReducer.Action)
 
-    case .denied:
-      state.alert = .init(
-        title: .init("Please give us access to your location in settings"),
-        message: .init("Please go to Settings and turn on the permissions"),
-        primaryButton: .cancel(.init("Cancel"), action: .send(.alertDismissed)),
-        secondaryButton: .default(TextState(""), action: .send(.popupSettings))
-      )
-      state.waitingForUpdateLocation = false
-      return .none
+        case hangoutFormView(isNavigate: Bool)
+        case hangoutForm(HangoutForm.Action)
 
-    case .authorizedAlways, .authorizedWhenInUse:
-      state.isLocationAuthorized = true
-      state.isConnected = true
-      state.waitingForUpdateLocation = false
+        case hangoutDetailsSheet(isPresented: Bool)
+        case hangoutDetails(HangoutDetails.Action)
 
-      return environment.locationManager
-        .requestLocation()
-        .fireAndForget()
+        case chatView(isNavigate: Bool)
+        case chat(Chat.Action)
 
-    @unknown default:
-      return .none
-    }
-  }
+        case fetchEventOnAppear
+        case fetchMoreEventsIfNeeded(item: EventResponse?)
+        case currentLocationButtonTapped
+        case locationManager(LocationManager.Action)
+        case eventsResponse(TaskResult<EventsResponse>)
+        case eventTapped(EventResponse)
+        case myEventsResponse(TaskResult<EventsResponse>)
+        case addUserResponse(TaskResult<AddUser>)
 
-  var fetchEvents: Effect<EventsAction, Never> {
-    guard state.isConnected && state.canLoadMorePages,
-          let location = state.location
-    else {
-      return .none
+        //case idfaAuthorizationStatus(ATTrackingManager.AuthorizationStatus)
+
+        case popupSettings
+        case dismissEvent
+        case location(LocationReducer.Action)
     }
 
-    state.location = location
+    public enum AlertAction: Equatable {}
 
-    let getDistanceType = environment.userDefaults.integerForKey("typee")
-    let maxDistance = getDistanceType == 0 ? (250 * 1000) : (250 / 1.609) * 1609
-    let distanceType: String = getDistanceType == 0 ? "kilometers" : "miles"
-    let getDistance = environment.userDefaults.doubleForKey(distanceType)
-    var distanceInMeters: Double = 0.0
+    @Dependency(\.mainQueue) var mainQueue
+    @Dependency(\.userDefaults) var userDefaults
+    @Dependency(\.keychainClient) var keychainClient
+    @Dependency(\.apiClient) var apiClient
+    @Dependency(\.build) var build
 
-    if getDistance != 0.0 {
-      if getDistanceType == 0 {
-        distanceInMeters = getDistance * 1000
-      } else {
-        distanceInMeters = getDistance * 1609
-      }
-    } else {
-      if distanceType == "kilometers" {
-        distanceInMeters = maxDistance
-      } else {
-        distanceInMeters = maxDistance
-      }
+    public init() {}
+
+    enum LocationManagerId: Hashable {}
+
+    public var body: some Reducer<State, Action> {
+
+        Scope(state: \.locationState, action: /Action.location) {
+           LocationReducer()
+        }
+
+        Reduce(self.core)
+            .ifLet(\.$alert, action: /Action.alert)
+            .ifLet(\.chatState, action: /Hangouts.Action.chat) {
+                Chat()
+            }
+            .ifLet(\.hangoutFormState, action: /Hangouts.Action.hangoutForm) {
+                HangoutForm()
+            }
+            .ifLet(\.hangoutDetailsState, action: /Hangouts.Action.hangoutDetails) {
+                HangoutDetails()
+            }
     }
 
-    let lat = "\(location.coordinate.latitude)"
-    let long = "\(location.coordinate.longitude)"
-    print(#line, distanceInMeters)
-    let query = QueryItem(
-      page: "\(state.currentPage)",
-      per: "10", lat: lat, long: long,
-      distance: "\(Int(distanceInMeters))"
-    )
+    func core(state: inout State, action: Action) -> Effect<Action> {
 
-    return environment.eventClient.events(query, "")
-      .retry(3)
-      .receive(on: environment.mainQueue.animation(.default))
-      .removeDuplicates()
-      .catchToEffect()
-      .map(EventsAction.eventsResponse)
-  }
+        var fetchEvents: Effect<Action> {
+            guard state.isConnected && state.canLoadMorePages,
+                  let location = state.locationState.location
+            else {
+                return .none
+            }
 
-  func getPlacemark(_ location: Location) -> Effect<EventsAction, Never> {
-    return environment.getPlacemark(location)
-      .receive(on: environment.mainQueue)
-      .catchToEffect()
-      .map(EventsAction.eventPlacemarkResponse)
-  }
+            // Calculate distance in meters
+            let distanceInMeters = DistanceType.fetchCurrentDistanceInMeters(userDefaults: userDefaults)
 
-  func presentChatView() -> Effect<EventsAction, Never> {
-    state.eventDetailsState = nil
-    state.chatState = nil
-    return Effect(value: EventsAction.chatView(isNavigate: true))
-      .receive(on: environment.mainQueue)
-      .eraseToEffect()
-  }
+            let lat = location.coordinate.latitude
+            let long = location.coordinate.longitude
 
-  switch action {
-  case .onAppear:
+            let query = EventPageRequest(
+                page: state.currentPage,
+                par: 10,
+                lat: lat, long: long,
+                distance: distanceInMeters
+            )
 
-    return .merge(
-      environment.locationManager.delegate()
-        .map(EventsAction.locationManager)
-        .cancellable(id: LocationManagerId()),
+            return  .run { send in
+                await send(.eventsResponse(
+                    await TaskResult {
+                        try await apiClient.request(
+                            for: .eventEngine(.events(.list(query: query))),
+                            as: EventsResponse.self,
+                            decoder: .iso8601
+                        )
+                    }
+                ))
+            }
+        }
 
-      currentLocationButtonTapped
-    )
+        func presentChatView() -> Effect<Action> {
+            state.hangoutDetailsState = nil
+            return .run { send in
+                try await self.mainQueue.sleep(for: .seconds(0.3))
+                await send(.chatView(isNavigate: true))
+            }
+        }
 
-  case .dismissEvent:
-    return .none
+        switch action {
+        case .alert:
+            return .none
+        case .onAppear:
 
-  case .alertDismissed:
-    state.alert = nil
-    return .none
+            return .run { send in
+                await send(.location(.callDelegateThenGetLocation))
+                try await self.mainQueue.sleep(for: .seconds(0.3))
+                await send(.fetchEventOnAppear)
+            }
 
-  case let .fetchMoreEventsIfNeeded(item):
+        case .onDisAppear:
+            return .none
+        case .alertDismissed:
+            return .none
+        case .dismissHangoutDetails:
+            return .none
+        case .hangoutFormView(isNavigate: let active):
+            guard let placeMark = state.locationState.placeMark
+            else {
+                // pop alert let user know about issue
+                return .none
+            }
 
-    guard let item = item, state.events.count > 5 else {
-      return fetchEvents
+            state.hangoutFormState = active ? HangoutForm.State(placeMark: placeMark) : nil
+
+            return .none
+
+        case let .hangoutForm(.eventResponse(.success(event))):
+            state.events.insert(event, at: 0)
+            return .none
+
+        case .hangoutForm(.backToPVAfterCreatedEventSuccessfully):
+            state.hangoutFormState = nil
+            return .none
+
+        case .hangoutForm:
+            return .none
+
+        case  let .hangoutDetailsSheet(isPresented: isPresented):
+
+            guard let event = state.event else { return .none }
+
+            state.hangoutDetailsState = isPresented ? HangoutDetails.State(event: event) : nil
+            return .none
+
+        case .eventTapped(let hangout):
+            state.event = hangout
+            return .run { send in
+                await send(.hangoutDetailsSheet(isPresented: true))
+            }
+
+        case .chatView(isNavigate: let isNavigate):
+            guard let conversation = state.conversation else { return .none }
+
+            state.chatState = isNavigate ? Chat.State(
+                conversation: conversation,
+                currentUser: state.websocketState.user,
+                websocketState: state.websocketState
+            ) : nil
+
+            return .none
+
+        case .chat(_):
+            return .none
+
+        case .fetchEventOnAppear:
+            let isLocationAuthorized = state.locationState.isLocationAuthorized
+
+            if isLocationAuthorized {
+                return fetchEvents
+            }
+
+            return .none
+                
+        case .fetchMoreEventsIfNeeded(item: let item):
+            guard let item = item, !state.events.isEmpty else {
+                return fetchEvents
+            }
+
+            // Calculate the threshold index based on a percentage of the list's total count
+            let thresholdPercentage = 0.2 // Adjust as needed
+            let thresholdIndex = max(state.events.count - Int(Double(state.events.count) * thresholdPercentage), 0)
+
+            if let itemIndex = state.events.firstIndex(where: { $0.id == item.id }), itemIndex >= thresholdIndex {
+                return fetchEvents
+            }
+
+            return .none
+
+
+        case .currentLocationButtonTapped:
+            return .none
+
+        case .locationManager:
+            return .none
+
+        case .eventsResponse(.success(let eventArray)):
+            state.locationState.waitingForUpdateLocation = false
+            state.isLoadingPage = false
+
+            // Track if any new events were added
+            var newEventsAdded = false
+
+            for newEvent in eventArray.items {
+                if !state.events.contains(where: { $0.id == newEvent.id }) {
+                    state.events.append(newEvent)
+                    newEventsAdded = true
+                }
+            }
+
+            // Increment the page only if new events were added
+            if newEventsAdded {
+                state.currentPage += 1
+            }
+
+            // Update canLoadMorePages based on the total count and current array size
+            state.canLoadMorePages = state.events.count < eventArray.metadata.total
+
+            return .none
+
+
+        case .eventsResponse(.failure(_)):
+            return .none
+        case .myEventsResponse:
+            return .none
+
+        case .popupSettings:
+            return .none
+        case .dismissEvent:
+            return .none
+
+        case .location(.placeMarkResponse(.success(let placemark))):
+
+                let willFatchEventsAgain = state.events == []
+
+                return .run { send in
+                    if willFatchEventsAgain {
+                        await send(.fetchEventOnAppear)
+                    }
+                }
+
+        case .location:
+            return .none
+
+
+
+        case .addUserResponse(.success):
+            return .run { send in
+                await send(.hangoutDetails(.startChat(true)))
+            }
+        case .addUserResponse(.failure):
+            return .none
+        case .hangoutDetails(let hdAction):
+            switch hdAction {
+            case .alert:
+                return .none
+            case .onAppear:
+                return .none
+            case .alertDismissed:
+                return .none
+            case .moveToChatRoom:
+                return .none
+            case .updateRegion:
+                return .none
+            case .startChat:
+                return presentChatView()
+            case .askJoinRequest(let boolean):
+
+                guard let conversationId = state.event?.conversationsId else {
+                    return .none
+                }
+
+                return .run { send in
+                    await send(.addUserResponse(
+                        await TaskResult {
+                            try await apiClient.request(for: .chatEngine(.conversations(.conversation(id: conversationId.hexString, route: .joinuser))))
+                        }
+                    ))
+                }
+
+            case .joinToEvent(.success):
+                return presentChatView()
+            case .joinToEvent(.failure):
+                /// handle error here
+                return .none
+            case let .conversationResponse(.success(conversationItem)):
+                state.conversation = conversationItem
+                return .none
+            case .conversationResponse(.failure):
+                /// handle error here
+                return .none
+            case .userResponse:
+                return .none
+            }
+        }
     }
-
-    let threshouldIndex = state.events.index(state.events.endIndex, offsetBy: -5)
-    if state.events.firstIndex(where: { $0.id == item.id }) == threshouldIndex {
-      return fetchEvents
-    }
-
-    return .none
-
-  case let .event(index: index):
-
-    return .none
-  case let .eventsResponse(.success(eventArray)):
-
-    state.waitingForUpdateLocation = false
-    state.canLoadMorePages = state.events.count < eventArray.metadata.total
-    state.isLoadingPage = false
-    state.currentPage += 1
-
-    eventArray.items.forEach {
-      if !state.events.contains($0) {
-        state.events.append($0)
-      }
-    }
-
-    return .none
-
-  case let .eventsResponse(.failure(error)):
-    state.isLoadingPage = false
-    state.alert = .init(title: TextState(error.description))
-
-    return .none
-
-  case let .eventTapped(event):
-    state.event = event
-    return Effect(value: EventsAction.eventDetailsView(isPresented: true))
-      .receive(on: environment.mainQueue)
-      .eraseToEffect()
-
-  case let .addressResponse(.success(address)):
-    return .none
-
-  case let .eventPlacemarkResponse(.success(placemark)):
-    let formatter = CNPostalAddressFormatter()
-    guard let postalAddress = placemark.postalAddress else {
-      // handle error here
-      return .none
-    }
-    let addressString = formatter.string(from: postalAddress)
-    state.currentAddress = addressString
-    state.placeMark = placemark
-
-    return .none
-
-  case let .locationManager(.didUpdateLocations(locations)):
-    state.isLoadingPage = true
-    guard state.isConnected, let location = locations.first else { return .none }
-    state.location = location
-
-    return .merge(
-      fetchEvents,
-      getPlacemark(location)
-    )
-
-  case .locationManager:
-    return .none
-
-  case .currentLocationButtonTapped:
-    return currentLocationButtonTapped
-
-  case .popupSettings:
-    //    @available(iOSApplicationExtension, unavailable)
-    //    if let url = URL(string: UIApplication.openSettingsURLString), UIApplication.shared.canOpenURL(url) {
-    //      UIApplication.shared.open(url, options: [:], completionHandler: nil)
-    //    }
-
-    return .none
-
-  case .dismissEventDetails:
-    state.event = nil
-    state.eventDetailsState = nil
-    return .none
-
-  case let .eventFormView(isNavigate: active):
-
-    guard
-      let placeMark = state.placeMark,
-      let location = placeMark.location
-    else {
-      // pop alert let user know about issue
-      return .none
-    }
-
-    state.eventFormState =
-      active
-      ? EventFormState(
-        placeMark: state.placeMark,
-        eventAddress: state.currentAddress,
-        eventCoordinate: location.coordinate
-      )
-      : nil
-
-    return .none
-
-  case let .eventForm(.eventsResponse(.success(event))):
-    state.events.insert(event, at: 0)
-    return .none
-
-  case .eventForm(.backToPVAfterCreatedEventSuccessfully):
-    state.eventFormState = nil
-    return .none
-
-  case .eventForm:
-    return .none
-
-  case let .chat(isNavigate):
-    return .none
-
-  case let .eventDetailsView(isPresented: present):
-
-    guard let event = state.event else { return .none }
-
-    if present {
-      let eventDetailsOverlayState = EventDetailsOverlayState(alert: nil, event: event)
-
-      state.eventDetailsState = EventDetailsState(
-        event: event,
-        eventDetailsOverlayState: eventDetailsOverlayState
-      )
-    } else {
-      state.eventDetailsState = nil
-      state.event = nil
-    }
-    return .none
-
-  case let .eventDetails(action):
-    switch action {
-    case .onAppear, .alertDismissed, .moveToChatRoom(_), .updateRegion:
-      return .none
-
-    case let .eventDetailsOverlay(eventDetailsAction):
-      switch eventDetailsAction {
-      case .onAppear, .alertDismissed:
-        return .none
-      case let .startChat(present):
-        return presentChatView()
-
-      case let .askJoinRequest(bool):
-        state.isMovingChatRoom = bool
-        return .none
-
-      case let .joinToEvent(.success(string)):  // joinToEventRequest
-        return presentChatView()
-
-      case let .joinToEvent(.failure(error)):  // joinToEventRequest
-        return .none
-      case let .conversationResponse(.success(conversationItem)):
-        state.conversation = conversationItem
-        return .none
-      case let .conversationResponse(.failure(error)):
-        return .none
-      }
-    }
-
-  case let .chatView(isNavigate: isNavigate):
-    state.chatState = isNavigate ? ChatState(conversation: state.conversation) : nil
-    return .none
-  }
-}
-.combined(
-  with: locationManagerReducer
-    .pullback(state: \.self, action: /EventsAction.locationManager, environment: { $0 })
-)
-.signpost()
-.debug()
-.presenting(
-  eventFormReducer,
-  state: \.eventFormState,
-  action: /EventsAction.eventForm,
-  environment: { _ in EventFormEnvironment.live }
-)
-.presenting(
-  chatReducer,
-  state: \.chatState,
-  action: /EventsAction.chat,
-  environment: { _ in ChatEnvironment.live }
-)
-.presenting(
-  eventDetailsReducer,
-  state: \.eventDetailsState,
-  action: /EventsAction.eventDetails,
-  environment: { _ in EventDetailsEnvironment.live }
-)
-.debug()
-
-private let locationManagerReducer = Reducer<
-  EventsState, LocationManager.Action, EventsEnvironment
-> { state, action, environment in
-
-  switch action {
-  case .didChangeAuthorization(.authorizedAlways),
-    .didChangeAuthorization(.authorizedWhenInUse):
-
-    state.isLocationAuthorized = true
-    state.isConnected = true
-    state.waitingForUpdateLocation = false
-
-    if state.isRequestingCurrentLocation {
-      return environment.locationManager
-        .requestLocation()
-        .fireAndForget()
-    }
-    return .none
-
-  case .didChangeAuthorization(.denied),
-    .didChangeAuthorization(.restricted):
-
-    state.waitingForUpdateLocation = false
-    state.isLocationAuthorized = false
-    state.isConnected = false
-
-    state.alert = .init(
-      title: TextState("Please give us access to your location so you can use our full features"),
-      message: TextState("Please go to Settings and turn on the permissions"),
-      primaryButton: .cancel(.init("Cancel"), action: .send(.alertDismissed)),
-      secondaryButton: .default(.init("Go Settings"), action: .send(.popupSettings))
-    )
-    return .none
-
-  case let .didUpdateLocations(locations):
-    state.isRequestingCurrentLocation = false
-
-    return .none
-
-  default:
-    return .none
-  }
-}
-
-extension MKPlacemark {
-  var formattedAddress: String? {
-    guard let postalAddress = postalAddress else { return nil }
-    return CNPostalAddressFormatter.string(
-      from: postalAddress, style: .mailingAddress
-    )
-    .replacingOccurrences(of: "\n", with: " ")
-  }
 }

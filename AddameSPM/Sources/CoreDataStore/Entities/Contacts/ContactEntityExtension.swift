@@ -8,7 +8,7 @@
 import CoreData
 import Foundation
 import FoundationExtension
-import SharedModels
+import AddaSharedModels
 
 extension ContactEntity {
   static func allContactsFetchRequest() -> NSFetchRequest<ContactEntity> {
@@ -34,27 +34,27 @@ extension ContactEntity: ManagedModel {
 
   public static func findOrCreate(withData data: APIData, in context: NSManagedObjectContext)
     -> ContactEntity {
-    guard let content = data as? Contact else {
+    guard let content = data as? ContactOutPut else {
       fatalError("Incorrent API response")
     }
 
     let predicate = NSPredicate(format: "%K == %@", #keyPath(phoneNumber), content.phoneNumber)
     let contact = ContactEntity.findOrCreate(in: context, matching: predicate) { contact in
-      contact.id = content.id ?? String.empty
+        contact.id = content.id.hexString
       contact.fullName = content.fullName ?? String.empty
       contact.avatar = content.avatar
-      contact.identifier = content.identifier
+        contact.identifier = content.identifier ?? ""
       contact.isRegister = content.isRegister ?? false
-      contact.userId = content.userId ?? String.empty
+        contact.userId = content.userId.hexString
       contact.phoneNumber = content.phoneNumber
     }
 
-    contact.id = content.id ?? String.empty
+        contact.id = content.id.hexString
     contact.fullName = content.fullName ?? String.empty
     contact.avatar = content.avatar
-    contact.identifier = content.identifier
+        contact.identifier = content.identifier ?? ""
     contact.isRegister = content.isRegister ?? false
-    contact.userId = content.userId ?? String.empty
+        contact.userId = content.userId.hexString
     contact.phoneNumber = content.phoneNumber
 
     return contact
@@ -65,13 +65,15 @@ extension ContactEntity: ManagedModel {
   }
 }
 
-extension ContactEntity {
-  public func contact() -> Contact {
-    return Contact(
-      id: id, identifier: identifier,
-      userId: userId, phoneNumber: phoneNumber,
-      fullName: fullName, avatar: avatar,
-      isRegister: isRegister
-    )
-  }
-}
+// extension ContactEntity {
+//  public func contact() -> ContactInOutPut {
+//    return ContactInOutPut(
+//      id: id,
+//      identifier: identifier,
+//      userId: userId,
+//      phoneNumber: phoneNumber,
+//      fullName: fullName, avatar: avatar,
+//      isRegister: isRegister
+//    )
+//  }
+// }

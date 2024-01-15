@@ -7,6 +7,7 @@
 
 import MapKit
 import SwiftUI
+import AddaSharedModels
 
 #if os(macOS)
   public typealias ViewRepresentable = NSViewRepresentable
@@ -15,18 +16,18 @@ import SwiftUI
 #endif
 
 public struct MapView: ViewRepresentable {
-  let pointsOfInterest: [PointOfInterest]
+  var pointsOfInterest: [PointOfInterest]
   @Binding var region: CoordinateRegion?
-  let isEventDetailsView: Bool
+  let isHangoutDetailsView: Bool
 
   public init(
     pointsOfInterest: [PointOfInterest],
     region: Binding<CoordinateRegion?>,
-    isEventDetailsView: Bool = false
+    isHangoutDetailsView: Bool = false
   ) {
     self.pointsOfInterest = pointsOfInterest
     _region = region
-    self.isEventDetailsView = isEventDetailsView
+    self.isHangoutDetailsView = isHangoutDetailsView
   }
 
   #if os(macOS)
@@ -36,7 +37,7 @@ public struct MapView: ViewRepresentable {
 
   #elseif os(iOS)
     public func makeUIView(context: Context) -> MKMapView {
-      makeView(context: context)
+        makeView(context: context)
     }
   #endif
 
@@ -55,17 +56,26 @@ public struct MapView: ViewRepresentable {
     MapViewCoordinator(self)
   }
 
-  private func makeView(context _: Context) -> MKMapView {
+  private func makeView(context: Context) -> MKMapView {
     let mapView = MKMapView(frame: .zero)
     mapView.showsUserLocation = true
 
-    if isEventDetailsView {
+    if isHangoutDetailsView {
       //      mapView.isZoomEnabled = false
       mapView.isScrollEnabled = false
     }
 
+    mapView.delegate = context.coordinator
+    let longPressed = UILongPressGestureRecognizer(
+        target: context.coordinator,
+        action: #selector(context.coordinator.addPinBasedOnGesture(_:))
+    )
+    mapView.addGestureRecognizer(longPressed)
+
     return mapView
+
   }
+    
 
   private func updateView(mapView: MKMapView, delegate: MKMapViewDelegate) {
     mapView.delegate = delegate
@@ -111,6 +121,62 @@ public class MapViewCoordinator: NSObject, MKMapViewDelegate {
   public func mapView(_ mapView: MKMapView, regionDidChangeAnimated _: Bool) {
     self.mapView.region = CoordinateRegion(coordinateRegion: mapView.region)
   }
+
+//    public func mapView(_ mapView: MKMapView, annotationView view: MKAnnotationView, calloutAccessoryControlTapped control: UIControl) {
+//        let annotation = view.annotation
+//        guard let placemark = annotation as? MKPointAnnotation else { return }
+//    }
+
+//    public func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView?{
+//        //Custom View for Annotation
+//        let identifier = "Placemark"
+//        if  let annotationView = mapView.dequeueReusableAnnotationView(withIdentifier: identifier) {
+//            annotationView.annotation = annotation
+//            return annotationView
+//        } else {
+//            let annotationView = MKPinAnnotationView(annotation: annotation, reuseIdentifier: identifier)
+//            annotationView.isEnabled = true
+//            annotationView.canShowCallout = true
+//            let button = UIButton(type: .infoDark)
+//            annotationView.rightCalloutAccessoryView = button
+//            return annotationView
+//        }
+//    }
+
+//    public func mapView(_ mapView: MKMapView, didAdd views: [MKAnnotationView]) {
+//        if let annotationView = views.first {
+//            if let annotation = annotationView.annotation {
+//                if annotation is MKUserLocation {
+//                    let region = MKCoordinateRegion(center: annotation.coordinate, latitudinalMeters: 2000, longitudinalMeters: 2000)
+//                    mapView.setRegion(region, animated: true)
+//                }
+//            }
+//        }
+//    }
+
+    @objc func addPinBasedOnGesture(_ gestureRecognizer: UIGestureRecognizer) {
+        let touchPoint = gestureRecognizer.location(in: gestureRecognizer.view)
+        let newOptionalCoordinates = (gestureRecognizer.view as? MKMapView)?.convert(touchPoint, toCoordinateFrom: gestureRecognizer.view)
+
+        guard let newCoordinates = newOptionalCoordinates else { return }
+
+        print("newCoordinates", newCoordinates.latitude, newCoordinates.longitude)
+
+        // not working will back later after complete high priority task
+        mapView.pointsOfInterest = [.init(coordinate: CLLocationCoordinate2D(latitude: newCoordinates.latitude, longitude: newCoordinates.longitude), subtitle: "WOW", title: "Cool")]
+
+        mapView.region = CoordinateRegion(
+            center: CLLocationCoordinate2D(latitude: newCoordinates.latitude, longitude: newCoordinates.longitude),
+            span: MKCoordinateSpan(
+                latitudeDelta: 0.1,
+                longitudeDelta: 0.1
+            )
+        )
+
+
+//        mapView.addAnnotation(annotation)
+
+    }
 }
 
 public struct PointOfInterest: Equatable, Hashable {
@@ -126,35 +192,6 @@ public struct PointOfInterest: Equatable, Hashable {
     self.coordinate = coordinate
     self.subtitle = subtitle
     self.title = title
-  }
-}
-
-public struct CoordinateRegion: Equatable {
-  public var center: CLLocationCoordinate2D
-  public var span: MKCoordinateSpan
-
-  public init(
-    center: CLLocationCoordinate2D,
-    span: MKCoordinateSpan
-  ) {
-    self.center = center
-    self.span = span
-  }
-
-  public init(coordinateRegion: MKCoordinateRegion) {
-    center = coordinateRegion.center
-    span = coordinateRegion.span
-  }
-
-  public var asMKCoordinateRegion: MKCoordinateRegion {
-    .init(center: center, span: span)
-  }
-
-  public static func == (lhs: Self, rhs: Self) -> Bool {
-    lhs.center.latitude == rhs.center.latitude
-      && lhs.center.longitude == rhs.center.longitude
-      && lhs.span.latitudeDelta == rhs.span.latitudeDelta
-      && lhs.span.longitudeDelta == rhs.span.longitudeDelta
   }
 }
 

@@ -5,23 +5,11 @@
 //  Created by Saroar Khandoker on 12.05.2021.
 //
 
-import ChatView
-import Contacts
-import HTTPRequestKit
-import SharedModels
+
 
 // public enum ChatAction: Equatable {}
 
-public enum ContactsAction: Equatable {
-  case onAppear
-  case alertDismissed
-  case contact(id: String?, action: ContactRowAction)
-  case contactsAuthorizationStatus(CNAuthorizationStatus)
-  case contactsResponse(Result<[Contact], HTTPRequest.HRError>)
 
-  case moveToChatRoom(Bool)
-  case chatWith(name: String, phoneNumber: String)
-}
 
 // extension ContactsAction {
 //  static func view(_ localAction: ContactsView.ViewAction) -> Self {

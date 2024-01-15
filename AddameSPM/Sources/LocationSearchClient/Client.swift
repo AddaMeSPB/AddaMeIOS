@@ -9,15 +9,12 @@ import ComposableArchitecture
 import MapKit
 
 public struct LocalSearchClient {
-  public var search: (MKLocalSearch.Request) -> Effect<LocalSearchResponse, Error>
 
-  public init(
-    search: @escaping (
-      MKLocalSearch.Request
-    ) -> Effect<LocalSearchResponse, Error>
-  ) {
-    self.search = search
-  }
+    public var search: @Sendable (MKLocalSearch.Request) -> AsyncStream<LocalSearchResponse>
+    
+    public init(search: @escaping @Sendable (MKLocalSearch.Request) -> AsyncStream<LocalSearchResponse>) {
+        self.search = search
+    }
 
   public struct Error: Swift.Error, Equatable {
     public init() {}
